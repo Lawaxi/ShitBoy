@@ -13,6 +13,7 @@ import java.util.List;
 public class Pocket48Handler extends Handler {
 
     public static final String ROOT = "https://pocketapi.48.cn";
+    public static final String SOURCEROOT = "https://source.48.cn/";
     private static final String APILogin = ROOT + "/user/api/v1/login/app/mobile";
     private static final String APIStar2Server = ROOT + "/im/api/v1/im/server/jump";
     private static final String APIServer2Channel = ROOT + "/im/api/v1/team/last/message/get";
@@ -20,7 +21,9 @@ public class Pocket48Handler extends Handler {
     private static final String APIMsgOwner = ROOT + "/im/api/v1/team/message/list/homeowner";
     private static final String APIMsgAll = ROOT + "/im/api/v1/team/message/list/all";
     public static final String APIAnswerDetail = ROOT + "/idolanswer/api/idolanswer/v1/question_answer/detail";
-    public static final String APIUserInfo = ROOT + "/user/api/v1/user/info/home";
+    private static final String APIUserInfo = ROOT + "/user/api/v1/user/info/home";
+    private static final String APIRoomInfo = ROOT + "/im/api/v1/im/team/room/info";
+    private static final String APILiveList = ROOT + "/live/api/v1/live/getLiveList";
 
     private final Pocket48HandlerHeader header;
 
@@ -253,20 +256,74 @@ public class Pocket48Handler extends Handler {
         if (name.containsKey(starID))
             return name.get(starID);
 
+        JSONObject info = getUserInfo(starID);
+        if(info == null)
+            return null;
+
+        Object starName = info.getObj("starName");
+        String starName_ = starName == null ? "" : (String) starName;
+        name.put(starID, starName_);
+        return starName_;
+    }
+
+    public JSONObject getUserInfo(int starID) {
         String s = post(APIUserInfo, String.format("{\"userId\":%d}", starID));
         JSONObject object = JSONUtil.parseObj(s);
 
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            JSONObject info = JSONUtil.parseObj(content.getObj("baseUserInfo"));
-            Object starName = info.getObj("starName");
-            String starName_ = starName == null ? "" : (String) starName;
-            name.put(starID, starName_);
-            return starName_;
+            return JSONUtil.parseObj(content.getObj("baseUserInfo"));
 
         } else {
             logError(object.getStr("message"));
         }
         return null;
+
+    }
+
+    public JSONObject getRoomInfo(int channelID) {
+        String s = post(APIRoomInfo, String.format("{\"channelId\":\"%d\"}", channelID));
+        JSONObject object = JSONUtil.parseObj(s);
+
+        if (object.getInt("status") == 200) {
+            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
+            return JSONUtil.parseObj(content.getObj("channelInfo"));
+
+        } else {
+            logError(object.getStr("message"));
+        }
+        return null;
+
+    }
+
+    //获取一个JSONObejct表
+    public List<Object> getLiveList(){
+        String s = post(APILiveList, String.format("{\"groupId\":0,\"debug\":true,\"next\":0,\"record\":false}"));
+        JSONObject object = JSONUtil.parseObj(s);
+
+        if (object.getInt("status") == 200) {
+            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
+            return content.getBeanList("liveList",Object.class);
+
+        } else {
+            logError(object.getStr("message"));
+        }
+        return null;
+
+    }
+
+    public List<Object> getRecordList(){
+        String s = post(APILiveList, String.format("{\"groupId\":0,\"debug\":true,\"next\":0,\"record\":true}"));
+        JSONObject object = JSONUtil.parseObj(s);
+
+        if (object.getInt("status") == 200) {
+            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
+            return content.getBeanList("liveList",Object.class);
+
+        } else {
+            logError(object.getStr("message"));
+        }
+        return null;
+
     }
 }

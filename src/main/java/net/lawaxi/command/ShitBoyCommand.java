@@ -2,19 +2,13 @@ package net.lawaxi.command;
 
 import net.lawaxi.Shitboy;
 import net.lawaxi.util.handler.Pocket48Handler;
-import net.mamoe.mirai.console.command.CommandOwner;
 import net.mamoe.mirai.console.command.CommandSender;
 import net.mamoe.mirai.console.command.java.JCompositeCommand;
-import org.jetbrains.annotations.NotNull;
 
 public class ShitBoyCommand extends JCompositeCommand {
 
     public ShitBoyCommand() {
-        this(Shitboy.INSTANCE, "shitboy", "开关");
-    }
-
-    public ShitBoyCommand(@NotNull CommandOwner owner, @NotNull String primaryName, @NotNull String... secondaryNames) {
-        super(owner, primaryName, secondaryNames);
+        super(Shitboy.INSTANCE, "shitboy", "开关");
     }
 
     @SubCommand({"on"})

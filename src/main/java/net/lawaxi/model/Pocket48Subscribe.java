@@ -5,10 +5,12 @@ import java.util.List;
 public class Pocket48Subscribe {
     private final List<Integer> roomIDs;
     private final List<Integer> starIDs;
+    private final boolean showAtOne;
 
-    public Pocket48Subscribe(List<Integer> roomIDs, List<Integer> starIDs) {
+    public Pocket48Subscribe(boolean showAtOne, List<Integer> roomIDs, List<Integer> starIDs) {
         this.roomIDs = roomIDs;
         this.starIDs = starIDs;
+        this.showAtOne = showAtOne;
     }
 
     public List<Integer> getRoomIDs() {
@@ -17,5 +19,9 @@ public class Pocket48Subscribe {
 
     public List<Integer> getStarIDs() {
         return starIDs;
+    }
+
+    public boolean showAtOne() {
+        return showAtOne;
     }
 }

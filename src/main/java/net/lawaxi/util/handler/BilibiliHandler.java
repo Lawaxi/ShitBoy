@@ -16,9 +16,9 @@ public class BilibiliHandler extends Handler {
         super(properties);
     }
 
-    private HashMap<String, Boolean> status = new HashMap<>();
+    private HashMap<Integer, Boolean> status = new HashMap<>();
 
-    public JSONObject shouldMention(String room_id) {
+    public JSONObject shouldMention(int room_id) {
         //当前状态
         JSONObject data = getLiveData(room_id); //data
         if (data.getInt("code") == 1) {
@@ -41,7 +41,7 @@ public class BilibiliHandler extends Handler {
         return null;
     }
 
-    public JSONObject getLiveData(String room_id) {
+    public JSONObject getLiveData(int room_id) {
         String s = HttpUtil.get(APILiveInfo + "room_id=" + room_id);
         return JSONUtil.parseObj(s);
     }

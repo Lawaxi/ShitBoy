@@ -4,6 +4,7 @@ import cn.hutool.cron.CronUtil;
 import net.lawaxi.command.ShitBoyCommand;
 import net.lawaxi.util.ConfigOperator;
 import net.lawaxi.util.Listener;
+import net.lawaxi.util.ListenerYLG;
 import net.lawaxi.util.handler.BilibiliHandler;
 import net.lawaxi.util.handler.Pocket48Handler;
 import net.lawaxi.util.sender.BilibiliSender;
@@ -18,10 +19,7 @@ import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
 import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.BotOnlineEvent;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 public final class Shitboy extends JavaPlugin {
@@ -32,7 +30,7 @@ public final class Shitboy extends JavaPlugin {
     private BilibiliHandler handlerBilibili;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.2-test4")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.3-test7")
                 .name("shitboy")
                 .author("delay")
                 .info("易拉罐人日常刚需")
@@ -46,6 +44,7 @@ public final class Shitboy extends JavaPlugin {
         registerPermission();
         registerCommand();
         GlobalEventChannel.INSTANCE.registerListenerHost(new Listener());
+        GlobalEventChannel.INSTANCE.registerListenerHost(new ListenerYLG());
         GlobalEventChannel.INSTANCE.parentScope(INSTANCE).subscribeOnce(BotOnlineEvent.class, event -> {
             listenBroadcast();
         });
@@ -85,18 +84,14 @@ public final class Shitboy extends JavaPlugin {
     }
 
     public void registerPermission() {
-        //将配置中的管理员字符数组转成权限被许可人列表
-        List<AbstractPermitteeId.ExactUser> users = Arrays.stream(properties.admins)
-                .map(admin -> new AbstractPermitteeId.ExactUser(Long.parseLong(admin)))
-                .collect(Collectors.toList());
-        //获取插件对应的权限
         PermissionId permissionId = this.getParentPermission().getId();
-        //将为注册的管理员设置权限
-        users.forEach(user -> {
+        for(String a : properties.admins){
+            AbstractPermitteeId.ExactUser user =  new AbstractPermitteeId.ExactUser(Long.parseLong(a));
+
             if (!PermissionService.hasPermission(user, permissionId)) {
                 PermissionService.permit(user, permissionId);
             }
-        });
+        }
     }
 
 
@@ -114,7 +109,6 @@ public final class Shitboy extends JavaPlugin {
             for (long group : properties.pocket48_subscribe.keySet()) {
 
                 HashMap<Integer, Long> endTime = new HashMap<>();//获取房间消息的最晚时间
-                b.getGroup(group).sendMessage("启动成功～(￣▽￣～)\n当前版本：" + getDescription().getVersion());
                 handlerPocket48.setCronScheduleID(CronUtil.schedule("* * * * * *", new Runnable() {
                             @Override
                             public void run() {
