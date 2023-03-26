@@ -18,6 +18,7 @@ public class Pocket48Answer {
         this.questionID = questionID;
         this.type = type;
     }
+
     public String getMsgTo() {
         return msgTo;
     }
@@ -31,8 +32,17 @@ public class Pocket48Answer {
     }
 
     private final static String ROOT = "https://mp4.48.cn";
-    public String getResInfo(){
+
+    public String getResInfo() {
         JSONObject object = JSONUtil.parseObj(getBodyFrom());
         return ROOT + object.getStr("url");
+    }
+
+    public String getQuestionID() {
+        return questionID;
+    }
+
+    public String getAnswerID() {
+        return answerID;
     }
 }
