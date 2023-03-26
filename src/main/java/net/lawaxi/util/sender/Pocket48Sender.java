@@ -51,16 +51,15 @@ public class Pocket48Sender extends Sender {
                 //需要累加的消息
                 for(Pocket48Message[] roomMessage : totalMessages) {
                     Message joint = null;
-                    for (Pocket48Message message : roomMessage) {
-                        Pocket48SenderMessage message1 = null;
+                    for (int i=roomMessage.length-1;i>=0;i--) { //倒序输出
                         try {
-                            message1 = pharseMessage(message, group);
+                            Pocket48SenderMessage message1 = pharseMessage(roomMessage[i], group);
                             pharsedMessage.add(message1);
 
                             if (message1.canJoin()) {
                                 if (joint == null)
                                     joint = message1.getTitle();
-                                joint = joint.plus(message1.getMessage()[0]).plus("\n");
+                                joint = joint.plus("· ").plus(message1.getMessage()[0]).plus("\n");
                             }
 
                         } catch (IOException e) {
@@ -92,9 +91,9 @@ public class Pocket48Sender extends Sender {
 
             }else{
                 for(Pocket48Message[] roomMessage : totalMessages) {
-                    for (Pocket48Message message : roomMessage) {
+                    for (int i=roomMessage.length-1;i>=0;i--) { //倒序输出
                         try {
-                            for (Message m : pharseMessage(message, group).getUnjointMessage()) {
+                            for (Message m : pharseMessage(roomMessage[i], group).getUnjointMessage()) {
                                 group.sendMessage(m);
                             }
                         }catch (Exception e)

@@ -75,6 +75,7 @@ public class Listener extends SimpleListenerHost {
                                 String name = userInfo.getStr("starName");
                                 String userId = userInfo.getStr("userId");
                                 out+=count+". ("+userId+")"+name+": "+title+"\n";
+                                count++;
                             }
                             return new PlainText(out);
                         }
@@ -89,6 +90,7 @@ public class Listener extends SimpleListenerHost {
                                 String name = userInfo.getStr("starName");
                                 String userId = userInfo.getStr("userId");
                                 out+=count+". ("+userId+")"+name+": "+title+"\n";
+                                count++;
                             }
                             return new PlainText(out);
 
