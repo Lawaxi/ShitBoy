@@ -93,6 +93,12 @@ public class ConfigOperator {
     }
 
     public void addPocket48RoomSubscribe(int room_id, long group){
+        if(!properties.pocket48_subscribe.containsKey(group)){
+            properties.pocket48_subscribe.put(group, new Pocket48Subscribe(
+                    true, new ArrayList<>(), new ArrayList<>()
+            ));
+        }
+
         properties.pocket48_subscribe.get(group).getRoomIDs().add(room_id);
         savePocket48Config();
     }
@@ -103,6 +109,9 @@ public class ConfigOperator {
     }
 
     public void addBilibiliLiveSubscribe(int room_id, long group){
+        if(!properties.bilibili_subscribe.containsKey(group)){
+            properties.bilibili_subscribe.put(group, new ArrayList<>());
+        }
         properties.bilibili_subscribe.get(group).add(room_id);
         saveBilibiliConfig();
     }

@@ -47,7 +47,10 @@ public class Listener extends SimpleListenerHost {
                 else if(args.length == 2) {
                     switch (args[1]) {
                         case "关注列表": {
-                            String out = "本群关注列表：\n";
+                            String out = "本群口袋房间关注列表：\n";
+                            if(!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
+                                return new PlainText("暂无");
+
                             int count = 1;
                             for(int room_id : Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs()){
                                 out+=count+". ("+room_id+")";
@@ -150,20 +153,19 @@ public class Listener extends SimpleListenerHost {
                         }
 
                         case "取消关注": {
-                            try {
-                                if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs().contains(Integer.valueOf(args[2]))) {
-                                    JSONObject roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
-                                    Shitboy.INSTANCE.getConfig().rmPocket48RoomSubscribe(Integer.valueOf(args[2]), group);
-                                    if (roomInfo != null) {
-                                        String roomName = roomInfo.getStr("channelName");
-                                        String ownerName = roomInfo.getStr("ownerName");
-                                        return new PlainText("本群取消关注：" + roomName + "(" + ownerName + ")");
-                                    } else return new PlainText("本群取消关注：未知房间");
-                                }
-                                return new PlainText("本群没有关注此房间捏~");
-                            }catch (Exception e) {
-                                e.printStackTrace();
+                            if(!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
+                                return new PlainText("本群暂无房间关注，先添加一个吧~");
+
+                            if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs().contains(Integer.valueOf(args[2]))) {
+                                JSONObject roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
+                                Shitboy.INSTANCE.getConfig().rmPocket48RoomSubscribe(Integer.valueOf(args[2]), group);
+                                if (roomInfo != null) {
+                                    String roomName = roomInfo.getStr("channelName");
+                                    String ownerName = roomInfo.getStr("ownerName");
+                                    return new PlainText("本群取消关注：" + roomName + "(" + ownerName + ")");
+                                } else return new PlainText("本群取消关注：未知房间");
                             }
+                            return new PlainText("本群没有关注此房间捏~");
 
                         }
                     }
@@ -175,7 +177,10 @@ public class Listener extends SimpleListenerHost {
                 else if(args.length == 2) {
                     switch (args[1]) {
                         case "关注列表": {
-                            String out = "本群关注列表：\n";
+                            String out = "本群Bilibili直播间关注列表：\n";
+                            if(!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
+                                return new PlainText("暂无");
+
                             int count = 1;
                             for(int room_id : Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group)){
                                 out+=count+". ("+room_id+")";
@@ -211,6 +216,9 @@ public class Listener extends SimpleListenerHost {
                         }
 
                         case "取消关注": {
+                            if(!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
+                                return new PlainText("本群暂无Bilibili直播间关注，先添加一个吧~");
+
                             if(Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group).contains(Integer.valueOf(args[2]))) {
                                 JSONObject data = Shitboy.INSTANCE.getHandlerBilibili().getLiveData(Integer.valueOf(args[2]));
                                 Shitboy.INSTANCE.getConfig().rmBilibiliLiveSubscribe(Integer.valueOf(args[2]), group);

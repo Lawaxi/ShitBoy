@@ -30,7 +30,7 @@ public final class Shitboy extends JavaPlugin {
     private BilibiliHandler handlerBilibili;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.3-test8")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.3-test9")
                 .name("shitboy")
                 .author("delay")
                 .info("易拉罐人日常刚需")
@@ -119,7 +119,7 @@ public final class Shitboy extends JavaPlugin {
             }
 
             for (long group : properties.bilibili_subscribe.keySet()) {
-                handlerBilibili.setCronScheduleID(CronUtil.schedule("* * * * * *", new Runnable() {
+                handlerBilibili.setCronScheduleID(CronUtil.schedule("*/2 * * * * *", new Runnable() {
                             @Override
                             public void run() {
                                 new BilibiliSender(b, group).start();
