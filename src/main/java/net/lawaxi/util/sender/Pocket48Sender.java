@@ -59,7 +59,7 @@ public class Pocket48Sender extends Sender {
                             if (message1.canJoin()) {
                                 if (joint == null)
                                     joint = message1.getTitle();
-                                joint = joint.plus("· ").plus(message1.getMessage()[0]).plus("\n");
+                                joint = joint.plus(message1.getMessage()[0]).plus("\n");
                             }
 
                         } catch (IOException e) {
