@@ -7,10 +7,7 @@ import net.lawaxi.model.Pocket48Subscribe;
 import net.lawaxi.util.handler.Pocket48Handler;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Group;
-import net.mamoe.mirai.message.data.Audio;
-import net.mamoe.mirai.message.data.Image;
-import net.mamoe.mirai.message.data.Message;
-import net.mamoe.mirai.message.data.PlainText;
+import net.mamoe.mirai.message.data.*;
 import net.mamoe.mirai.utils.ExternalResource;
 
 import java.io.IOException;
@@ -18,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Pocket48Sender extends Sender {
     private final HashMap<Integer, Long> endTime;
@@ -51,14 +50,21 @@ public class Pocket48Sender extends Sender {
                 //需要累加的消息
                 for(Pocket48Message[] roomMessage : totalMessages) {
                     Message joint = null;
+                    Message title = null;
                     for (int i=roomMessage.length-1;i>=0;i--) { //倒序输出
                         try {
                             Pocket48SenderMessage message1 = pharseMessage(roomMessage[i], group);
                             pharsedMessage.add(message1);
 
                             if (message1.canJoin()) {
-                                if (joint == null)
-                                    joint = message1.getTitle();
+                                if (joint == null) {
+                                    title = joint = message1.getTitle();
+                                }
+                                else if(!title.contentEquals(message1.getTitle(),false)){
+                                    joint = joint.plus(message1.getTitle());
+                                    title = message1.getTitle();
+                                }
+
                                 joint = joint.plus(message1.getMessage()[0]).plus("\n");
                             }
 
@@ -113,7 +119,7 @@ public class Pocket48Sender extends Sender {
         switch (message.getType()) {
             case TEXT:
                 return new Pocket48SenderMessage(true, new PlainText(name),
-                        new Message[]{new PlainText(message.getBody())});
+                        new Message[]{pharsePocketTextWithFace(message.getBody())});
             case AUDIO: {
                 Audio audio = group.uploadAudio(ExternalResource.create(getRes(message.getResLoc())));
                 return new Pocket48SenderMessage(true, new PlainText(name),
@@ -130,7 +136,7 @@ public class Pocket48Sender extends Sender {
                     @Override
                     public void run() {
                         try {
-                            group.getFiles().uploadNewFile("/" + r + "房间视频(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ")",
+                            group.getFiles().uploadNewFile("/" + r + "房间视频(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ").mp4",
                                     ExternalResource.create(getRes(message.getResLoc())));
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -151,22 +157,22 @@ public class Pocket48Sender extends Sender {
                         new Message[]{new PlainText("【" + getName() + "口袋48开播啦~】\n"
                         + message.getLivePush().getTitle()).plus(cover)});
             case FLIPCARD:
-                return new Pocket48SenderMessage(false,null, new Message[]{new PlainText("【" + getName() + "翻牌回复消息】\n"
+                return new Pocket48SenderMessage(false,null, new Message[]{new PlainText("【" + message.getOwnerName() + "翻牌回复消息】\n"
                         + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
-                        + "------"
+                        + "\n------\n"
                         + message.getAnswer().getAnswer())});
             case FLIPCARD_AUDIO:
                 Audio audio = group.uploadAudio(ExternalResource.create(getRes(message.getResLoc())));
                 return new Pocket48SenderMessage(false,null,
                         new Message[]{new PlainText("【" + getName() + "语音翻牌回复消息】\n"
                         + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
-                        + "------"), audio});
+                        + "\n------\n"), audio});
             case FLIPCARD_VIDEO:
                 new Thread() {
                     @Override
                     public void run() {
                         try {
-                            group.getFiles().uploadNewFile("/" + message.getOwnerName() + "公开视频翻牌(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ")",
+                            group.getFiles().uploadNewFile("/" + message.getOwnerName() + "公开视频翻牌(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ").mp4",
                                     ExternalResource.create(getRes(message.getResLoc())));
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -188,6 +194,32 @@ public class Pocket48Sender extends Sender {
 
         return new Pocket48SenderMessage(true, new PlainText(name),
                 new Message[]{new PlainText("不支持的消息")});
+    }
+
+    public Message pharsePocketTextWithFace(String body){
+        if(!body.contains("["))
+            return new PlainText(body);
+
+        String[] a = body.split("\\[.*?\\]");//其余部分
+        Message out = new PlainText(a[0]);
+        int count = 1;
+
+        Matcher b = Pattern.compile("\\[.*?\\]").matcher(body);
+        while(b.find()){
+            out = out.plus(pharsePocketFace(b.group())).plus(a[count]);
+            count++;
+        }
+
+        return out;
+    }
+
+    public Message pharsePocketFace(String face){
+        for(int i = 0;i<Face.names.length;i++)
+        {
+            if(Face.names[i].equals(face))
+                return new Face(i);
+        }
+        return new PlainText(face);
     }
 
 }

@@ -1,6 +1,5 @@
 package net.lawaxi.util;
 
-import cn.hutool.http.HttpUtil;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.contact.NormalMember;
@@ -13,8 +12,6 @@ import net.mamoe.mirai.message.data.Message;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ListenerYLG extends SimpleListenerHost {
 
@@ -25,7 +22,6 @@ public class ListenerYLG extends SimpleListenerHost {
         Group group = event.getGroup();
         String message = event.getMessage().contentToString();
 
-
         if (sender instanceof NormalMember) {
             long qqID = sender.getId();
             if (qqID == 1004297982L) {
@@ -33,23 +29,6 @@ public class ListenerYLG extends SimpleListenerHost {
                 if ((message.indexOf("wife") != -1
                         || message.indexOf("wives") != -1 || message.indexOf("外敷") != -1))
                     group.sendMessage("傻逼");
-
-                //在单推人发布错误详情时指正
-                if (message.indexOf("b23.tv") != -1) {
-                    Matcher matcher = Pattern.compile("(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]").matcher(message);
-                    while (matcher.find()) {
-                        try {
-                            String a1 = "<title data-vue-meta=\"true\">";
-                            String a2 = "_哔哩哔哩_bilibili</title>";
-                            String info = HttpUtil.get(matcher.group());
-                            String title = info.substring(info.indexOf(a1) + a1.length(), info.indexOf(a2));
-                            group.sendMessage("真实标题为：" + title);
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
             }
 
             //群主

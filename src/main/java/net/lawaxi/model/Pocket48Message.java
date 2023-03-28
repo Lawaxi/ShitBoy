@@ -112,10 +112,10 @@ public class Pocket48Message {
         JSONObject content = JSONUtil.parseObj(object.getObj(
                 "filpCardInfo"));
         return new Pocket48Answer(
-                content.getStr("qustion"),
+                content.getStr("question"),
                 content.getStr("answer"),
-                content.getStr("answerID"),
-                content.getStr("questionID"),
+                content.getStr("answerId"),
+                content.getStr("questionId"),
                 getType()
         );
     }
