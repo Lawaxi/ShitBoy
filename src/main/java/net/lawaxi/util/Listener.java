@@ -104,7 +104,7 @@ public class Listener extends SimpleListenerHost {
                     }
 
                 }
-                else {
+                else if(args.length == 3) {
                     switch (args[1]) {
                         case "查询": {
                             int star_ID = Integer.valueOf(args[2]);
@@ -167,6 +167,20 @@ public class Listener extends SimpleListenerHost {
                                 } else return new PlainText("本群取消关注：未知房间");
                             }
                             return new PlainText("本群没有关注此房间捏~");
+
+                        }
+                    }
+                }
+                else if(args.length == 3) {
+                    switch (args[1]) {
+                        case "连接": {
+                            int room_id = Integer.valueOf(args[2]);
+                            int server_id = Integer.valueOf(args[3]);
+                            if(testRoomIDWithServerID(room_id,server_id)){
+                                Shitboy.INSTANCE.getConfig().addRoomIDConnection(room_id,server_id);
+                                return new PlainText("连接成功");
+                            }else
+                                return new PlainText("您输入的ServerId并不包含此RoomId");
 
                         }
                     }
@@ -251,7 +265,9 @@ public class Listener extends SimpleListenerHost {
                         + "/口袋 关注 <房间ID>\n"
                         + "/口袋 取消关注 <房间ID>\n"
                         + "/口袋 关注列表\n"
-                        + "注：不知道房间ID可以在直播的时候先通过查直播获得成员ID，再通过查询获得房间ID\n");
+                        + "/口袋 连接 <加密房间ID> <ServerId>\n"
+                        + "注1：不知道房间ID可以在直播的时候先通过查直播获得成员ID，再通过查询获得房间ID\n"
+                        + "注2：不知道密码的加密房间如果知道serverId，通过连接功能连接以后照样可以关注并获取消息\n");
             case 2:
                 return new PlainText( "【B站直播相关】\n"
                         + "/bili 关注 <直播ID>\n"
@@ -268,5 +284,13 @@ public class Listener extends SimpleListenerHost {
     @EventHandler()
     public ListeningStatus onFriendMessage(FriendMessageEvent event) {
         return ListeningStatus.LISTENING;
+    }
+
+    private boolean testRoomIDWithServerID(int room_id, int server_id){
+        for (int i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
+            if(i == room_id)
+                return true;
+        }
+        return false;
     }
 }

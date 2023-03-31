@@ -1,17 +1,22 @@
 package net.lawaxi.model;
 
+import cn.hutool.json.JSONObject;
+
 public class Pocket48RoomInfo {
     private final String roomName;
     private final String ownerName;//储存question
+    private final int severId;
 
-    public Pocket48RoomInfo(String roomName, String ownerName) {
-        this.roomName = roomName;
-        this.ownerName = ownerName;
+    public Pocket48RoomInfo(JSONObject roomInfo) {
+        this.roomName = roomInfo.getStr("channelName");
+        this.ownerName = roomInfo.getStr("ownerName");
+        this.severId = roomInfo.getInt("serverId");
     }
 
-    public Pocket48RoomInfo(String question) {
-        this.roomName = "?加密房间?";
+    public Pocket48RoomInfo(String question, int serverId) {
+        this.severId = serverId;
         this.ownerName = question;
+        this.roomName = "?加密房间?";
     }
 
 
@@ -22,4 +27,10 @@ public class Pocket48RoomInfo {
     public String getOwnerName() {
         return ownerName;
     }
+
+    public int getSeverId() {
+        return severId;
+    }
+
+
 }

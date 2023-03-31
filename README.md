@@ -1,4 +1,6 @@
-# Shitboy: Mirai插件，用于易拉罐群口袋48&Bilibili等提醒
+# Shitboy: Mirai-Console插件，用于易拉罐群口袋48&Bilibili等提醒
+
+注意，从便携简介角度考虑，本项目是Mirai-Console插件而非像48tools一样封装运行的完整程序。
 
 ### 0.1.0
 
@@ -19,3 +21,4 @@
 2. 常规消息合并发送
 3. 易拉罐群特殊代码都在util/ListenerYLG中，删掉即可正常使用
 4. test6-新增查直播&查录播功能
+5. test14-关注未解锁的加密房间

@@ -18,6 +18,7 @@ public class Properties {
     public String pocket48_account;
     public String pocket48_password;
     public HashMap<Long, Pocket48Subscribe> pocket48_subscribe = new HashMap<>();
+    public HashMap<Integer,Integer> pocket48_serverID = new HashMap<>();//加密房间的severID记录
 
     //bilibili
     public HashMap<Long, List<Integer>> bilibili_subscribe = new HashMap<>();

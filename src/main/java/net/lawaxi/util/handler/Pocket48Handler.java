@@ -150,12 +150,13 @@ public class Pocket48Handler extends Handler {
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
             JSONObject roomInfo = JSONUtil.parseObj(content.getObj("channelInfo"));
-            return new Pocket48RoomInfo(roomInfo.getStr("channelName"),roomInfo.getStr("ownerName"));
+            return new Pocket48RoomInfo(roomInfo);
 
         }else if(object.getInt("status") == 2001
-        && object.getStr("message").indexOf("question") != -1){
+        && object.getStr("message").indexOf("question") != -1
+        && properties.pocket48_serverID.containsKey(roomID)){ //只有配置中存有severID的加密房间会被解析
             JSONObject message = JSONUtil.parseObj(object.getObj("message"));
-            return new Pocket48RoomInfo(message.getStr("question"));
+            return new Pocket48RoomInfo(message.getStr("question"), properties.pocket48_serverID.get(roomID));
         }
         else {
             logError(object.getStr("message"));
@@ -170,7 +171,7 @@ public class Pocket48Handler extends Handler {
         if (roomInfo != null) {
             String roomName = roomInfo.getRoomName();
             String ownerName = roomInfo.getOwnerName();
-            List<Object> msgs = getOMessages(roomID);
+            List<Object> msgs = getOMessages(roomID,roomInfo.getSeverId());
             if (msgs != null) {
                 List<Pocket48Message> rs = new ArrayList<>();
                 Long latest = null;
@@ -201,11 +202,11 @@ public class Pocket48Handler extends Handler {
     }
 
     public Pocket48Message[] getMessages(int roomID) {
-        JSONObject roomInfo = getRoomInfoByChannelID(roomID);
+        Pocket48RoomInfo roomInfo = getRoomInfoByChannelID(roomID);
         if (roomInfo != null) {
-            String roomName = roomInfo.getStr("channelName");
-            String ownerName = roomInfo.getStr("ownerName");
-            List<Object> msgs = getOMessages(roomID);
+            String roomName = roomInfo.getRoomName();
+            String ownerName = roomInfo.getOwnerName();
+            List<Object> msgs = getOMessages(roomID,roomInfo.getSeverId());
             if (msgs != null) {
                 List<Pocket48Message> rs = new ArrayList<>();
                 for (Object message : msgs) {
@@ -223,21 +224,17 @@ public class Pocket48Handler extends Handler {
         return new Pocket48Message[0];
     }
 
-    private List<Object> getOMessages(int roomID) {
-        JSONObject roomInfo = getRoomInfoByChannelID(roomID);
-        if (roomInfo != null) {
-            int serverID = roomInfo.getInt("serverId");
-            String s = post(APIMsgOwner, String.format("{\"nextTime\":0,\"serverId\":%d,\"channelId\":%d,\"limit\":100}", serverID, roomID));
-            JSONObject object = JSONUtil.parseObj(s);
+    private List<Object> getOMessages(int roomID, int serverID) {
+        String s = post(APIMsgOwner, String.format("{\"nextTime\":0,\"serverId\":%d,\"channelId\":%d,\"limit\":100}", serverID, roomID));
+        JSONObject object = JSONUtil.parseObj(s);
 
-            if (object.getInt("status") == 200) {
-                JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-                return content.getBeanList("message", Object.class);
+        if (object.getInt("status") == 200) {
+            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
+            return content.getBeanList("message", Object.class);
 
-            } else {
-                logError(object.getStr("message"));
+        } else {
+            logError(object.getStr("message"));
 
-            }
         }
         return null;
     }

@@ -80,6 +80,12 @@ public class ConfigOperator {
                             ));
         }
 
+        for (Object a :
+                JSONUtil.parseArray(setting.getByGroup("roomConnection", "pocket48")).toArray()) {
+            JSONObject sid = JSONUtil.parseObj(a);
+            properties.pocket48_serverID.put(sid.getInt("roomID"),sid.getInt("severID"));
+        }
+
         //bilibili
         for (Object a :
                 JSONUtil.parseArray(setting.getByGroup("subscribe", "bilibili")).toArray()) {
@@ -100,12 +106,22 @@ public class ConfigOperator {
         }
 
         properties.pocket48_subscribe.get(group).getRoomIDs().add(room_id);
-        savePocket48Config();
+        savePocket48SubscribeConfig();
     }
 
     public void rmPocket48RoomSubscribe(int room_id, long group){
         properties.pocket48_subscribe.get(group).getRoomIDs().remove((Object) room_id);
-        savePocket48Config();
+        savePocket48SubscribeConfig();
+    }
+
+    public void addRoomIDConnection(int room_id, int sever_id){
+        properties.pocket48_serverID.put(room_id,sever_id);
+        savePocket48RoomIDConnectConfig();
+    }
+
+    public void rmRoomIDConnection(int room_id, int sever_id){
+        properties.pocket48_serverID.remove(room_id,sever_id);
+        savePocket48RoomIDConnectConfig();
     }
 
     public void addBilibiliLiveSubscribe(int room_id, long group){
@@ -121,7 +137,7 @@ public class ConfigOperator {
         saveBilibiliConfig();
     }
 
-    private void savePocket48Config(){
+    private void savePocket48SubscribeConfig(){
         String a = "[";
         for(long group : properties.pocket48_subscribe.keySet()){
             JSONObject object = new JSONObject();
@@ -133,6 +149,19 @@ public class ConfigOperator {
             a += object+",";
         }
         setting.setByGroup("subscribe", "pocket48", (a.length()>1 ? a.substring(0,a.length()-1) : a)+"]");
+        setting.store();
+    }
+
+
+    private void savePocket48RoomIDConnectConfig(){
+        String a = "[";
+        for(int room_id : properties.pocket48_serverID.keySet()){
+            JSONObject object = new JSONObject();
+            object.set("roomID",room_id);
+            object.set("serverID",properties.pocket48_subscribe.get(room_id));
+            a += object+",";
+        }
+        setting.setByGroup("roomConnection", "pocket48", (a.length()>1 ? a.substring(0,a.length()-1) : a)+"]");
         setting.store();
     }
 
