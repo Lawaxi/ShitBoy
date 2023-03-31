@@ -4,6 +4,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.Shitboy;
+import net.lawaxi.model.Pocket48RoomInfo;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.event.EventHandler;
@@ -56,10 +57,10 @@ public class Listener extends SimpleListenerHost {
                                 out+=count+". ("+room_id+")";
                                 count++;
 
-                                JSONObject roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(room_id);
+                                Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(room_id);
                                 if(roomInfo !=null) {
-                                    String roomName = roomInfo.getStr("channelName");
-                                    String ownerName = roomInfo.getStr("ownerName");
+                                    String roomName = roomInfo.getRoomName();
+                                    String ownerName = roomInfo.getOwnerName();
                                     out += roomName + "(" + ownerName + ")\n";
                                 }
                                 else
@@ -126,7 +127,7 @@ public class Listener extends SimpleListenerHost {
                                     out += "Server_id: " + server_id + "\n";
                                     for (int i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
                                         out += "(" + i + ")" + Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(i)
-                                                .getStr("channelName") + "\n";
+                                                .getRoomName() + "\n";
                                     }
                                 }
                             }catch (Exception e){
@@ -141,14 +142,14 @@ public class Listener extends SimpleListenerHost {
                             }
                         }
                         case "关注": {
-                            JSONObject roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
+                            Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
                             if (roomInfo == null) {
                                 return new PlainText("房间ID不存在。查询房间ID请输入/口袋 查询 <成员ID>");
                             }
 
                             Shitboy.INSTANCE.getConfig().addPocket48RoomSubscribe(Integer.valueOf(args[2]), group);
-                            String roomName = roomInfo.getStr("channelName");
-                            String ownerName = roomInfo.getStr("ownerName");
+                            String roomName = roomInfo.getRoomName();
+                            String ownerName = roomInfo.getOwnerName();
                             return new PlainText("本群新增关注：" + roomName + "(" + ownerName + ")");
                         }
 
@@ -157,11 +158,11 @@ public class Listener extends SimpleListenerHost {
                                 return new PlainText("本群暂无房间关注，先添加一个吧~");
 
                             if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs().contains(Integer.valueOf(args[2]))) {
-                                JSONObject roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
+                                Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
                                 Shitboy.INSTANCE.getConfig().rmPocket48RoomSubscribe(Integer.valueOf(args[2]), group);
                                 if (roomInfo != null) {
-                                    String roomName = roomInfo.getStr("channelName");
-                                    String ownerName = roomInfo.getStr("ownerName");
+                                    String roomName = roomInfo.getRoomName();
+                                    String ownerName = roomInfo.getOwnerName();
                                     return new PlainText("本群取消关注：" + roomName + "(" + ownerName + ")");
                                 } else return new PlainText("本群取消关注：未知房间");
                             }

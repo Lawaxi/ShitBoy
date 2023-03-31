@@ -16,9 +16,8 @@ public class BilibiliHandler extends Handler {
         super(properties);
     }
 
-    private HashMap<Integer, Boolean> status = new HashMap<>();
 
-    public JSONObject shouldMention(int room_id) {
+    public JSONObject shouldMention(int room_id, HashMap<Integer, Boolean> status) {
         //当前状态
         JSONObject data = getLiveData(room_id); //data
         if (data.getInt("code") == 1) {

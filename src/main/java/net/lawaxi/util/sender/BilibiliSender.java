@@ -8,13 +8,16 @@ import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.utils.ExternalResource;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 public class BilibiliSender extends Sender {
     private static final String roomUrl = "https://live.bilibili.com/";
 
-    public BilibiliSender(Bot bot, long group) {
+    private final HashMap<Integer, Boolean> status;
+    public BilibiliSender(Bot bot, long group, HashMap<Integer, Boolean> status) {
         super(bot, group);
+        this.status = status;
     }
 
     @Override
@@ -23,7 +26,7 @@ public class BilibiliSender extends Sender {
         List<Integer> subscribe = Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group.getId());
 
         for (Integer room : subscribe) {
-            JSONObject info = bili.shouldMention(room);
+            JSONObject info = bili.shouldMention(room, status);
             if (info != null) {
                 String title = info.getStr("title");
                 String description = info.getStr("description");

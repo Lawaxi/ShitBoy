@@ -5,6 +5,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.Properties;
 import net.lawaxi.model.Pocket48Message;
+import net.lawaxi.model.Pocket48RoomInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -142,16 +143,21 @@ public class Pocket48Handler extends Handler {
         }
     }
 
-    public JSONObject getRoomInfoByChannelID(int roomID) {
+    public Pocket48RoomInfo getRoomInfoByChannelID(int roomID) {
         String s = post(APIChannel2Server, String.format("{\"channelId\":\"%d\"}", roomID));
         JSONObject object = JSONUtil.parseObj(s);
 
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
             JSONObject roomInfo = JSONUtil.parseObj(content.getObj("channelInfo"));
-            return roomInfo;
+            return new Pocket48RoomInfo(roomInfo.getStr("channelName"),roomInfo.getStr("ownerName"));
 
-        } else {
+        }else if(object.getInt("status") == 2001
+        && object.getStr("message").indexOf("question") != -1){
+            JSONObject message = JSONUtil.parseObj(object.getObj("message"));
+            return new Pocket48RoomInfo(message.getStr("question"));
+        }
+        else {
             logError(object.getStr("message"));
         }
         return null;
@@ -159,11 +165,11 @@ public class Pocket48Handler extends Handler {
     }
 
     public Pocket48Message[] getNewMessages(int roomID, HashMap<Integer, Long> endTime) {
-        JSONObject roomInfo = getRoomInfoByChannelID(roomID);
+        Pocket48RoomInfo roomInfo = getRoomInfoByChannelID(roomID);
 
         if (roomInfo != null) {
-            String roomName = roomInfo.getStr("channelName");
-            String ownerName = roomInfo.getStr("ownerName");
+            String roomName = roomInfo.getRoomName();
+            String ownerName = roomInfo.getOwnerName();
             List<Object> msgs = getOMessages(roomID);
             if (msgs != null) {
                 List<Pocket48Message> rs = new ArrayList<>();
