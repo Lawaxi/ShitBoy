@@ -171,7 +171,7 @@ public class Listener extends SimpleListenerHost {
                         }
                     }
                 }
-                else if(args.length == 3) {
+                else if(args.length == 4) {
                     switch (args[1]) {
                         case "连接": {
                             int room_id = Integer.valueOf(args[2]);
