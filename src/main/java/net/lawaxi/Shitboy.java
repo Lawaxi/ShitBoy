@@ -30,7 +30,7 @@ public final class Shitboy extends JavaPlugin {
     private BilibiliHandler handlerBilibili;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.3-test14")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.3-test15")
                 .name("shitboy")
                 .author("delay")
                 .info("易拉罐人日常刚需")

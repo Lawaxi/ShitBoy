@@ -67,14 +67,14 @@ public class ConfigOperator {
 
         for (Object a :
                 JSONUtil.parseArray(setting.getByGroup("subscribe", "pocket48")).toArray()) {
-            JSONObject subs = JSONUtil.parseObj(a);
-            Object rooms = subs.getBeanList("roomSubs", Integer.class);
-            Object stars = subs.getBeanList("starSubs", Integer.class);
+            JSONObject sub = JSONUtil.parseObj(a);
+            Object rooms = sub.getBeanList("roomSubs", Integer.class);
+            Object stars = sub.getBeanList("starSubs", Integer.class);
 
             properties.pocket48_subscribe
-                    .put(subs.getLong("qqGroup"),
+                    .put(sub.getLong("qqGroup"),
                             new Pocket48Subscribe(
-                                    subs.getBool("showAtOne",true),
+                                    sub.getBool("showAtOne",true),
                                     rooms == null ? new ArrayList<>() : (List<Integer>) rooms,
                                     stars == null ? new ArrayList<>() : (List<Integer>) stars
                             ));
@@ -158,7 +158,7 @@ public class ConfigOperator {
         for(int room_id : properties.pocket48_serverID.keySet()){
             JSONObject object = new JSONObject();
             object.set("roomID",room_id);
-            object.set("serverID",properties.pocket48_subscribe.get(room_id));
+            object.set("serverID",properties.pocket48_serverID.get(room_id));
             a += object+",";
         }
         setting.setByGroup("roomConnection", "pocket48", (a.length()>1 ? a.substring(0,a.length()-1) : a)+"]");
