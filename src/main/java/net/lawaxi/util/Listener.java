@@ -54,17 +54,23 @@ public class Listener extends SimpleListenerHost {
 
                             int count = 1;
                             for(int room_id : Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs()){
-                                out+=count+". ("+room_id+")";
-                                count++;
 
-                                Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(room_id);
-                                if(roomInfo !=null) {
-                                    String roomName = roomInfo.getRoomName();
-                                    String ownerName = roomInfo.getOwnerName();
-                                    out += roomName + "(" + ownerName + ")\n";
+                                try {
+                                    out += count + ". (" + room_id + ")";
+                                    count++;
+
+                                    Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(room_id);
+                                    if (roomInfo != null) {
+                                        String roomName = roomInfo.getRoomName();
+                                        String ownerName = roomInfo.getOwnerName();
+                                        out += roomName + "(" + ownerName + ")\n";
+                                    } else
+                                        out += "未知房间" + room_id + "\n";
+
+                                }catch(Exception e){
+                                    e.printStackTrace();
+                                    out+="null\n";
                                 }
-                                else
-                                    out+="未知房间"+room_id+"\n";
                             }
                             return new PlainText(out);
                         }

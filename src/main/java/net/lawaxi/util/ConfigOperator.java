@@ -83,7 +83,7 @@ public class ConfigOperator {
         for (Object a :
                 JSONUtil.parseArray(setting.getByGroup("roomConnection", "pocket48")).toArray()) {
             JSONObject sid = JSONUtil.parseObj(a);
-            properties.pocket48_serverID.put(sid.getInt("roomID"),sid.getInt("severID"));
+            properties.pocket48_serverID.put(sid.getInt("roomID"),sid.getInt("serverID"));
         }
 
         //bilibili

@@ -27,12 +27,14 @@ public class ListenerYLG extends SimpleListenerHost {
             if (qqID == 1004297982L) {
                 //在单推人发送如何评价我wife时回复傻逼
                 if ((message.indexOf("wife") != -1
-                        || message.indexOf("wives") != -1 || message.indexOf("外敷") != -1))
+                        || message.indexOf("wives") != -1
+                        || message.indexOf("外敷") != -1
+                        || message.indexOf("老婆") != -1))
                     group.sendMessage("傻逼");
             }
 
             //群主
-            if(qqID == 2080539637){
+            if(qqID == 2080539637 && group.getId() == 755732123){
                 if(xenon.size()==5)
                     xenon.remove(0);
                 xenon.add(message);
@@ -53,7 +55,7 @@ public class ListenerYLG extends SimpleListenerHost {
 
         }
 
-        if(message.equals("查群主")){
+        if(message.equals("查群主") && group.getId() == 755732123){
             String o = "";
             for(String m : xenon){
                 o+="· "+m+"\n";

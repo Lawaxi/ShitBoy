@@ -156,7 +156,8 @@ public class Pocket48Handler extends Handler {
         && object.getStr("message").indexOf("question") != -1
         && properties.pocket48_serverID.containsKey(roomID)){ //只有配置中存有severID的加密房间会被解析
             JSONObject message = JSONUtil.parseObj(object.getObj("message"));
-            return new Pocket48RoomInfo(message.getStr("question")+"？", properties.pocket48_serverID.get(roomID));
+            return new Pocket48RoomInfo(message.getStr("question")+"？",
+                    properties.pocket48_serverID.get(roomID));
         }
         else {
             logError(object.getStr("message"));
