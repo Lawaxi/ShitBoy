@@ -3,6 +3,7 @@ package net.lawaxi.model;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.Shitboy;
+import net.lawaxi.util.handler.Pocket48Handler;
 
 public class Pocket48Message {
     private final String room;
@@ -96,7 +97,7 @@ public class Pocket48Message {
         JSONObject content = JSONUtil.parseObj(object.getObj(
                 "livePushInfo"));
         return new Pocket48LivePush(
-                content.getStr("liveCover"),
+                Pocket48Handler.SOURCEROOT + content.getStr("liveCover").substring(1),
                 content.getStr("liveTitle"),
                 content.getStr("liveId")
         );
