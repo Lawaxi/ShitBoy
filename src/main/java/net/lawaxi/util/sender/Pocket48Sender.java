@@ -154,7 +154,7 @@ public class Pocket48Sender extends Sender {
             case LIVEPUSH:
                 Image cover = group.uploadImage(ExternalResource.create(getRes(message.getLivePush().getCover())));
                 return new Pocket48SenderMessage(false,null,
-                        new Message[]{new PlainText("【" + getName() + "口袋48开播啦~】\n"
+                        new Message[]{new PlainText("【" + message.getOwnerName() + "口袋48开播啦~】\n"
                         + message.getLivePush().getTitle()).plus(cover)});
             case FLIPCARD:
                 return new Pocket48SenderMessage(false,null, new Message[]{new PlainText("【" + message.getOwnerName() + "翻牌回复消息】\n"
