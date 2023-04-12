@@ -16,6 +16,7 @@ import java.util.List;
 public class ListenerYLG extends SimpleListenerHost {
 
     private final List<String> xenon = new ArrayList<>();
+
     @EventHandler()
     public ListeningStatus onGroupMessage(GroupMessageEvent event) {
         Member sender = event.getSender();
@@ -26,16 +27,16 @@ public class ListenerYLG extends SimpleListenerHost {
             long qqID = sender.getId();
             if (qqID == 1004297982L) {
                 //在单推人发送如何评价我wife时回复傻逼
-                if ((message.indexOf("wife") != -1
-                        || message.indexOf("wives") != -1
-                        || message.indexOf("外敷") != -1
-                        || message.indexOf("老婆") != -1))
+                if ((message.indexOf("我wife") != -1
+                        || message.indexOf("我wives") != -1
+                        || message.indexOf("我外敷") != -1
+                        || message.indexOf("我老婆") != -1))
                     group.sendMessage("傻逼");
             }
 
             //群主
-            if(qqID == 2080539637 && group.getId() == 755732123){
-                if(xenon.size()==5)
+            if (qqID == 2080539637 && group.getId() == 755732123) {
+                if (xenon.size() == 5)
                     xenon.remove(0);
                 xenon.add(message);
             }
@@ -55,13 +56,13 @@ public class ListenerYLG extends SimpleListenerHost {
 
         }
 
-        if(message.equals("查群主") && group.getId() == 755732123){
+        if (message.equals("查群主") && group.getId() == 755732123) {
             String o = "";
-            for(String m : xenon){
-                o+="· "+m+"\n";
+            for (String m : xenon) {
+                o += "· " + m + "\n";
             }
             group.sendMessage(
-                    new At(sender.getId()).plus("机器人自动保存群主前五条消息\n"+o));
+                    new At(sender.getId()).plus("机器人自动保存群主前五条消息\n" + o));
         }
 
         return ListeningStatus.LISTENING;

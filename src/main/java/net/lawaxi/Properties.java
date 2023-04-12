@@ -12,14 +12,19 @@ public class Properties {
     public MiraiLogger logger;
     public File configData;
     public Boolean enable = true;
+    public Boolean ylg = true;
     public String[] admins;
 
     //pocket48
     public String pocket48_account;
     public String pocket48_password;
     public HashMap<Long, Pocket48Subscribe> pocket48_subscribe = new HashMap<>();
-    public HashMap<Integer,Integer> pocket48_serverID = new HashMap<>();//加密房间的severID记录
+    public HashMap<Integer, Integer> pocket48_serverID = new HashMap<>();//加密房间的severID记录
 
     //bilibili
     public HashMap<Long, List<Integer>> bilibili_subscribe = new HashMap<>();
+
+    //weibo
+    public HashMap<Long, List<Long>> weibo_user_subscribe = new HashMap<>();
+    public HashMap<Long, List<String>> weibo_superTopic_subscribe = new HashMap<>();
 }

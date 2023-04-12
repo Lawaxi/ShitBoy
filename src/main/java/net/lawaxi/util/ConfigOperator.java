@@ -25,6 +25,7 @@ public class ConfigOperator {
             FileUtil.touch(file);
             Setting setting = new Setting(file, StandardCharsets.UTF_8, false);
             setting.set("enable", "true");
+            setting.set("ylg", "true");
             setting.set("admins", "2330234142");
 
             //pocket48
@@ -46,6 +47,14 @@ public class ConfigOperator {
             setting.setByGroup("subscribe", "bilibili",
                     "[" + object + "]");
 
+            //weibo
+            object = new JSONObject();
+            object.set("qqGroup", 764687233);
+            object.set("userSubs", new long[]{5460950220L, 7824231810L});
+            object.set("superTopicSubs", new String[]{"100808d965430a8faf6226034e42c56dca4a2b"});
+            setting.setByGroup("subscribe", "weibo",
+                    "[" + object + "]");
+
             setting.store();
         }
 
@@ -58,7 +67,8 @@ public class ConfigOperator {
     }
 
     public void init() {
-        properties.enable = setting.getBool("enable");
+        properties.enable = setting.getBool("enable", true);
+        properties.ylg = setting.getBool("ylg", true);
         properties.admins = setting.getStrings("admins");
 
         //pocket48
@@ -74,7 +84,7 @@ public class ConfigOperator {
             properties.pocket48_subscribe
                     .put(sub.getLong("qqGroup"),
                             new Pocket48Subscribe(
-                                    sub.getBool("showAtOne",true),
+                                    sub.getBool("showAtOne", true),
                                     rooms == null ? new ArrayList<>() : (List<Integer>) rooms,
                                     stars == null ? new ArrayList<>() : (List<Integer>) stars
                             ));
@@ -83,7 +93,7 @@ public class ConfigOperator {
         for (Object a :
                 JSONUtil.parseArray(setting.getByGroup("roomConnection", "pocket48")).toArray()) {
             JSONObject sid = JSONUtil.parseObj(a);
-            properties.pocket48_serverID.put(sid.getInt("roomID"),sid.getInt("serverID"));
+            properties.pocket48_serverID.put(sid.getInt("roomID"), sid.getInt("serverID"));
         }
 
         //bilibili
@@ -96,10 +106,24 @@ public class ConfigOperator {
                     .put(subs.getLong("qqGroup"),
                             subss == null ? new ArrayList<>() : (List<Integer>) subss);
         }
+
+        //weibo
+        for (Object a :
+                JSONUtil.parseArray(setting.getByGroup("subscribe", "weibo")).toArray()) {
+            JSONObject subs = JSONUtil.parseObj(a);
+
+            long g = subs.getLong("qqGroup");
+            List userSubs = subs.getBeanList("userSubs", Long.class);
+            properties.weibo_user_subscribe.put(g, userSubs == null ? new ArrayList<>() : userSubs);
+
+            List sTopicSubs = subs.getBeanList("superTopicSubs", String.class);
+            properties.weibo_superTopic_subscribe.put(g, sTopicSubs == null ? new ArrayList<>() : sTopicSubs);
+
+        }
     }
 
-    public void addPocket48RoomSubscribe(int room_id, long group){
-        if(!properties.pocket48_subscribe.containsKey(group)){
+    public void addPocket48RoomSubscribe(int room_id, long group) {
+        if (!properties.pocket48_subscribe.containsKey(group)) {
             properties.pocket48_subscribe.put(group, new Pocket48Subscribe(
                     true, new ArrayList<>(), new ArrayList<>()
             ));
@@ -109,71 +133,113 @@ public class ConfigOperator {
         savePocket48SubscribeConfig();
     }
 
-    public void rmPocket48RoomSubscribe(int room_id, long group){
+    public void rmPocket48RoomSubscribe(int room_id, long group) {
         properties.pocket48_subscribe.get(group).getRoomIDs().remove((Object) room_id);
         savePocket48SubscribeConfig();
     }
 
-    public void addRoomIDConnection(int room_id, int sever_id){
-        properties.pocket48_serverID.put(room_id,sever_id);
+    public void addRoomIDConnection(int room_id, int sever_id) {
+        properties.pocket48_serverID.put(room_id, sever_id);
         savePocket48RoomIDConnectConfig();
     }
 
-    public void rmRoomIDConnection(int room_id, int sever_id){
-        properties.pocket48_serverID.remove(room_id,sever_id);
+    public void rmRoomIDConnection(int room_id, int sever_id) {
+        properties.pocket48_serverID.remove(room_id, sever_id);
         savePocket48RoomIDConnectConfig();
     }
 
-    public void addBilibiliLiveSubscribe(int room_id, long group){
-        if(!properties.bilibili_subscribe.containsKey(group)){
+    public void addBilibiliLiveSubscribe(int room_id, long group) {
+        if (!properties.bilibili_subscribe.containsKey(group)) {
             properties.bilibili_subscribe.put(group, new ArrayList<>());
         }
         properties.bilibili_subscribe.get(group).add(room_id);
         saveBilibiliConfig();
     }
 
-    public void rmBilibiliLiveSubscribe(int room_id, long group){
+    public void rmBilibiliLiveSubscribe(int room_id, long group) {
         properties.bilibili_subscribe.get(group).remove((Object) room_id);
         saveBilibiliConfig();
     }
 
-    private void savePocket48SubscribeConfig(){
+
+    public void addWeiboUserSubscribe(long id, long group) {
+        if (!properties.weibo_user_subscribe.containsKey(group)) {
+            properties.weibo_user_subscribe.put(group, new ArrayList<>());
+            properties.weibo_superTopic_subscribe.put(group, new ArrayList<>());
+        }
+        properties.weibo_user_subscribe.get(group).add(id);
+        saveWeiboConfig();
+    }
+
+    public void rmWeiboUserSubscribe(long id, long group) {
+        properties.weibo_user_subscribe.get(group).remove(id);
+        saveWeiboConfig();
+    }
+
+    public void addWeiboSTopicSubscribe(String id, long group) {
+        if (!properties.weibo_user_subscribe.containsKey(group)) {
+            properties.weibo_user_subscribe.put(group, new ArrayList<>());
+            properties.weibo_superTopic_subscribe.put(group, new ArrayList<>());
+        }
+        properties.weibo_superTopic_subscribe.get(group).add(id);
+        saveWeiboConfig();
+    }
+
+    public void rmWeiboSTopicSubscribe(String id, long group) {
+        properties.weibo_superTopic_subscribe.get(group).remove(id);
+        saveWeiboConfig();
+    }
+
+    private void savePocket48SubscribeConfig() {
         String a = "[";
-        for(long group : properties.pocket48_subscribe.keySet()){
+        for (long group : properties.pocket48_subscribe.keySet()) {
             JSONObject object = new JSONObject();
             Pocket48Subscribe subscribe = properties.pocket48_subscribe.get(group);
             object.set("qqGroup", group);
             object.set("showAtOne", subscribe.showAtOne());
             object.set("starSubs", subscribe.getStarIDs().toArray());
             object.set("roomSubs", subscribe.getRoomIDs().toArray());
-            a += object+",";
+            a += object + ",";
         }
-        setting.setByGroup("subscribe", "pocket48", (a.length()>1 ? a.substring(0,a.length()-1) : a)+"]");
+        setting.setByGroup("subscribe", "pocket48", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
         setting.store();
     }
 
 
-    private void savePocket48RoomIDConnectConfig(){
+    private void savePocket48RoomIDConnectConfig() {
         String a = "[";
-        for(int room_id : properties.pocket48_serverID.keySet()){
+        for (int room_id : properties.pocket48_serverID.keySet()) {
             JSONObject object = new JSONObject();
-            object.set("roomID",room_id);
-            object.set("serverID",properties.pocket48_serverID.get(room_id));
-            a += object+",";
+            object.set("roomID", room_id);
+            object.set("serverID", properties.pocket48_serverID.get(room_id));
+            a += object + ",";
         }
-        setting.setByGroup("roomConnection", "pocket48", (a.length()>1 ? a.substring(0,a.length()-1) : a)+"]");
+        setting.setByGroup("roomConnection", "pocket48", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
         setting.store();
     }
 
-    private void saveBilibiliConfig(){
+    private void saveBilibiliConfig() {
         String a = "[";
-        for(long group : properties.bilibili_subscribe.keySet()){
+        for (long group : properties.bilibili_subscribe.keySet()) {
             JSONObject object = new JSONObject();
             object.set("qqGroup", group);
             object.set("subscribe", properties.bilibili_subscribe.get(group));
-            a += object+",";
+            a += object + ",";
         }
-        setting.setByGroup("subscribe", "bilibili", (a.length()>1 ? a.substring(0,a.length()-1) : a)+"]");
+        setting.setByGroup("subscribe", "bilibili", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
+        setting.store();
+    }
+
+    private void saveWeiboConfig() {
+        String a = "[";
+        for (long group : properties.weibo_user_subscribe.keySet()) {
+            JSONObject object = new JSONObject();
+            object.set("qqGroup", group);
+            object.set("userSubs", properties.weibo_user_subscribe.get(group));
+            object.set("superTopicSubs", properties.weibo_superTopic_subscribe.get(group));
+            a += object + ",";
+        }
+        setting.setByGroup("subscribe", "weibo", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
         setting.store();
     }
 

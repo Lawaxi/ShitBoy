@@ -3,7 +3,6 @@ package net.lawaxi.util.handler;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import net.lawaxi.Properties;
 
 import java.util.HashMap;
 
@@ -12,8 +11,8 @@ public class BilibiliHandler extends Handler {
     private static final String APILiveInfo = "https://api.live.bilibili.com/room/v1/Room/get_info?";
     private static final String APIUserInfo = "https://api.bilibili.com/x/space/acc/info?";
 
-    public BilibiliHandler(Properties properties) {
-        super(properties);
+    public BilibiliHandler() {
+        super();
     }
 
 

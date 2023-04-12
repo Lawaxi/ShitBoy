@@ -1,6 +1,7 @@
 package net.lawaxi.util.handler;
 
 import net.lawaxi.Properties;
+import net.lawaxi.Shitboy;
 
 public class Handler {
 
@@ -16,7 +17,7 @@ public class Handler {
 
     public final Properties properties;
 
-    public Handler(Properties properties) {
-        this.properties = properties;
+    public Handler() {
+        this.properties = Shitboy.INSTANCE.getProperties();
     }
 }

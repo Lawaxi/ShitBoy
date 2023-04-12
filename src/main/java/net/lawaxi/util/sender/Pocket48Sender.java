@@ -41,17 +41,17 @@ public class Pocket48Sender extends Sender {
             }
         }
 
-        if(totalMessages.size()>0) {
-            if(Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId()).showAtOne()){
+        if (totalMessages.size() > 0) {
+            if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId()).showAtOne()) {
 
                 List<Pocket48SenderMessage> pharsedMessage = new ArrayList<>();
                 Message roomJoint = null;
 
                 //需要累加的消息
-                for(Pocket48Message[] roomMessage : totalMessages) {
+                for (Pocket48Message[] roomMessage : totalMessages) {
                     Message joint = null;
                     Message title = null;
-                    for (int i=roomMessage.length-1;i>=0;i--) { //倒序输出
+                    for (int i = roomMessage.length - 1; i >= 0; i--) { //倒序输出
                         try {
                             Pocket48SenderMessage message1 = pharseMessage(roomMessage[i], group);
                             pharsedMessage.add(message1);
@@ -59,8 +59,7 @@ public class Pocket48Sender extends Sender {
                             if (message1.canJoin()) {
                                 if (joint == null) {
                                     title = joint = message1.getTitle();
-                                }
-                                else if(!title.contentEquals(message1.getTitle(),false)){
+                                } else if (!title.contentEquals(message1.getTitle(), false)) {
                                     joint = joint.plus(message1.getTitle());
                                     title = message1.getTitle();
                                 }
@@ -73,37 +72,38 @@ public class Pocket48Sender extends Sender {
                         }
                     }
 
-                    if(roomJoint == null) {
+                    if (roomJoint == null) {
                         roomJoint = joint;
-                    }else {
+                    } else {
                         roomJoint = roomJoint.plus(joint);
                     }
                 }
 
-                if(roomJoint!=null)
+                if (roomJoint != null)
                     group.sendMessage(roomJoint);
 
                 //不需要累加的消息
-                for(Pocket48SenderMessage message : pharsedMessage){
-                    if(message.canJoin()){
-                        for(int i = 1;i<message.getMessage().length;i++)
+                for (Pocket48SenderMessage message : pharsedMessage) {
+                    if (message.canJoin()) {
+                        for (int i = 1; i < message.getMessage().length; i++)
                             group.sendMessage(message.getMessage()[i]);
-                    }else{
-                        for(Message m : message.getMessage())
+                    } else {
+                        for (Message m : message.getMessage())
                             group.sendMessage(m);
                     }
                 }
 
 
-            }else{
-                for(Pocket48Message[] roomMessage : totalMessages) {
-                    for (int i=roomMessage.length-1;i>=0;i--) { //倒序输出
+            } else {
+                for (Pocket48Message[] roomMessage : totalMessages) {
+                    for (int i = roomMessage.length - 1; i >= 0; i--) { //倒序输出
                         try {
                             for (Message m : pharseMessage(roomMessage[i], group).getUnjointMessage()) {
                                 group.sendMessage(m);
                             }
-                        }catch (Exception e)
-                        {e.printStackTrace();}
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -148,42 +148,42 @@ public class Pocket48Sender extends Sender {
                         new Message[]{new PlainText("发送了一条视频")});
             case REPLY:
             case GIFTREPLY:
-                return new Pocket48SenderMessage(false,null,
+                return new Pocket48SenderMessage(false, null,
                         new Message[]{new PlainText(message.getReply().getNameTo() + "：" + message.getReply().getMsgTo() + "\n"
-                        + name + message.getReply().getMsgFrom())});
+                                + name + message.getReply().getMsgFrom())});
             case LIVEPUSH:
                 Image cover = group.uploadImage(ExternalResource.create(getRes(message.getLivePush().getCover())));
-                return new Pocket48SenderMessage(false,null,
+                return new Pocket48SenderMessage(false, null,
                         new Message[]{new PlainText("【" + message.getOwnerName() + "口袋48开播啦~】\n"
-                        + message.getLivePush().getTitle()).plus(cover)});
+                                + message.getLivePush().getTitle()).plus(cover)});
             case FLIPCARD:
-                return new Pocket48SenderMessage(false,null, new Message[]{new PlainText("【" + message.getOwnerName() + "翻牌回复消息】\n"
+                return new Pocket48SenderMessage(false, null, new Message[]{new PlainText("【" + message.getOwnerName() + "翻牌回复消息】\n"
                         + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
                         + "\n------\n"
                         + message.getAnswer().getAnswer())});
             case FLIPCARD_AUDIO:
-                Audio audio = group.uploadAudio(ExternalResource.create(getRes(message.getResLoc())));
-                return new Pocket48SenderMessage(false,null,
+                Audio audio = group.uploadAudio(ExternalResource.create(getRes(message.getAnswer().getResInfo())));
+                return new Pocket48SenderMessage(false, null,
                         new Message[]{new PlainText("【" + getName() + "语音翻牌回复消息】\n"
-                        + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
-                        + "\n------\n"), audio});
+                                + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
+                                + "\n------\n"), audio});
             case FLIPCARD_VIDEO:
                 new Thread() {
                     @Override
                     public void run() {
                         try {
                             group.getFiles().uploadNewFile("/" + message.getOwnerName() + "公开视频翻牌(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ").mp4",
-                                    ExternalResource.create(getRes(message.getResLoc())));
+                                    ExternalResource.create(getRes(message.getAnswer().getResInfo())));
                         } catch (IOException e) {
                             e.printStackTrace();
                             group.sendMessage(new PlainText("翻牌回复视频发送失败"));
                         }
                     }
                 }.start();
-                return new Pocket48SenderMessage(false,null,
+                return new Pocket48SenderMessage(false, null,
                         new Message[]{new PlainText("【" + message.getNickName() + "视频翻牌回复消息】\n"
-                        + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
-                        + "------")});
+                                + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
+                                + "------")});
             case PASSWORD_REDPACKAGE:
                 return new Pocket48SenderMessage(true, new PlainText(name),
                         new Message[]{new PlainText(name + "红包信息")});
@@ -196,27 +196,26 @@ public class Pocket48Sender extends Sender {
                 new Message[]{new PlainText("不支持的消息")});
     }
 
-    public Message pharsePocketTextWithFace(String body){
-        if(!body.contains("["))
+    public Message pharsePocketTextWithFace(String body) {
+        String[] a = body.split("\\[.*?\\]", -1);//其余部分，-1使其产生空字符串
+        if (a.length < 2)
             return new PlainText(body);
 
-        String[] a = body.split("\\[.*?\\]");//其余部分
         Message out = new PlainText(a[0]);
-        int count = 1;
-
+        int count = 1;//从第1个表情后a[1]开始
         Matcher b = Pattern.compile("\\[.*?\\]").matcher(body);
-        while(b.find()){
-            out = out.plus(pharsePocketFace(b.group())).plus(a[count]);
+        while (b.find()) {
+            out = out.plus(pharsePocketFace(b.group()));
+            out = out.plus(a[count]);
             count++;
         }
 
         return out;
     }
 
-    public Message pharsePocketFace(String face){
-        for(int i = 0;i<Face.names.length;i++)
-        {
-            if(Face.names[i].equals(face))
+    public Message pharsePocketFace(String face) {
+        for (int i = 0; i < Face.names.length; i++) {
+            if (Face.names[i].equals(face))
                 return new Face(i);
         }
         return new PlainText(face);

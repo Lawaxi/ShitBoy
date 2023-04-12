@@ -70,7 +70,11 @@ public class Pocket48Message {
         if (getType() == Pocket48MessageType.EXPRESSIMAGE) {
             return JSONUtil.parseObj(JSONUtil.parseObj(getBody()).getObj("expressImgInfo")).getStr("emotionRemote");
         }
-        return JSONUtil.parseObj(getBody()).getStr("url");
+        if (getType() == Pocket48MessageType.IMAGE || getType() == Pocket48MessageType.AUDIO
+                || getType() == Pocket48MessageType.VIDEO)
+            return JSONUtil.parseObj(getBody()).getStr("url");
+
+        return null;
     }
 
     public Pocket48Reply getReply() {

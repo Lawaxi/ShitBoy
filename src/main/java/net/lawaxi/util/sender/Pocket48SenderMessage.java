@@ -29,7 +29,7 @@ public class Pocket48SenderMessage {
 
     public Message[] getUnjointMessage() {
         message[0] = title.plus(message[0]);
-        return title == null ? message : message;
+        return message;
     }
 
 }

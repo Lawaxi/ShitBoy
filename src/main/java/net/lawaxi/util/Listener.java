@@ -5,6 +5,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.Shitboy;
 import net.lawaxi.model.Pocket48RoomInfo;
+import net.lawaxi.util.handler.Pocket48Handler;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.event.EventHandler;
@@ -28,32 +29,31 @@ public class Listener extends SimpleListenerHost {
         String message = event.getMessage().contentToString();
 
 
-        if(message.startsWith("/")){
-            Message m = commandSub(message.split(" "),group);
-            if(m != null)
+        if (message.startsWith("/")) {
+            Message m = commandSub(message.split(" "), group);
+            if (m != null)
                 group.sendMessage(new At(sender.getId()).plus(m));
         }
 
         return ListeningStatus.LISTENING;
     }
 
-    private Message commandSub(String[] args, Group g){
+    private Message commandSub(String[] args, Group g) {
         long group = Long.valueOf(g.getId());
 
-        switch (args[0]){
+        switch (args[0]) {
             case "/口袋":
-                if(args.length == 1){
+                if (args.length == 1) {
                     return getHelp(1);
-                }
-                else if(args.length == 2) {
+                } else if (args.length == 2) {
                     switch (args[1]) {
                         case "关注列表": {
                             String out = "本群口袋房间关注列表：\n";
-                            if(!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
+                            if (!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
                                 return new PlainText("暂无");
 
                             int count = 1;
-                            for(int room_id : Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs()){
+                            for (int room_id : Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs()) {
 
                                 try {
                                     out += count + ". (" + room_id + ")";
@@ -67,39 +67,39 @@ public class Listener extends SimpleListenerHost {
                                     } else
                                         out += "未知房间" + room_id + "\n";
 
-                                }catch(Exception e){
+                                } catch (Exception e) {
                                     e.printStackTrace();
-                                    out+="null\n";
+                                    out += "null\n";
                                 }
                             }
                             return new PlainText(out);
                         }
-                        case "查直播":{
+                        case "查直播": {
                             String out = "";
                             int count = 1;
-                            for(Object liveRoom : Shitboy.INSTANCE.getHandlerPocket48().getLiveList()){
+                            for (Object liveRoom : Shitboy.INSTANCE.getHandlerPocket48().getLiveList()) {
                                 JSONObject liveRoom1 = JSONUtil.parseObj(liveRoom);
-                                JSONObject userInfo =  liveRoom1.getJSONObject("userInfo");
+                                JSONObject userInfo = liveRoom1.getJSONObject("userInfo");
 
                                 String title = liveRoom1.getStr("title");
                                 String name = userInfo.getStr("starName");
                                 String userId = userInfo.getStr("userId");
-                                out+=count+". ("+userId+")"+name+": "+title+"\n";
+                                out += count + ". (" + userId + ")" + name + ": " + title + "\n";
                                 count++;
                             }
                             return new PlainText(out);
                         }
-                        case "查录播":{
+                        case "查录播": {
                             String out = "";
                             int count = 1;
-                            for(Object liveRoom : Shitboy.INSTANCE.getHandlerPocket48().getRecordList()){
+                            for (Object liveRoom : Shitboy.INSTANCE.getHandlerPocket48().getRecordList()) {
                                 JSONObject liveRoom1 = JSONUtil.parseObj(liveRoom);
-                                JSONObject userInfo =  liveRoom1.getJSONObject("userInfo");
+                                JSONObject userInfo = liveRoom1.getJSONObject("userInfo");
 
                                 String title = liveRoom1.getStr("title");
                                 String name = userInfo.getStr("starName");
                                 String userId = userInfo.getStr("userId");
-                                out+=count+". ("+userId+")"+name+": "+title+"\n";
+                                out += count + ". (" + userId + ")" + name + ": " + title + "\n";
                                 count++;
                             }
                             return new PlainText(out);
@@ -109,13 +109,12 @@ public class Listener extends SimpleListenerHost {
                             return getHelp(1);
                     }
 
-                }
-                else if(args.length == 3) {
+                } else if (args.length == 3) {
                     switch (args[1]) {
                         case "查询": {
                             int star_ID = Integer.valueOf(args[2]);
                             JSONObject info = Shitboy.INSTANCE.getHandlerPocket48().getUserInfo(star_ID);
-                            if(info==null)
+                            if (info == null)
                                 return new PlainText("用户不存在");
 
                             boolean star = info.getBool("isStar");
@@ -123,7 +122,7 @@ public class Listener extends SimpleListenerHost {
                             int friends = info.getInt("friends");
                             String nickName = info.getStr("nickname");
                             String starName = info.getStr("starName");
-                            String avatar = Shitboy.INSTANCE.getHandlerPocket48().SOURCEROOT + info.getStr("avatar");
+                            String avatar = Pocket48Handler.SOURCEROOT + info.getStr("avatar");
                             String out = (star ? "【成员】" : "【聚聚】") + nickName + (starName != null ? "(" + starName + ")" : "") + "\n"
                                     + "关注 " + friends + " 粉丝 " + followers + "\n";
 
@@ -136,7 +135,7 @@ public class Listener extends SimpleListenerHost {
                                                 .getRoomName() + "\n";
                                     }
                                 }
-                            }catch (Exception e){
+                            } catch (Exception e) {
 
                             }
 
@@ -160,7 +159,7 @@ public class Listener extends SimpleListenerHost {
                         }
 
                         case "取消关注": {
-                            if(!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
+                            if (!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
                                 return new PlainText("本群暂无房间关注，先添加一个吧~");
 
                             if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs().contains(Integer.valueOf(args[2]))) {
@@ -176,52 +175,43 @@ public class Listener extends SimpleListenerHost {
 
                         }
                     }
-                }
-                else if(args.length == 4) {
-                    switch (args[1]) {
-                        case "连接": {
-                            int room_id = Integer.valueOf(args[2]);
-                            int server_id = Integer.valueOf(args[3]);
-                            if(testRoomIDWithServerID(room_id,server_id)){
-                                Shitboy.INSTANCE.getConfig().addRoomIDConnection(room_id,server_id);
-                                return new PlainText("连接成功");
-                            }else
-                                return new PlainText("您输入的ServerId并不包含此RoomId");
-
-                        }
+                } else if (args.length == 4) {
+                    if (args[1].equals("连接")) {
+                        int room_id = Integer.valueOf(args[2]);
+                        int server_id = Integer.valueOf(args[3]);
+                        if (testRoomIDWithServerID(room_id, server_id)) {
+                            Shitboy.INSTANCE.getConfig().addRoomIDConnection(room_id, server_id);
+                            return new PlainText("连接成功");
+                        } else
+                            return new PlainText("您输入的ServerId并不包含此RoomId");
                     }
                 }
             case "/bili":
-                if(args.length == 1){
+                if (args.length == 1) {
                     return getHelp(2);
-                }
-                else if(args.length == 2) {
-                    switch (args[1]) {
-                        case "关注列表": {
-                            String out = "本群Bilibili直播间关注列表：\n";
-                            if(!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
-                                return new PlainText("暂无");
+                } else if (args.length == 2) {
+                    if (args[1].equals("关注列表")) {
+                        String out = "本群Bilibili直播间关注列表：\n";
+                        if (!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
+                            return new PlainText("暂无");
 
-                            int count = 1;
-                            for(int room_id : Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group)){
-                                out+=count+". ("+room_id+")";
-                                count++;
+                        int count = 1;
+                        for (int room_id : Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group)) {
+                            out += count + ". (" + room_id + ")";
+                            count++;
 
-                                JSONObject data = Shitboy.INSTANCE.getHandlerBilibili().getLiveData(room_id);
-                                if (data.getInt("code") == 0) {
-                                    JSONObject info = JSONUtil.parseObj(data.getObj("data"));
-                                    String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(info.getInt("uid"));
-                                    out+=name+"\n";
-                                }
+                            JSONObject data = Shitboy.INSTANCE.getHandlerBilibili().getLiveData(room_id);
+                            if (data.getInt("code") == 0) {
+                                JSONObject info = JSONUtil.parseObj(data.getObj("data"));
+                                String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(info.getInt("uid"));
+                                out += name + "\n";
                             }
-                            return new PlainText(out);
                         }
-                        default:
-                            return getHelp(2);
+                        return new PlainText(out);
                     }
+                    return getHelp(2);
 
-                }
-                else {
+                } else {
                     switch (args[1]) {
                         case "关注": {
                             JSONObject data = Shitboy.INSTANCE.getHandlerBilibili().getLiveData(Integer.valueOf(args[2]));
@@ -233,23 +223,125 @@ public class Listener extends SimpleListenerHost {
 
                             JSONObject info = JSONUtil.parseObj(data.getObj("data"));
                             String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(info.getInt("uid"));
-                            return new PlainText("本群新增关注：" + name+"的直播间");
+                            return new PlainText("本群新增关注：" + name + "的直播间");
                         }
 
                         case "取消关注": {
-                            if(!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
+                            if (!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
                                 return new PlainText("本群暂无Bilibili直播间关注，先添加一个吧~");
 
-                            if(Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group).contains(Integer.valueOf(args[2]))) {
+                            if (Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group).contains(Integer.valueOf(args[2]))) {
                                 JSONObject data = Shitboy.INSTANCE.getHandlerBilibili().getLiveData(Integer.valueOf(args[2]));
                                 Shitboy.INSTANCE.getConfig().rmBilibiliLiveSubscribe(Integer.valueOf(args[2]), group);
                                 if (data.getInt("code") == 0) {
                                     JSONObject info = JSONUtil.parseObj(data.getObj("data"));
                                     String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(info.getInt("uid"));
-                                    return new PlainText("本群取消关注：" + name+"的直播间");
-                                }else return new PlainText("本群取消关注：未知直播间");
+                                    return new PlainText("本群取消关注：" + name + "的直播间");
+                                } else return new PlainText("本群取消关注：未知直播间");
                             }
                             return new PlainText("本群没有关注此房间捏~");
+                        }
+                    }
+                }
+            case "/超话":
+                if (args.length == 1) {
+                    return getHelp(3);
+                } else if (args.length == 2) {
+                    if (args[1].equals("关注列表")) {
+                        String out = "本群微博超话关注列表：\n";
+                        if (!Shitboy.INSTANCE.getProperties().weibo_superTopic_subscribe.containsKey(group))
+                            return new PlainText("暂无");
+
+                        int count = 1;
+                        for (String id : Shitboy.INSTANCE.getProperties().weibo_superTopic_subscribe.get(group)) {
+                            String a = Shitboy.INSTANCE.getHandlerWeibo().getSuperTopicRes(id);
+                            if (a == null)
+                                out += count + ". 不存在的超话\n";
+                            else {
+                                a = a.substring(a.indexOf("onick']='") + "onick']='".length());
+                                String name = a.substring(0, a.indexOf("';"));
+                                out += count + ". " + name + "\n";
+                            }
+                            count++;
+                        }
+                        return new PlainText(out);
+                    }
+                    return getHelp(3);
+
+                } else {
+                    switch (args[1]) {
+                        case "关注": {
+                            String a = Shitboy.INSTANCE.getHandlerWeibo().getSuperTopicRes(args[2]);
+                            if (a == null)
+                                return new PlainText("超话id不存在。");
+                            else {
+                                Shitboy.INSTANCE.getConfig().addWeiboSTopicSubscribe(args[2], group);
+                                a = a.substring(a.indexOf("onick']='") + "onick']='".length());
+                                String name = a.substring(0, a.indexOf("';"));
+                                return new PlainText("本群新增超话关注：" + name);
+                            }
+                        }
+
+                        case "取消关注": {
+                            if (!Shitboy.INSTANCE.getProperties().weibo_superTopic_subscribe.containsKey(group))
+                                return new PlainText("本群暂无超话关注，先添加一个吧~");
+
+                            if (Shitboy.INSTANCE.getProperties().weibo_superTopic_subscribe.get(group).contains(args[2])) {
+                                Shitboy.INSTANCE.getConfig().rmWeiboSTopicSubscribe(args[2], group);
+                                String a = Shitboy.INSTANCE.getHandlerWeibo().getSuperTopicRes(args[2]);
+                                if (a == null)
+                                    return new PlainText("本群取消关注超话：未知");
+                                else {
+                                    a = a.substring(a.indexOf("onick']='") + "onick']='".length());
+                                    String name = a.substring(0, a.indexOf("';"));
+                                    return new PlainText("本群取消关注超话：" + name);
+                                }
+                            }
+                            return new PlainText("本群没有关注此超话捏~");
+                        }
+                    }
+                }
+            case "/微博":
+                if (args.length == 1) {
+                    return getHelp(4);
+                } else if (args.length == 2) {
+                    if (args[1].equals("关注列表")) {
+                        String out = "本群微博关注列表：\n";
+                        if (!Shitboy.INSTANCE.getProperties().weibo_user_subscribe.containsKey(group))
+                            return new PlainText("暂无");
+
+                        int count = 1;
+                        for (long id : Shitboy.INSTANCE.getProperties().weibo_user_subscribe.get(group)) {
+                            String name = Shitboy.INSTANCE.getHandlerWeibo().getUserName(id);
+                            out += count + ". " + name + "\n";
+                            count++;
+                        }
+                        return new PlainText(out);
+                    }
+                    return getHelp(4);
+
+                } else {
+                    switch (args[1]) {
+                        case "关注": {
+                            String name = Shitboy.INSTANCE.getHandlerWeibo().getUserName(Long.valueOf(args[2]));
+                            if (name.equals("未知用户"))
+                                return new PlainText("博主id不存在。");
+                            else {
+                                Shitboy.INSTANCE.getConfig().addWeiboUserSubscribe(Long.valueOf(args[2]), group);
+                                return new PlainText("本群新增微博关注：" + name);
+                            }
+                        }
+
+                        case "取消关注": {
+                            if (!Shitboy.INSTANCE.getProperties().weibo_user_subscribe.containsKey(group))
+                                return new PlainText("本群暂无微博关注，先添加一个吧~");
+
+                            if (Shitboy.INSTANCE.getProperties().weibo_user_subscribe.get(group).contains(Long.valueOf(args[2]))) {
+                                Shitboy.INSTANCE.getConfig().rmWeiboUserSubscribe(Long.valueOf(args[2]), group);
+                                return new PlainText("本群取消关注超话：" +
+                                        Shitboy.INSTANCE.getHandlerWeibo().getUserName(Long.valueOf(args[2])));
+                            }
+                            return new PlainText("本群没有关注此超话捏~");
                         }
                     }
                 }
@@ -260,11 +352,13 @@ public class Listener extends SimpleListenerHost {
 
         return null;
     }
-    private static final int maxID = 2;
-    private Message getHelp(int id){
-        switch (id){
+
+    private static final int maxID = 4;
+
+    private Message getHelp(int id) {
+        switch (id) {
             case 1:
-                return new PlainText( "【口袋48相关】\n"
+                return new PlainText("【口袋48相关】\n"
                         + "/口袋 查询 <成员ID>\n"
                         + "/口袋 查直播\n"
                         + "/口袋 查录播\n"
@@ -275,14 +369,24 @@ public class Listener extends SimpleListenerHost {
                         + "注1：不知道房间ID可以在直播的时候先通过查直播获得成员ID，再通过查询获得房间ID\n"
                         + "注2：不知道密码的加密房间如果知道serverId，通过连接功能连接以后照样可以关注并获取消息\n");
             case 2:
-                return new PlainText( "【B站直播相关】\n"
+                return new PlainText("【B站直播相关】\n"
                         + "/bili 关注 <直播ID>\n"
                         + "/bili 取消关注 <直播ID>\n"
                         + "/bili 关注列表\n");
+            case 3:
+                return new PlainText("【微博超话相关】\n"
+                        + "/超话 关注 <超话ID>\n"
+                        + "/超话 取消关注 <超话ID>\n"
+                        + "/超话 关注列表\n");
+            case 4:
+                return new PlainText("【微博相关】\n"
+                        + "/微博 关注 <UID>\n"
+                        + "/微博 取消关注 <UID>\n"
+                        + "/微博 关注列表\n");
             default:
                 Message a = getHelp(1);
-                for(int i=2;i<=maxID;i++)
-                    a = a.plus(getHelp(2));
+                for (int i = 2; i <= maxID; i++)
+                    a = a.plus(getHelp(i));
                 return a;
         }
     }
@@ -292,9 +396,9 @@ public class Listener extends SimpleListenerHost {
         return ListeningStatus.LISTENING;
     }
 
-    private boolean testRoomIDWithServerID(int room_id, int server_id){
+    private boolean testRoomIDWithServerID(int room_id, int server_id) {
         for (int i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
-            if(i == room_id)
+            if (i == room_id)
                 return true;
         }
         return false;

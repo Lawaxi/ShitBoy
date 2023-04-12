@@ -3,7 +3,6 @@ package net.lawaxi.util.handler;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import net.lawaxi.Properties;
 import net.lawaxi.model.Pocket48Message;
 import net.lawaxi.model.Pocket48RoomInfo;
 
@@ -28,8 +27,8 @@ public class Pocket48Handler extends Handler {
 
     private final Pocket48HandlerHeader header;
 
-    public Pocket48Handler(Properties properties) {
-        super(properties);
+    public Pocket48Handler() {
+        super();
         this.header = new Pocket48HandlerHeader(properties);
     }
 
@@ -152,14 +151,13 @@ public class Pocket48Handler extends Handler {
             JSONObject roomInfo = JSONUtil.parseObj(content.getObj("channelInfo"));
             return new Pocket48RoomInfo(roomInfo);
 
-        }else if(object.getInt("status") == 2001
-        && object.getStr("message").indexOf("question") != -1
-        && properties.pocket48_serverID.containsKey(roomID)){ //只有配置中存有severID的加密房间会被解析
+        } else if (object.getInt("status") == 2001
+                && object.getStr("message").indexOf("question") != -1
+                && properties.pocket48_serverID.containsKey(roomID)) { //只有配置中存有severID的加密房间会被解析
             JSONObject message = JSONUtil.parseObj(object.getObj("message"));
-            return new Pocket48RoomInfo(message.getStr("question")+"？",
+            return new Pocket48RoomInfo(message.getStr("question") + "？",
                     properties.pocket48_serverID.get(roomID));
-        }
-        else {
+        } else {
             logError(object.getStr("message"));
         }
         return null;
@@ -172,7 +170,7 @@ public class Pocket48Handler extends Handler {
         if (roomInfo != null) {
             String roomName = roomInfo.getRoomName();
             String ownerName = roomInfo.getOwnerName();
-            List<Object> msgs = getOMessages(roomID,roomInfo.getSeverId());
+            List<Object> msgs = getOMessages(roomID, roomInfo.getSeverId());
             if (msgs != null) {
                 List<Pocket48Message> rs = new ArrayList<>();
                 Long latest = null;
@@ -207,7 +205,7 @@ public class Pocket48Handler extends Handler {
         if (roomInfo != null) {
             String roomName = roomInfo.getRoomName();
             String ownerName = roomInfo.getOwnerName();
-            List<Object> msgs = getOMessages(roomID,roomInfo.getSeverId());
+            List<Object> msgs = getOMessages(roomID, roomInfo.getSeverId());
             if (msgs != null) {
                 List<Pocket48Message> rs = new ArrayList<>();
                 for (Object message : msgs) {
@@ -254,14 +252,14 @@ public class Pocket48Handler extends Handler {
         return null;
     }
 
-    private HashMap<Integer, String> name = new HashMap<>();
+    private final HashMap<Integer, String> name = new HashMap<>();
 
     public String getStarNameByStarID(int starID) {
         if (name.containsKey(starID))
             return name.get(starID);
 
         JSONObject info = getUserInfo(starID);
-        if(info == null)
+        if (info == null)
             return null;
 
         Object starName = info.getObj("starName");
@@ -301,13 +299,13 @@ public class Pocket48Handler extends Handler {
     }
 
     //获取一个JSONObejct表
-    public List<Object> getLiveList(){
-        String s = post(APILiveList, String.format("{\"groupId\":0,\"debug\":true,\"next\":0,\"record\":false}"));
+    public List<Object> getLiveList() {
+        String s = post(APILiveList, "{\"groupId\":0,\"debug\":true,\"next\":0,\"record\":false}");
         JSONObject object = JSONUtil.parseObj(s);
 
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            return content.getBeanList("liveList",Object.class);
+            return content.getBeanList("liveList", Object.class);
 
         } else {
             logError(object.getStr("message"));
@@ -316,13 +314,13 @@ public class Pocket48Handler extends Handler {
 
     }
 
-    public List<Object> getRecordList(){
-        String s = post(APILiveList, String.format("{\"groupId\":0,\"debug\":true,\"next\":0,\"record\":true}"));
+    public List<Object> getRecordList() {
+        String s = post(APILiveList, "{\"groupId\":0,\"debug\":true,\"next\":0,\"record\":true}");
         JSONObject object = JSONUtil.parseObj(s);
 
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            return content.getBeanList("liveList",Object.class);
+            return content.getBeanList("liveList", Object.class);
 
         } else {
             logError(object.getStr("message"));

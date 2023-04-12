@@ -15,6 +15,7 @@ public class BilibiliSender extends Sender {
     private static final String roomUrl = "https://live.bilibili.com/";
 
     private final HashMap<Integer, Boolean> status;
+
     public BilibiliSender(Bot bot, long group, HashMap<Integer, Boolean> status) {
         super(bot, group);
         this.status = status;
