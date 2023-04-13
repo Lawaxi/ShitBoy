@@ -6,7 +6,7 @@ import net.mamoe.mirai.contact.Group;
 
 import java.io.InputStream;
 
-public class Sender extends Thread {
+public class Sender extends Thread { //异步进程
     public final Bot bot;
     public final Group group;
 

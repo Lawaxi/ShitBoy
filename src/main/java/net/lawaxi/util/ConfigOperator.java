@@ -122,72 +122,116 @@ public class ConfigOperator {
         }
     }
 
-    public void addPocket48RoomSubscribe(int room_id, long group) {
+    //修改配置并更新缓存的方法
+    public boolean addPocket48RoomSubscribe(int room_id, long group) {
         if (!properties.pocket48_subscribe.containsKey(group)) {
             properties.pocket48_subscribe.put(group, new Pocket48Subscribe(
                     true, new ArrayList<>(), new ArrayList<>()
             ));
         }
 
+        if(properties.pocket48_subscribe.get(group).getRoomIDs().contains(room_id))
+            return false;
+
         properties.pocket48_subscribe.get(group).getRoomIDs().add(room_id);
         savePocket48SubscribeConfig();
+        return true;
     }
 
-    public void rmPocket48RoomSubscribe(int room_id, long group) {
+    public boolean rmPocket48RoomSubscribe(int room_id, long group) {
+        if(!properties.pocket48_subscribe.get(group).getRoomIDs().contains(room_id))
+            return false;
+
         properties.pocket48_subscribe.get(group).getRoomIDs().remove((Object) room_id);
         savePocket48SubscribeConfig();
+        return true;
     }
 
-    public void addRoomIDConnection(int room_id, int sever_id) {
+    public boolean addRoomIDConnection(int room_id, int sever_id) {
+        if(properties.pocket48_serverID.containsKey(room_id))
+            return false;
+
         properties.pocket48_serverID.put(room_id, sever_id);
         savePocket48RoomIDConnectConfig();
+        return true;
     }
 
-    public void rmRoomIDConnection(int room_id, int sever_id) {
+    public boolean rmRoomIDConnection(int room_id, int sever_id) {
+        if(!properties.pocket48_serverID.containsKey(room_id))
+            return false;
+
         properties.pocket48_serverID.remove(room_id, sever_id);
         savePocket48RoomIDConnectConfig();
+        return true;
     }
 
-    public void addBilibiliLiveSubscribe(int room_id, long group) {
+    public boolean addBilibiliLiveSubscribe(int room_id, long group) {
         if (!properties.bilibili_subscribe.containsKey(group)) {
             properties.bilibili_subscribe.put(group, new ArrayList<>());
         }
+
+        if(properties.bilibili_subscribe.get(group).contains(room_id))
+            return false;
+
         properties.bilibili_subscribe.get(group).add(room_id);
         saveBilibiliConfig();
+        return true;
     }
 
-    public void rmBilibiliLiveSubscribe(int room_id, long group) {
+    public boolean rmBilibiliLiveSubscribe(int room_id, long group) {
+        if(!properties.bilibili_subscribe.get(group).contains(room_id))
+            return false;
+
         properties.bilibili_subscribe.get(group).remove((Object) room_id);
         saveBilibiliConfig();
+        return true;
     }
 
 
-    public void addWeiboUserSubscribe(long id, long group) {
+    public boolean addWeiboUserSubscribe(long id, long group) {
         if (!properties.weibo_user_subscribe.containsKey(group)) {
             properties.weibo_user_subscribe.put(group, new ArrayList<>());
             properties.weibo_superTopic_subscribe.put(group, new ArrayList<>());
         }
+
+        if(properties.weibo_user_subscribe.get(group).contains(id))
+            return false;
+
         properties.weibo_user_subscribe.get(group).add(id);
         saveWeiboConfig();
+        return true;
     }
 
-    public void rmWeiboUserSubscribe(long id, long group) {
+    public boolean rmWeiboUserSubscribe(long id, long group) {
+        if(!properties.weibo_user_subscribe.get(group).contains(id))
+            return false;
+
         properties.weibo_user_subscribe.get(group).remove(id);
         saveWeiboConfig();
+        return true;
     }
 
-    public void addWeiboSTopicSubscribe(String id, long group) {
+    public boolean addWeiboSTopicSubscribe(String id, long group) {
         if (!properties.weibo_user_subscribe.containsKey(group)) {
             properties.weibo_user_subscribe.put(group, new ArrayList<>());
             properties.weibo_superTopic_subscribe.put(group, new ArrayList<>());
         }
+
+        if(properties.weibo_superTopic_subscribe.get(group).contains(id))
+            return false;
+
         properties.weibo_superTopic_subscribe.get(group).add(id);
         saveWeiboConfig();
+        return true;
     }
 
-    public void rmWeiboSTopicSubscribe(String id, long group) {
+    public boolean rmWeiboSTopicSubscribe(String id, long group) {
+        if(!properties.weibo_superTopic_subscribe.get(group).contains(id))
+            return false;
+
         properties.weibo_superTopic_subscribe.get(group).remove(id);
         saveWeiboConfig();
+        return true;
     }
 
     private void savePocket48SubscribeConfig() {

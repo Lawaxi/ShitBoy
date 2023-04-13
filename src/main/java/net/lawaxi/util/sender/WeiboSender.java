@@ -113,6 +113,7 @@ public class WeiboSender extends Sender {
 
                     }
 
+                    //发送
                     ms.add(new MessageWithTime(o.plus("\nlink: " + link), time));
 
                 }
@@ -157,14 +158,16 @@ public class WeiboSender extends Sender {
 
                     long time = DateUtil.parse(b.getStr("created_at")).getTime();
                     if (time <= endTime.get(String.valueOf(id)))
-                        continue;
+                        break; //个人主页是按时间排序的
                     if (time > m)
                         m = time;
 
+                    //发送
                     ms.add(new MessageWithTime(new PlainText("【" + name + "微博更新】\n")
                             .plus(parseUserBlog(b))
                             .plus("\nlink: " + "https://weibo.com/" + id + "/" + b.getStr("mblogid")), time));
                 }
+
                 if (m > endTime.get(String.valueOf(id)))
                     endTime.put(String.valueOf(id), m);
             }
