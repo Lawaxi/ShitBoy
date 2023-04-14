@@ -14,6 +14,7 @@ public class Properties {
     public Boolean enable = true;
     public Boolean ylg = true;
     public String[] admins;
+    public String[] secureGroup;
 
     //pocket48
     public String pocket48_account;
@@ -27,4 +28,6 @@ public class Properties {
     //weibo
     public HashMap<Long, List<Long>> weibo_user_subscribe = new HashMap<>();
     public HashMap<Long, List<String>> weibo_superTopic_subscribe = new HashMap<>();
+
+
 }

@@ -215,7 +215,7 @@ public class WeiboSender extends Sender {
 
     @Override
     public InputStream getRes(String resLoc) {
-        return HttpRequest.get(resLoc).header("Referer", "https://weibo.com/").execute().bodyStream();
+        return HttpRequest.get(resLoc).setReadTimeout(20000).header("Referer", "https://weibo.com/").execute().bodyStream();
     }
 
     private String handleWeiboText(String oriText) {

@@ -33,7 +33,7 @@ public final class Shitboy extends JavaPlugin {
     private WeiboHandler handlerWeibo;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.5-test5" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.5-test6" +
                 "")
                 .name("shitboy")
                 .author("delay")

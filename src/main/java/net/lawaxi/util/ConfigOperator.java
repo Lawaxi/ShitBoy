@@ -6,6 +6,8 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.setting.Setting;
 import net.lawaxi.Properties;
 import net.lawaxi.model.Pocket48Subscribe;
+import net.mamoe.mirai.contact.Group;
+import net.mamoe.mirai.contact.MemberPermission;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -27,6 +29,7 @@ public class ConfigOperator {
             setting.set("enable", "true");
             setting.set("ylg", "true");
             setting.set("admins", "2330234142");
+            setting.set("secureGroup", "");
 
             //pocket48
             setting.setByGroup("account", "pocket48", "");
@@ -70,6 +73,11 @@ public class ConfigOperator {
         properties.enable = setting.getBool("enable", true);
         properties.ylg = setting.getBool("ylg", true);
         properties.admins = setting.getStrings("admins");
+        properties.secureGroup = setting.getStrings("secureGroup");
+        if(properties.admins == null)
+            properties.admins = new String[]{};
+        if(properties.secureGroup == null)
+            properties.secureGroup = new String[]{};
 
         //pocket48
         properties.pocket48_account = setting.getByGroup("account", "pocket48");
@@ -290,5 +298,22 @@ public class ConfigOperator {
     public void swch(boolean on) {
         setting.set("enable", String.valueOf(on));
         properties.enable = setting.getBool("enable");
+    }
+
+    public boolean isAdmin(Group group, long qqID){
+        for(String g : properties.secureGroup){
+            if(g.equals(String.valueOf(group.getId())))
+                return true;
+        }
+
+        for(String a : properties.admins){
+            if(a.equals(String.valueOf(qqID)))
+                return true;
+        }
+
+        if(group.get(qqID).getPermission() == MemberPermission.ADMINISTRATOR)
+            return true;
+
+        return false;
     }
 }
