@@ -35,9 +35,9 @@ public class BilibiliSender extends Sender {
                 String name = bili.getNameByMid(info.getInt("uid"));
 
                 try {
-                    group.sendMessage(new PlainText("【" + name + "开播啦~】\n" + title)
+                    group.sendMessage(toNotification(new PlainText("【" + name + "开播啦~】\n" + title)
                             .plus(group.uploadImage(ExternalResource.create(getRes(cover))))
-                            .plus(new PlainText(roomUrl + room)));
+                            .plus(new PlainText(roomUrl + room))));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

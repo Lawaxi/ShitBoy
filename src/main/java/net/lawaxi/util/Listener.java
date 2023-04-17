@@ -147,7 +147,7 @@ public class Listener extends SimpleListenerHost {
                             }
                         }
                         case "关注": {
-                            if(!Shitboy.INSTANCE.getConfig().isAdmin(g,senderID))
+                            if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                 return new PlainText("权限不足喵");
 
                             Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
@@ -155,29 +155,29 @@ public class Listener extends SimpleListenerHost {
                                 return new PlainText("房间ID不存在。查询房间ID请输入/口袋 查询 <成员ID>");
                             }
 
-                            if(Shitboy.INSTANCE.getConfig().addPocket48RoomSubscribe(Integer.valueOf(args[2]), group)) {
+                            if (Shitboy.INSTANCE.getConfig().addPocket48RoomSubscribe(Integer.valueOf(args[2]), group)) {
                                 String roomName = roomInfo.getRoomName();
                                 String ownerName = roomInfo.getOwnerName();
                                 return new PlainText("本群新增关注：" + roomName + "(" + ownerName + ")");
-                            }else
+                            } else
                                 return new PlainText("本群已经关注过这个房间了");
                         }
 
                         case "取消关注": {
-                            if(!Shitboy.INSTANCE.getConfig().isAdmin(g,senderID))
+                            if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                 return new PlainText("权限不足喵");
 
                             if (!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
                                 return new PlainText("本群暂无房间关注，先添加一个吧~");
 
-                            if(Shitboy.INSTANCE.getConfig().rmPocket48RoomSubscribe(Integer.valueOf(args[2]), group)){
+                            if (Shitboy.INSTANCE.getConfig().rmPocket48RoomSubscribe(Integer.valueOf(args[2]), group)) {
                                 Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
                                 if (roomInfo != null) {
                                     String roomName = roomInfo.getRoomName();
                                     String ownerName = roomInfo.getOwnerName();
                                     return new PlainText("本群取消关注：" + roomName + "(" + ownerName + ")");
                                 } else return new PlainText("本群取消关注：未知房间");
-                            }else
+                            } else
                                 return new PlainText("本群没有关注此房间捏~");
 
                         }
@@ -187,7 +187,7 @@ public class Listener extends SimpleListenerHost {
                         int room_id = Integer.valueOf(args[2]);
                         int server_id = Integer.valueOf(args[3]);
                         if (testRoomIDWithServerID(room_id, server_id)) {
-                            if(Shitboy.INSTANCE.getConfig().addRoomIDConnection(room_id, server_id))
+                            if (Shitboy.INSTANCE.getConfig().addRoomIDConnection(room_id, server_id))
                                 return new PlainText("连接成功");
                             else
                                 return new PlainText("建立过此连接");
@@ -223,7 +223,7 @@ public class Listener extends SimpleListenerHost {
                 } else {
                     switch (args[1]) {
                         case "关注": {
-                            if(!Shitboy.INSTANCE.getConfig().isAdmin(g,senderID))
+                            if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                 return new PlainText("权限不足喵");
 
                             JSONObject data = Shitboy.INSTANCE.getHandlerBilibili().getLiveData(Integer.valueOf(args[2]));
@@ -231,29 +231,29 @@ public class Listener extends SimpleListenerHost {
                                 return new PlainText("直播ID不存在。提示：直播ID是直播间链接最后的数字，不是B站用户uid");
                             }
 
-                            if(Shitboy.INSTANCE.getConfig().addBilibiliLiveSubscribe(Integer.valueOf(args[2]), group)) {
+                            if (Shitboy.INSTANCE.getConfig().addBilibiliLiveSubscribe(Integer.valueOf(args[2]), group)) {
                                 JSONObject info = JSONUtil.parseObj(data.getObj("data"));
                                 String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(info.getInt("uid"));
                                 return new PlainText("本群新增关注：" + name + "的直播间");
-                            }else
+                            } else
                                 return new PlainText("本群已经关注过这个直播间了");
                         }
 
                         case "取消关注": {
-                            if(!Shitboy.INSTANCE.getConfig().isAdmin(g,senderID))
+                            if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                 return new PlainText("权限不足喵");
 
                             if (!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
                                 return new PlainText("本群暂无Bilibili直播间关注，先添加一个吧~");
 
-                            if(Shitboy.INSTANCE.getConfig().rmBilibiliLiveSubscribe(Integer.valueOf(args[2]), group)){
+                            if (Shitboy.INSTANCE.getConfig().rmBilibiliLiveSubscribe(Integer.valueOf(args[2]), group)) {
                                 JSONObject data = Shitboy.INSTANCE.getHandlerBilibili().getLiveData(Integer.valueOf(args[2]));
                                 if (data.getInt("code") == 0) {
                                     JSONObject info = JSONUtil.parseObj(data.getObj("data"));
                                     String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(info.getInt("uid"));
                                     return new PlainText("本群取消关注：" + name + "的直播间");
                                 } else return new PlainText("本群取消关注：未知直播间");
-                            }else
+                            } else
                                 return new PlainText("本群没有关注此房间捏~");
                         }
                     }
@@ -286,29 +286,29 @@ public class Listener extends SimpleListenerHost {
                 } else {
                     switch (args[1]) {
                         case "关注": {
-                            if(!Shitboy.INSTANCE.getConfig().isAdmin(g,senderID))
+                            if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                 return new PlainText("权限不足喵");
 
                             String a = Shitboy.INSTANCE.getHandlerWeibo().getSuperTopicRes(args[2]);
                             if (a == null)
                                 return new PlainText("超话id不存在。");
                             else {
-                                if(Shitboy.INSTANCE.getConfig().addWeiboSTopicSubscribe(args[2], group)) {
+                                if (Shitboy.INSTANCE.getConfig().addWeiboSTopicSubscribe(args[2], group)) {
                                     a = a.substring(a.indexOf("onick']='") + "onick']='".length());
                                     String name = a.substring(0, a.indexOf("';"));
                                     return new PlainText("本群新增超话关注：" + name);
-                                }else return new PlainText("本群已经关注过这个超话了");
+                                } else return new PlainText("本群已经关注过这个超话了");
                             }
                         }
 
                         case "取消关注": {
-                            if(!Shitboy.INSTANCE.getConfig().isAdmin(g,senderID))
+                            if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                 return new PlainText("权限不足喵");
 
                             if (!Shitboy.INSTANCE.getProperties().weibo_superTopic_subscribe.containsKey(group))
                                 return new PlainText("本群暂无超话关注，先添加一个吧~");
 
-                            if(Shitboy.INSTANCE.getConfig().rmWeiboSTopicSubscribe(args[2], group)){
+                            if (Shitboy.INSTANCE.getConfig().rmWeiboSTopicSubscribe(args[2], group)) {
                                 String a = Shitboy.INSTANCE.getHandlerWeibo().getSuperTopicRes(args[2]);
                                 if (a == null)
                                     return new PlainText("本群取消关注超话：未知");
@@ -317,7 +317,7 @@ public class Listener extends SimpleListenerHost {
                                     String name = a.substring(0, a.indexOf("';"));
                                     return new PlainText("本群取消关注超话：" + name);
                                 }
-                            }else
+                            } else
                                 return new PlainText("本群没有关注此超话捏~");
                         }
                     }
@@ -344,14 +344,14 @@ public class Listener extends SimpleListenerHost {
                 } else {
                     switch (args[1]) {
                         case "关注": {
-                            if(!Shitboy.INSTANCE.getConfig().isAdmin(g,senderID))
+                            if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                 return new PlainText("权限不足喵");
 
                             String name = Shitboy.INSTANCE.getHandlerWeibo().getUserName(Long.valueOf(args[2]));
                             if (name.equals("未知用户"))
                                 return new PlainText("博主id不存在。");
                             else {
-                                if(Shitboy.INSTANCE.getConfig().addWeiboUserSubscribe(Long.valueOf(args[2]), group))
+                                if (Shitboy.INSTANCE.getConfig().addWeiboUserSubscribe(Long.valueOf(args[2]), group))
                                     return new PlainText("本群新增微博关注：" + name);
                                 else
                                     return new PlainText("本群已经关注过这个博主了");
@@ -359,13 +359,13 @@ public class Listener extends SimpleListenerHost {
                         }
 
                         case "取消关注": {
-                            if(!Shitboy.INSTANCE.getConfig().isAdmin(g,senderID))
+                            if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                 return new PlainText("权限不足喵");
 
                             if (!Shitboy.INSTANCE.getProperties().weibo_user_subscribe.containsKey(group))
                                 return new PlainText("本群暂无微博关注，先添加一个吧~");
 
-                            if(Shitboy.INSTANCE.getConfig().rmWeiboUserSubscribe(Long.valueOf(args[2]), group))
+                            if (Shitboy.INSTANCE.getConfig().rmWeiboUserSubscribe(Long.valueOf(args[2]), group))
                                 return new PlainText("本群取消关注超话：" +
                                         Shitboy.INSTANCE.getHandlerWeibo().getUserName(Long.valueOf(args[2])));
                             else

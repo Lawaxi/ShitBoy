@@ -154,8 +154,8 @@ public class Pocket48Sender extends Sender {
             case LIVEPUSH:
                 Image cover = group.uploadImage(ExternalResource.create(getRes(message.getLivePush().getCover())));
                 return new Pocket48SenderMessage(false, null,
-                        new Message[]{new PlainText("【" + message.getOwnerName() + "口袋48开播啦~】\n"
-                                + message.getLivePush().getTitle()).plus(cover)});
+                        new Message[]{toNotification(new PlainText("【" + message.getOwnerName() + "口袋48开播啦~】\n"
+                                + message.getLivePush().getTitle()).plus(cover))});
             case FLIPCARD:
                 return new Pocket48SenderMessage(false, null, new Message[]{new PlainText("【" + message.getOwnerName() + "翻牌回复消息】\n"
                         + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
@@ -164,7 +164,7 @@ public class Pocket48Sender extends Sender {
             case FLIPCARD_AUDIO:
                 Audio audio = group.uploadAudio(ExternalResource.create(getRes(message.getAnswer().getResInfo())));
                 return new Pocket48SenderMessage(false, null,
-                        new Message[]{new PlainText("【" + getName() + "语音翻牌回复消息】\n"
+                        new Message[]{new PlainText("【" + message.getOwnerName() + "语音翻牌回复消息】\n"
                                 + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
                                 + "\n------\n"), audio});
             case FLIPCARD_VIDEO:
@@ -181,7 +181,7 @@ public class Pocket48Sender extends Sender {
                     }
                 }.start();
                 return new Pocket48SenderMessage(false, null,
-                        new Message[]{new PlainText("【" + message.getNickName() + "视频翻牌回复消息】\n"
+                        new Message[]{new PlainText("【" + message.getOwnerName() + "视频翻牌回复消息】\n"
                                 + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
                                 + "------")});
             case PASSWORD_REDPACKAGE:

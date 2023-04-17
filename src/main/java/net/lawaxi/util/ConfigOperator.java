@@ -74,9 +74,9 @@ public class ConfigOperator {
         properties.ylg = setting.getBool("ylg", true);
         properties.admins = setting.getStrings("admins");
         properties.secureGroup = setting.getStrings("secureGroup");
-        if(properties.admins == null)
+        if (properties.admins == null)
             properties.admins = new String[]{};
-        if(properties.secureGroup == null)
+        if (properties.secureGroup == null)
             properties.secureGroup = new String[]{};
 
         //pocket48
@@ -138,7 +138,7 @@ public class ConfigOperator {
             ));
         }
 
-        if(properties.pocket48_subscribe.get(group).getRoomIDs().contains(room_id))
+        if (properties.pocket48_subscribe.get(group).getRoomIDs().contains(room_id))
             return false;
 
         properties.pocket48_subscribe.get(group).getRoomIDs().add(room_id);
@@ -147,7 +147,7 @@ public class ConfigOperator {
     }
 
     public boolean rmPocket48RoomSubscribe(int room_id, long group) {
-        if(!properties.pocket48_subscribe.get(group).getRoomIDs().contains(room_id))
+        if (!properties.pocket48_subscribe.get(group).getRoomIDs().contains(room_id))
             return false;
 
         properties.pocket48_subscribe.get(group).getRoomIDs().remove((Object) room_id);
@@ -156,7 +156,7 @@ public class ConfigOperator {
     }
 
     public boolean addRoomIDConnection(int room_id, int sever_id) {
-        if(properties.pocket48_serverID.containsKey(room_id))
+        if (properties.pocket48_serverID.containsKey(room_id))
             return false;
 
         properties.pocket48_serverID.put(room_id, sever_id);
@@ -165,7 +165,7 @@ public class ConfigOperator {
     }
 
     public boolean rmRoomIDConnection(int room_id, int sever_id) {
-        if(!properties.pocket48_serverID.containsKey(room_id))
+        if (!properties.pocket48_serverID.containsKey(room_id))
             return false;
 
         properties.pocket48_serverID.remove(room_id, sever_id);
@@ -178,7 +178,7 @@ public class ConfigOperator {
             properties.bilibili_subscribe.put(group, new ArrayList<>());
         }
 
-        if(properties.bilibili_subscribe.get(group).contains(room_id))
+        if (properties.bilibili_subscribe.get(group).contains(room_id))
             return false;
 
         properties.bilibili_subscribe.get(group).add(room_id);
@@ -187,7 +187,7 @@ public class ConfigOperator {
     }
 
     public boolean rmBilibiliLiveSubscribe(int room_id, long group) {
-        if(!properties.bilibili_subscribe.get(group).contains(room_id))
+        if (!properties.bilibili_subscribe.get(group).contains(room_id))
             return false;
 
         properties.bilibili_subscribe.get(group).remove((Object) room_id);
@@ -202,7 +202,7 @@ public class ConfigOperator {
             properties.weibo_superTopic_subscribe.put(group, new ArrayList<>());
         }
 
-        if(properties.weibo_user_subscribe.get(group).contains(id))
+        if (properties.weibo_user_subscribe.get(group).contains(id))
             return false;
 
         properties.weibo_user_subscribe.get(group).add(id);
@@ -211,7 +211,7 @@ public class ConfigOperator {
     }
 
     public boolean rmWeiboUserSubscribe(long id, long group) {
-        if(!properties.weibo_user_subscribe.get(group).contains(id))
+        if (!properties.weibo_user_subscribe.get(group).contains(id))
             return false;
 
         properties.weibo_user_subscribe.get(group).remove(id);
@@ -225,7 +225,7 @@ public class ConfigOperator {
             properties.weibo_superTopic_subscribe.put(group, new ArrayList<>());
         }
 
-        if(properties.weibo_superTopic_subscribe.get(group).contains(id))
+        if (properties.weibo_superTopic_subscribe.get(group).contains(id))
             return false;
 
         properties.weibo_superTopic_subscribe.get(group).add(id);
@@ -234,7 +234,7 @@ public class ConfigOperator {
     }
 
     public boolean rmWeiboSTopicSubscribe(String id, long group) {
-        if(!properties.weibo_superTopic_subscribe.get(group).contains(id))
+        if (!properties.weibo_superTopic_subscribe.get(group).contains(id))
             return false;
 
         properties.weibo_superTopic_subscribe.get(group).remove(id);
@@ -300,18 +300,18 @@ public class ConfigOperator {
         properties.enable = setting.getBool("enable");
     }
 
-    public boolean isAdmin(Group group, long qqID){
-        for(String g : properties.secureGroup){
-            if(g.equals(String.valueOf(group.getId())))
+    public boolean isAdmin(Group group, long qqID) {
+        for (String g : properties.secureGroup) {
+            if (g.equals(String.valueOf(group.getId())))
                 return true;
         }
 
-        for(String a : properties.admins){
-            if(a.equals(String.valueOf(qqID)))
+        for (String a : properties.admins) {
+            if (a.equals(String.valueOf(qqID)))
                 return true;
         }
 
-        if(group.get(qqID).getPermission() == MemberPermission.ADMINISTRATOR)
+        if (group.get(qqID).getPermission() == MemberPermission.ADMINISTRATOR)
             return true;
 
         return false;

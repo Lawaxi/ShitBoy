@@ -29,6 +29,8 @@ public class WeiboSender extends Sender {
         this.endTime = endTime;
     }
 
+    public static final String URLVideo = "https://video.weibo.com/show?fid=";
+
     @Override
     public void run() {
         List<MessageWithTime> ms = new ArrayList<>();
@@ -92,14 +94,12 @@ public class WeiboSender extends Sender {
                         info = info.substring(info.indexOf("WB_media_a") + "WB_media_a".length());
 
                         if (info.contains("WB_video")) {//视频获取链接(原始地址无权限访问)
-                            o = o.plus("https://video.weibo.com/show?fid=" + info.substring(info.indexOf("objectid=") + "objectid=".length(),
+                            o = o.plus(URLVideo + info.substring(info.indexOf("objectid=") + "objectid=".length(),
                                     info.indexOf("keys=")));
                         } else {//图片时获取原始地址
                             if (info.indexOf("&thumb_picSrc=") == -1) { //单张图
-                                String src = "https:" + info.substring(
-                                        info.indexOf("clear_picSrc=") + "clear_picSrc=".length(),
-                                        info.indexOf("jpg")
-                                ).replace("%2F", "/") + "jpg";
+                                info = info.substring(info.indexOf("clear_picSrc=") + "clear_picSrc=".length());
+                                String src = "https:" + info.substring(0, info.indexOf(".")).replace("%2F", "/") + "jpg";
                                 o = o.plus(group.uploadImage(ExternalResource.create(getRes(src))));
                             } else { //多张图
                                 for (String src : info.substring(
@@ -185,28 +185,49 @@ public class WeiboSender extends Sender {
     private Message parseUserBlog(JSONObject b) throws IOException {
         String oriText = b.getStr("text");
         String text = handleWeiboText(oriText); //另有文本格式的text_raw(草稿中样式)，但视频提示不友好，我毅然决然选择text+处理
-        Message o = new PlainText( text + "\n");
+        Message o = new PlainText(text + "\n");
 
-        //图片
-        if (b.containsKey("pic_infos")) {
+        //图片夹视频
+        if (b.containsKey("mix_media_info")) {
+            for (Object media_ : b.getJSONObject("mix_media_info").getJSONArray("items").stream().toArray()) {
+                JSONObject media = JSONUtil.parseObj(media_);
+                String id = media.getStr("id");
+                if (media.getStr("type").equals("pic")) {
+                    //图片
+                    String src = media.getJSONObject("data")
+                            .getJSONObject("original")
+                            .getStr("url");
+                    o = o.plus(group.uploadImage(ExternalResource.create(getRes(src))));
+
+                } else {
+                    //视频
+                    o = o.plus(URLVideo + id);
+                }
+            }
+        }
+
+        //单独图片
+        else if (b.containsKey("pic_infos")) {
             JSONObject pic_infos = b.getJSONObject("pic_infos");
             for (String pic_id : b.getJSONArray("pic_ids").toArray(new String[0])) {
                 JSONObject pic_info = pic_infos.getJSONObject(pic_id);
-                String src = pic_info.getJSONObject("mw2000")
+                String src = pic_info.getJSONObject("original")
                         .getStr("url");
                 o = o.plus(group.uploadImage(ExternalResource.create(getRes(src))));
             }
         }
 
-        //视频
-        if (oriText.indexOf("video.weibo.com") != -1) {
-            oriText = oriText.substring(oriText.indexOf("video.weibo.com") + "video.weibo.com".length());
-            String src = "https://video.weibo.com" + oriText.substring(0, oriText.indexOf("\">"));
-            o = o.plus(src);
+        //单独视频
+        else if (b.containsKey("page_info")) {
+            JSONObject page_info = b.getJSONObject("page_info");
+            if (page_info.getStr("object_type").equals("video")) {
+                String id = page_info.getStr("object_id");
+                o = o.plus(URLVideo + id);
+            }
         }
 
         //转发
-        if(b.containsKey("retweeted_status")){
+        else if (b.containsKey("retweeted_status")) {
             o = o.plus("\n").plus(parseUserBlog(b.getJSONObject("retweeted_status")));//叠呗
         }
 
