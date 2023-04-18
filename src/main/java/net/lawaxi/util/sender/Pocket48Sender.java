@@ -3,6 +3,7 @@ package net.lawaxi.util.sender;
 import cn.hutool.core.date.DateUtil;
 import net.lawaxi.Shitboy;
 import net.lawaxi.model.Pocket48Message;
+import net.lawaxi.model.Pocket48RoomInfo;
 import net.lawaxi.model.Pocket48Subscribe;
 import net.lawaxi.util.handler.Pocket48Handler;
 import net.mamoe.mirai.Bot;
@@ -19,11 +20,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Pocket48Sender extends Sender {
-    private final HashMap<Integer, Long> endTime;
 
-    public Pocket48Sender(Bot bot, long group, HashMap<Integer, Long> endTime) {
+    //endTime是一个关于roomID的HashMap
+    private final HashMap<Integer, Long> endTime;
+    private final HashMap<Integer, Boolean> voiceStatus;
+
+    public Pocket48Sender(Bot bot, long group, HashMap<Integer, Long> endTime, HashMap<Integer, Boolean> voiceStatus) {
         super(bot, group);
         this.endTime = endTime;
+        this.voiceStatus = voiceStatus;
     }
 
     @Override
@@ -34,11 +39,23 @@ public class Pocket48Sender extends Sender {
         List<Pocket48Message[]> totalMessages = new ArrayList<>();
 
         for (int roomID : subscribe.getRoomIDs()) {
-            Pocket48Message[] a = pocket.getNewMessages(roomID, endTime); //endTime是一个关于roomID的HashMap
+            Pocket48RoomInfo roomInfo = pocket.getRoomInfoByChannelID(roomID);
+            if (roomInfo == null)
+                continue;
 
+            //房间消息
+            Pocket48Message[] a = pocket.getMessages(roomInfo, endTime);
             if (a.length > 0) {
                 totalMessages.add(a);
             }
+
+            //房间语音
+            boolean vs = pocket.ifOnRoomVoice(roomID, roomInfo.getSeverId());
+            if (voiceStatus.containsKey(roomID) && voiceStatus.get(roomID) != vs)
+                group.sendMessage("【" + roomInfo.getOwnerName()
+                        + (vs ? "开启" : "关闭")
+                        + "了房间语音】");
+            voiceStatus.put(roomID, vs);
         }
 
         if (totalMessages.size() > 0) {

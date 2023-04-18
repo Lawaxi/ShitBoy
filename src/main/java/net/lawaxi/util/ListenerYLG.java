@@ -1,5 +1,6 @@
 package net.lawaxi.util;
 
+import cn.hutool.extra.pinyin.PinyinUtil;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.contact.NormalMember;
@@ -25,22 +26,28 @@ public class ListenerYLG extends SimpleListenerHost {
 
         if (sender instanceof NormalMember) {
             long qqID = sender.getId();
+
+            //单推人
             if (qqID == 1004297982L) {
-                //在单推人发送如何评价我wife时回复傻逼
-                if ((message.indexOf("我wife") != -1
-                        || message.indexOf("我wives") != -1
-                        || message.indexOf("我外敷") != -1
-                        || message.indexOf("我老婆") != -1))
+                String t = PinyinUtil.getPinyin(message, " ");
+                if (t.indexOf("wo wai fu") != -1 || t.indexOf("wo lao po") != -1)
                     group.sendMessage("傻逼");
             }
 
-            //群主
+            //小豆芽
+            if (qqID == 2901878527L) {
+                if (message.indexOf("zbzf") != -1)
+                    group.sendMessage("傻逼");
+            }
+
+            //gethigher
             if (qqID == 2080539637 && group.getId() == 755732123) {
                 if (xenon.size() == 5)
                     xenon.remove(0);
                 xenon.add(message);
             }
 
+            //群cp——单糖&乌冬面
             if (qqID == 2901878527L || qqID == 1004297982L || qqID == 1145572010L || qqID == 2432980874L) {
                 for (Message m : event.getMessage()) {
                     if (m instanceof At) {
@@ -62,7 +69,7 @@ public class ListenerYLG extends SimpleListenerHost {
                 o += "· " + m + "\n";
             }
             group.sendMessage(
-                    new At(sender.getId()).plus("机器人自动保存群主前五条消息\n" + o));
+                    new At(sender.getId()).plus("群主最近五条消息:\n" + o));
         }
 
         return ListeningStatus.LISTENING;

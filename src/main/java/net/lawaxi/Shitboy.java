@@ -33,7 +33,7 @@ public final class Shitboy extends JavaPlugin {
     private WeiboHandler handlerWeibo;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.5-test8" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.5-test9" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -125,10 +125,12 @@ public final class Shitboy extends JavaPlugin {
 
         //服务
 
-        //endTime: 已发送房间消息的最晚时间 & status: 上次检测的开播状态
+        //endTime: 已发送房间消息的最晚时间
         HashMap<Long, HashMap<Integer, Long>> pocket48_room = new HashMap<>();
-        HashMap<Long, HashMap<Integer, Boolean>> bilibili_live = new HashMap<>();
         HashMap<Long, HashMap<String, Long>> weibo = new HashMap<>(); //同时包含超话和个人(long -> String)
+        //status: 上次检测的开播状态
+        HashMap<Long, HashMap<Integer, Boolean>> pocket48_voice = new HashMap<>();
+        HashMap<Long, HashMap<Integer, Boolean>> bilibili_live = new HashMap<>();
 
         //服务
         for (Bot b : Bot.getInstances()) {
@@ -137,9 +139,12 @@ public final class Shitboy extends JavaPlugin {
                         public void run() {
                             for (long group : properties.pocket48_subscribe.keySet()) {
                                 if (!pocket48_room.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
+                                {
                                     pocket48_room.put(group, new HashMap<>());
+                                    pocket48_voice.put(group, new HashMap<>());
+                                }
 
-                                new Pocket48Sender(b, group, pocket48_room.get(group)).start();
+                                new Pocket48Sender(b, group, pocket48_room.get(group), pocket48_voice.get(group)).start();
 
                             }
 

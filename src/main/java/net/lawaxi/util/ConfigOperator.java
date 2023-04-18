@@ -311,9 +311,6 @@ public class ConfigOperator {
                 return true;
         }
 
-        if (group.get(qqID).getPermission() == MemberPermission.ADMINISTRATOR)
-            return true;
-
-        return false;
+        return group.get(qqID).getPermission() == MemberPermission.ADMINISTRATOR;
     }
 }

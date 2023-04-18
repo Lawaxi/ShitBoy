@@ -17,4 +17,5 @@ repositories {
 
 dependencies {
     implementation ("cn.hutool:hutool-all:5.8.2")
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }

@@ -1,6 +1,7 @@
 package net.lawaxi.util.handler;
 
 import cn.hutool.http.HttpRequest;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.model.Pocket48Message;
@@ -22,8 +23,8 @@ public class Pocket48Handler extends Handler {
     private static final String APIMsgAll = ROOT + "/im/api/v1/team/message/list/all";
     public static final String APIAnswerDetail = ROOT + "/idolanswer/api/idolanswer/v1/question_answer/detail";
     private static final String APIUserInfo = ROOT + "/user/api/v1/user/info/home";
-    private static final String APIRoomInfo = ROOT + "/im/api/v1/im/team/room/info";
     private static final String APILiveList = ROOT + "/live/api/v1/live/getLiveList";
+    private static final String APIRoomVoice = ROOT + "/im/api/v1/team/voice/operate";
 
     private final Pocket48HandlerHeader header;
 
@@ -79,8 +80,51 @@ public class Pocket48Handler extends Handler {
         header.setToken(null);
     }
 
+    /* ----------------------文字获取类---------------------- */
+    public String getAnswerNameTo(String answerID, String questionID) {
+        String s = post(APIAnswerDetail, String.format("{\"answerId\":\"%s\",\"questionId\":\"%s\"}", answerID, questionID));
+        JSONObject object = JSONUtil.parseObj(s);
 
-    //登陆后
+        if (object.getInt("status") == 200) {
+            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
+            return content.getStr("userName");
+
+        } else {
+            logError(object.getStr("message"));
+        }
+        return null;
+    }
+
+    private final HashMap<Integer, String> name = new HashMap<>();
+
+    public String getStarNameByStarID(int starID) {
+        if (name.containsKey(starID))
+            return name.get(starID);
+
+        JSONObject info = getUserInfo(starID);
+        if (info == null)
+            return null;
+
+        Object starName = info.getObj("starName");
+        String starName_ = starName == null ? "" : (String) starName;
+        name.put(starID, starName_);
+        return starName_;
+    }
+
+    public JSONObject getUserInfo(int starID) {
+        String s = post(APIUserInfo, String.format("{\"userId\":%d}", starID));
+        JSONObject object = JSONUtil.parseObj(s);
+
+        if (object.getInt("status") == 200) {
+            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
+            return JSONUtil.parseObj(content.getObj("baseUserInfo"));
+
+        } else {
+            logError(object.getStr("message"));
+        }
+        return null;
+
+    }
 
     private JSONObject getJumpContent(int starID) {
         String s = post(APIStar2Server, String.format("{\"starId\":%d,\"targetType\":1}", starID));
@@ -156,7 +200,7 @@ public class Pocket48Handler extends Handler {
                 && properties.pocket48_serverID.containsKey(roomID)) { //只有配置中存有severID的加密房间会被解析
             JSONObject message = JSONUtil.parseObj(object.getObj("message"));
             return new Pocket48RoomInfo(message.getStr("question") + "？",
-                    properties.pocket48_serverID.get(roomID));
+                    properties.pocket48_serverID.get(roomID), roomID);
         } else {
             logError(object.getStr("message"));
         }
@@ -164,66 +208,83 @@ public class Pocket48Handler extends Handler {
 
     }
 
-    public Pocket48Message[] getNewMessages(int roomID, HashMap<Integer, Long> endTime) {
-        Pocket48RoomInfo roomInfo = getRoomInfoByChannelID(roomID);
-
-        if (roomInfo != null) {
-            String roomName = roomInfo.getRoomName();
-            String ownerName = roomInfo.getOwnerName();
-            List<Object> msgs = getOMessages(roomID, roomInfo.getSeverId());
-            if (msgs != null) {
-                List<Pocket48Message> rs = new ArrayList<>();
-                Long latest = null;
-                for (Object message : msgs) {
-                    JSONObject m = JSONUtil.parseObj(message);
-                    long time = m.getLong("msgTime");
-                    if (latest == null) {
-                        latest = time;
-                        if (!endTime.containsKey(roomID))
-                            break;
-                    }
-
-                    if (m.getLong("msgTime") <= endTime.get(roomID))
+    /* ----------------------房间类---------------------- */
+    //获取最新消息并整理成Pocket48Message[]
+    public Pocket48Message[] getMessages(Pocket48RoomInfo roomInfo, HashMap<Integer, Long> endTime) {
+        int roomID = roomInfo.getRoomId();
+        String roomName = roomInfo.getRoomName();
+        String ownerName = roomInfo.getOwnerName();
+        List<Object> msgs = getOriMessages(roomID, roomInfo.getSeverId());
+        if (msgs != null) {
+            List<Pocket48Message> rs = new ArrayList<>();
+            Long latest = null;
+            for (Object message : msgs) {
+                JSONObject m = JSONUtil.parseObj(message);
+                long time = m.getLong("msgTime");
+                if (latest == null) {
+                    latest = time;
+                    if (!endTime.containsKey(roomID))
                         break;
-
-                    rs.add(Pocket48Message.construct(
-                            roomName,
-                            ownerName,
-                            m,
-                            time
-                    ));
                 }
-                endTime.put(roomID, latest);
-                return rs.toArray(new Pocket48Message[0]);
+
+                if (m.getLong("msgTime") <= endTime.get(roomID))
+                    break;
+
+                rs.add(Pocket48Message.construct(
+                        roomName,
+                        ownerName,
+                        m,
+                        time
+                ));
             }
+            endTime.put(roomID, latest);
+            return rs.toArray(new Pocket48Message[0]);
         }
+        return new Pocket48Message[0];
+    }
+
+    public Pocket48Message[] getMessages(int roomID, HashMap<Integer, Long> endTime) {
+        Pocket48RoomInfo roomInfo = getRoomInfoByChannelID(roomID);
+        if (roomInfo != null) {
+            return getMessages(roomInfo, endTime);
+        }
+        return new Pocket48Message[0];
+    }
+
+    //获取全部消息并整理成Pocket48Message[]
+    public Pocket48Message[] getMessages(Pocket48RoomInfo roomInfo) {
+        int roomID = roomInfo.getRoomId();
+        String roomName = roomInfo.getRoomName();
+        String ownerName = roomInfo.getOwnerName();
+        List<Object> msgs = getOriMessages(roomID, roomInfo.getSeverId());
+        if (msgs != null) {
+            List<Pocket48Message> rs = new ArrayList<>();
+            for (Object message : msgs) {
+                rs.add(Pocket48Message.construct(
+                        roomName,
+                        ownerName,
+                        JSONUtil.parseObj(message),
+                        JSONUtil.parseObj(message).getLong("msgTime")
+                ));
+            }
+            return rs.toArray(new Pocket48Message[0]);
+        }
+
         return new Pocket48Message[0];
     }
 
     public Pocket48Message[] getMessages(int roomID) {
         Pocket48RoomInfo roomInfo = getRoomInfoByChannelID(roomID);
         if (roomInfo != null) {
-            String roomName = roomInfo.getRoomName();
-            String ownerName = roomInfo.getOwnerName();
-            List<Object> msgs = getOMessages(roomID, roomInfo.getSeverId());
-            if (msgs != null) {
-                List<Pocket48Message> rs = new ArrayList<>();
-                for (Object message : msgs) {
-                    rs.add(Pocket48Message.construct(
-                            roomName,
-                            ownerName,
-                            JSONUtil.parseObj(message),
-                            JSONUtil.parseObj(message).getLong("msgTime")
-                    ));
-                }
-                return rs.toArray(new Pocket48Message[0]);
-            }
+            return getMessages(roomInfo);
         }
 
         return new Pocket48Message[0];
     }
 
-    private List<Object> getOMessages(int roomID, int serverID) {
+
+    //获取未整理的消息
+    private List<Object> getOriMessages(int roomID, int serverID) {
         String s = post(APIMsgOwner, String.format("{\"nextTime\":0,\"serverId\":%d,\"channelId\":%d,\"limit\":100}", serverID, roomID));
         JSONObject object = JSONUtil.parseObj(s);
 
@@ -238,67 +299,24 @@ public class Pocket48Handler extends Handler {
         return null;
     }
 
-    public String getAnswerNameTo(String answerID, String questionID) {
-        String s = post(APIAnswerDetail, String.format("{\"answerId\":\"%s\",\"questionId\":\"%s\"}", answerID, questionID));
+    public boolean ifOnRoomVoice(int roomID, int serverID) {
+        String s = post(APIRoomVoice, String.format("{\"channelId\":%d,\"serverId\":%d,\"operateCode\":2}", roomID, serverID));
         JSONObject object = JSONUtil.parseObj(s);
-
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            return content.getStr("userName");
+            JSONArray a = content.getJSONArray("voiceUserList");
+            if (a.size() > 0) {
+                logError(s); //暂不知道voiceUserList内元素结构，先测试，静待有成员开播
+                return true;
+            }
 
         } else {
             logError(object.getStr("message"));
         }
-        return null;
+        return false;
     }
 
-    private final HashMap<Integer, String> name = new HashMap<>();
-
-    public String getStarNameByStarID(int starID) {
-        if (name.containsKey(starID))
-            return name.get(starID);
-
-        JSONObject info = getUserInfo(starID);
-        if (info == null)
-            return null;
-
-        Object starName = info.getObj("starName");
-        String starName_ = starName == null ? "" : (String) starName;
-        name.put(starID, starName_);
-        return starName_;
-    }
-
-    public JSONObject getUserInfo(int starID) {
-        String s = post(APIUserInfo, String.format("{\"userId\":%d}", starID));
-        JSONObject object = JSONUtil.parseObj(s);
-
-        if (object.getInt("status") == 200) {
-            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            return JSONUtil.parseObj(content.getObj("baseUserInfo"));
-
-        } else {
-            logError(object.getStr("message"));
-        }
-        return null;
-
-    }
-
-    public JSONObject getRoomInfo(int channelID) {
-        String s = post(APIRoomInfo, String.format("{\"channelId\":\"%d\"}", channelID));
-        JSONObject object = JSONUtil.parseObj(s);
-
-        if (object.getInt("status") == 200) {
-            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            return JSONUtil.parseObj(content.getObj("channelInfo"));
-
-        } else {
-            logError(object.getStr("message"));
-        }
-        return null;
-
-    }
-
-    //获取一个JSONObejct表
+    /* ----------------------直播类---------------------- */
     public List<Object> getLiveList() {
         String s = post(APILiveList, "{\"groupId\":0,\"debug\":true,\"next\":0,\"record\":false}");
         JSONObject object = JSONUtil.parseObj(s);
@@ -328,4 +346,5 @@ public class Pocket48Handler extends Handler {
         return null;
 
     }
+
 }
