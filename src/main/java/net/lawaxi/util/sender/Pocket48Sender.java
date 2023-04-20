@@ -23,9 +23,9 @@ public class Pocket48Sender extends Sender {
 
     //endTime是一个关于roomID的HashMap
     private final HashMap<Integer, Long> endTime;
-    private final HashMap<Integer, Boolean> voiceStatus;
+    private final HashMap<Integer, List<Integer>> voiceStatus;
 
-    public Pocket48Sender(Bot bot, long group, HashMap<Integer, Long> endTime, HashMap<Integer, Boolean> voiceStatus) {
+    public Pocket48Sender(Bot bot, long group, HashMap<Integer, Long> endTime, HashMap<Integer, List<Integer>> voiceStatus) {
         super(bot, group);
         this.endTime = endTime;
         this.voiceStatus = voiceStatus;
@@ -50,12 +50,29 @@ public class Pocket48Sender extends Sender {
             }
 
             //房间语音
-            boolean vs = pocket.ifOnRoomVoice(roomID, roomInfo.getSeverId());
-            if (voiceStatus.containsKey(roomID) && voiceStatus.get(roomID) != vs)
-                group.sendMessage("【" + roomInfo.getOwnerName()
-                        + (vs ? "开启" : "关闭")
-                        + "了房间语音】");
-            voiceStatus.put(roomID, vs);
+            List<Integer> n = pocket.getRoomVoiceList(roomID, roomInfo.getSeverId());
+            if (voiceStatus.containsKey(roomID)) {
+                String[] r = handleVoiceList(voiceStatus.get(roomID), n);
+                if (r[0] != null || r[1] != null) {
+                    String ownerName = pocket.getOwnerOrTeamName(roomInfo);
+                    boolean private_ = ownerName.equals(roomInfo.getOwnerName());
+                    String message = "【" + roomInfo.getRoomName() + "(" + ownerName + ")房间语音】\n";
+
+                    if (r[0] != null) {
+                        message += private_ ?
+                                "上麦啦~" //成员房间
+                                : "★ 上麦：\n" + r[0] + "\n"; //队伍房间
+                    }
+                    if (r[1] != null) {
+                        message += private_ ?
+                                "下麦了捏~"
+                                : "☆ 下麦：\n" + r[1];
+                    }
+                    Message m = new PlainText(message);
+                    group.sendMessage(private_ ? toNotification(m) : m);
+                }
+            }
+            voiceStatus.put(roomID, n);
         }
 
         if (totalMessages.size() > 0) {
@@ -125,6 +142,21 @@ public class Pocket48Sender extends Sender {
                 }
             }
         }
+    }
+
+    private String[] handleVoiceList(List<Integer> a, List<Integer> b) {
+        String zengjia = "";
+        String jianshao = "";
+        for (Integer b0 : b) {
+            if (!a.contains(b0))
+                zengjia += "，" + b0;
+        }
+        for (Integer a0 : a) {
+            if (!b.contains(a0))
+                jianshao += "，" + a0;
+        }
+        return new String[]{(zengjia.length() > 0 ? zengjia.substring(1) : null),
+                (jianshao.length() > 0 ? jianshao.substring(1) : null)};
     }
 
     public Pocket48SenderMessage pharseMessage(Pocket48Message message, Group group) throws IOException {

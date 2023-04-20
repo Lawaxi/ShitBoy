@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.lawaxi"
-version = "0.1.5-test9"
+version = "0.1.5-test10"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")
@@ -16,6 +16,6 @@ repositories {
 }
 
 dependencies {
-    implementation ("cn.hutool:hutool-all:5.8.2")
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    implementation ("cn.hutool:hutool-all:5.8.18")
+    implementation ("com.belerweb:pinyin4j:2.5.0")
 }

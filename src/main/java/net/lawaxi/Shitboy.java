@@ -1,6 +1,7 @@
 package net.lawaxi;
 
 import cn.hutool.cron.CronUtil;
+import cn.hutool.extra.pinyin.engine.pinyin4j.Pinyin4jEngine;
 import net.lawaxi.command.ShitBoyCommand;
 import net.lawaxi.util.ConfigOperator;
 import net.lawaxi.util.Listener;
@@ -22,6 +23,7 @@ import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.BotOnlineEvent;
 
 import java.util.HashMap;
+import java.util.List;
 
 
 public final class Shitboy extends JavaPlugin {
@@ -33,7 +35,7 @@ public final class Shitboy extends JavaPlugin {
     private WeiboHandler handlerWeibo;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.5-test9" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.5-test10" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -55,6 +57,7 @@ public final class Shitboy extends JavaPlugin {
         });
 
         getLogger().info("Shit boy!");
+        getLogger().info(new Pinyin4jEngine().getPinyin("拼音测试", " "));
     }
 
     private void initProperties() {
@@ -129,7 +132,7 @@ public final class Shitboy extends JavaPlugin {
         HashMap<Long, HashMap<Integer, Long>> pocket48_room = new HashMap<>();
         HashMap<Long, HashMap<String, Long>> weibo = new HashMap<>(); //同时包含超话和个人(long -> String)
         //status: 上次检测的开播状态
-        HashMap<Long, HashMap<Integer, Boolean>> pocket48_voice = new HashMap<>();
+        HashMap<Long, HashMap<Integer, List<Integer>>> pocket48_voice = new HashMap<>();
         HashMap<Long, HashMap<Integer, Boolean>> bilibili_live = new HashMap<>();
 
         //服务

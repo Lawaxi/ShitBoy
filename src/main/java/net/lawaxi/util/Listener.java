@@ -46,34 +46,33 @@ public class Listener extends SimpleListenerHost {
                 if (args.length == 1) {
                     return getHelp(1);
                 } else if (args.length == 2) {
-                    switch (args[1]) {
-                        case "关注列表": {
-                            String out = "本群口袋房间关注列表：\n";
-                            if (!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
-                                return new PlainText("暂无");
+                    if (args[1].equals("关注列表")) {
+                        String out = "本群口袋房间关注列表：\n";
+                        if (!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
+                            return new PlainText("暂无");
 
-                            int count = 1;
-                            for (int room_id : Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs()) {
+                        int count = 1;
+                        for (int room_id : Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs()) {
 
-                                try {
-                                    out += count + ". (" + room_id + ")";
-                                    count++;
+                            try {
+                                out += count + ". (" + room_id + ")";
+                                count++;
 
-                                    Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(room_id);
-                                    if (roomInfo != null) {
-                                        String roomName = roomInfo.getRoomName();
-                                        String ownerName = roomInfo.getOwnerName();
-                                        out += roomName + "(" + ownerName + ")\n";
-                                    } else
-                                        out += "未知房间" + room_id + "\n";
+                                Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(room_id);
+                                if (roomInfo != null) {
+                                    String roomName = roomInfo.getRoomName();
+                                    String ownerName = roomInfo.getOwnerName();
+                                    out += roomName + "(" + ownerName + ")\n";
+                                } else
+                                    out += "未知房间" + room_id + "\n";
 
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                    out += "null\n";
-                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                out += "null\n";
                             }
-                            return new PlainText(out);
                         }
+                        return new PlainText(out);
+                        /*
                         case "查直播": {
                             String out = "";
                             int count = 1;
@@ -104,13 +103,36 @@ public class Listener extends SimpleListenerHost {
                             }
                             return new PlainText(out);
 
-                        }
-                        default:
-                            return getHelp(1);
+                        }*/
                     }
+                    return getHelp(1);
 
                 } else if (args.length == 3) {
                     switch (args[1]) {
+                        case "搜索": {
+                            Object[] servers = Shitboy.INSTANCE.getHandlerPocket48().search(args[2]);
+                            String out = "关键词：" + args[2] + "\n";
+
+                            if (servers.length == 0)
+                                return new PlainText(out + "仅支持搜索在团小偶像/队伍名");
+
+                            int count = 1;
+                            for (Object server_ : servers) {
+                                JSONObject server = JSONUtil.parseObj(server_);
+                                String name = server.getStr("serverDefaultName");
+                                String serverName = server.getStr("serverName");
+                                Integer serverId = server.getInt("serverId");
+
+                                out += count + ". " + name + "(" + serverName + ")\n";
+                                try {
+                                    out += informationFromPocketServerId(serverId);
+                                } catch (Exception e) {
+                                    out += serverId == null ? "" : "Server_id: " + serverId + "\n房间信息获取失败\n";
+                                }
+                                count++;
+                            }
+                            return new PlainText(out);
+                        }
                         case "查询": {
                             int star_ID = Integer.valueOf(args[2]);
                             JSONObject info = Shitboy.INSTANCE.getHandlerPocket48().getUserInfo(star_ID);
@@ -126,25 +148,32 @@ public class Listener extends SimpleListenerHost {
                             String out = (star ? "【成员】" : "【聚聚】") + nickName + (starName != null ? "(" + starName + ")" : "") + "\n"
                                     + "关注 " + friends + " 粉丝 " + followers + "\n";
 
+                            //Server
+                            Integer serverId = Shitboy.INSTANCE.getHandlerPocket48().getServerIDByStarID(star_ID);
                             try {
-                                int server_id = Shitboy.INSTANCE.getHandlerPocket48().getServerIDByStarID(star_ID);
-                                if (server_id != 0) {
-                                    out += "Server_id: " + server_id + "\n";
-                                    for (int i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
-                                        out += "(" + i + ")" + Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(i)
-                                                .getRoomName() + "\n";
-                                    }
-                                }
+                                out += informationFromPocketServerId(serverId);
                             } catch (Exception e) {
-
+                                out += serverId == null ? "" : "Server_id: " + serverId + "\n房间信息获取失败\n";
                             }
 
+                            //头像
                             try {
                                 return new PlainText(out).plus(
                                         g.uploadImage(ExternalResource.create(HttpRequest.get(avatar).execute().bodyStream())));
                             } catch (IOException e) {
                                 return new PlainText(out);
                             }
+                        }
+                        case "查询2": {
+                            int server_id = Integer.valueOf(args[2]);
+                            if (server_id != 0) {
+                                try {
+                                    return new PlainText(informationFromPocketServerId(server_id));
+                                } catch (Exception e) {
+                                    return new PlainText("Server_id不存在或房间信息获取失败");
+                                }
+                            }
+                            return new PlainText("请输入合法的Server_id");
                         }
                         case "关注": {
                             if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
@@ -387,15 +416,15 @@ public class Listener extends SimpleListenerHost {
         switch (id) {
             case 1:
                 return new PlainText("【口袋48相关】\n"
-                        + "/口袋 查询 <成员ID>\n"
-                        + "/口袋 查直播\n"
-                        + "/口袋 查录播\n"
+                        + "/口袋 搜索 <在团小偶像或队伍名>\n"
+                        + "/口袋 查询 <ID>\n"
+                        + "/口袋 查询2 <Server_id>\n"
                         + "/口袋 关注 <房间ID>\n"
                         + "/口袋 取消关注 <房间ID>\n"
                         + "/口袋 关注列表\n"
                         + "/口袋 连接 <加密房间ID> <ServerId>\n"
-                        + "注1：不知道房间ID可以在直播的时候先通过查直播获得成员ID，再通过查询获得房间ID\n"
-                        + "注2：不知道密码的加密房间如果知道serverId，通过连接功能连接以后照样可以关注并获取消息\n");
+                        + "注1：关注步骤：搜索名字，关注房间\n"
+                        + "注2：不知道密码的加密房间如果知道Server_Id，通过连接功能连接以后照样可以关注并获取消息\n");
             case 2:
                 return new PlainText("【B站直播相关】\n"
                         + "/bili 关注 <直播ID>\n"
@@ -424,11 +453,21 @@ public class Listener extends SimpleListenerHost {
         return ListeningStatus.LISTENING;
     }
 
+
+    /* 函数工具 */
     private boolean testRoomIDWithServerID(int room_id, int server_id) {
         for (int i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
             if (i == room_id)
                 return true;
         }
         return false;
+    }
+
+    private String informationFromPocketServerId(int server_id) throws Exception {
+        String out = "Server_id: " + server_id + "\n";
+        for (Integer i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
+            out += i != null ? "(" + i + ")" + Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(i).getRoomName() + "\n" : "";
+        }
+        return out;
     }
 }

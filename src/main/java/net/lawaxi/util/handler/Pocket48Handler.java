@@ -19,6 +19,7 @@ public class Pocket48Handler extends Handler {
     private static final String APIStar2Server = ROOT + "/im/api/v1/im/server/jump";
     private static final String APIServer2Channel = ROOT + "/im/api/v1/team/last/message/get";
     private static final String APIChannel2Server = ROOT + "/im/api/v1/im/team/room/info";
+    private static final String APISearch = ROOT + "/im/api/v1/im/server/search";
     private static final String APIMsgOwner = ROOT + "/im/api/v1/team/message/list/homeowner";
     private static final String APIMsgAll = ROOT + "/im/api/v1/team/message/list/all";
     public static final String APIAnswerDetail = ROOT + "/idolanswer/api/idolanswer/v1/question_answer/detail";
@@ -81,20 +82,6 @@ public class Pocket48Handler extends Handler {
     }
 
     /* ----------------------文字获取类---------------------- */
-    public String getAnswerNameTo(String answerID, String questionID) {
-        String s = post(APIAnswerDetail, String.format("{\"answerId\":\"%s\",\"questionId\":\"%s\"}", answerID, questionID));
-        JSONObject object = JSONUtil.parseObj(s);
-
-        if (object.getInt("status") == 200) {
-            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            return content.getStr("userName");
-
-        } else {
-            logError(object.getStr("message"));
-        }
-        return null;
-    }
-
     private final HashMap<Integer, String> name = new HashMap<>();
 
     public String getStarNameByStarID(int starID) {
@@ -173,8 +160,6 @@ public class Pocket48Handler extends Handler {
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
             List<Integer> rs = new ArrayList<>();
-            properties.logger.info(object.getObj("content").toString());
-
             for (Object room : content.getBeanList("lastMsgList", Object.class)) {
                 rs.add(JSONUtil.parseObj(room).getInt("channelId"));
             }
@@ -208,12 +193,43 @@ public class Pocket48Handler extends Handler {
 
     }
 
+    public Object[] search(String content_) {
+        String s = post(APISearch, String.format("{\"searchContent\":\"%s\"}", content_));
+        JSONObject object = JSONUtil.parseObj(s);
+
+        if (object.getInt("status") == 200) {
+            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
+            if (content.containsKey("serverApiList")) {
+                JSONArray a = content.getJSONArray("serverApiList");
+                return a.stream().toArray();
+            }
+
+        } else {
+            logError(object.getStr("message"));
+        }
+        return new Object[0];
+    }
+
+    public String getAnswerNameTo(String answerID, String questionID) {
+        String s = post(APIAnswerDetail, String.format("{\"answerId\":\"%s\",\"questionId\":\"%s\"}", answerID, questionID));
+        JSONObject object = JSONUtil.parseObj(s);
+
+        if (object.getInt("status") == 200) {
+            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
+            return content.getStr("userName");
+
+        } else {
+            logError(object.getStr("message"));
+        }
+        return null;
+    }
+
     /* ----------------------房间类---------------------- */
     //获取最新消息并整理成Pocket48Message[]
     public Pocket48Message[] getMessages(Pocket48RoomInfo roomInfo, HashMap<Integer, Long> endTime) {
         int roomID = roomInfo.getRoomId();
         String roomName = roomInfo.getRoomName();
-        String ownerName = roomInfo.getOwnerName();
+        String ownerName = getOwnerOrTeamName(roomInfo);
         List<Object> msgs = getOriMessages(roomID, roomInfo.getSeverId());
         if (msgs != null) {
             List<Pocket48Message> rs = new ArrayList<>();
@@ -255,7 +271,7 @@ public class Pocket48Handler extends Handler {
     public Pocket48Message[] getMessages(Pocket48RoomInfo roomInfo) {
         int roomID = roomInfo.getRoomId();
         String roomName = roomInfo.getRoomName();
-        String ownerName = roomInfo.getOwnerName();
+        String ownerName = getOwnerOrTeamName(roomInfo);
         List<Object> msgs = getOriMessages(roomID, roomInfo.getSeverId());
         if (msgs != null) {
             List<Pocket48Message> rs = new ArrayList<>();
@@ -299,21 +315,58 @@ public class Pocket48Handler extends Handler {
         return null;
     }
 
-    public boolean ifOnRoomVoice(int roomID, int serverID) {
+    public String getOwnerOrTeamName(Pocket48RoomInfo roomInfo) {
+        switch (roomInfo.getSeverId()) {
+            case 1148749:
+                return "TEAM Z";
+            case 1164313:
+                return "TEAM X";
+            case 1164314:
+                return "TEAM NIII";
+            case 1181051:
+                return "TEAM HII";
+            case 1181256:
+                return "TEAM G";
+            case 1213978:
+                return "TEAM NII";
+            case 1214171:
+                return "TEAM SII";
+            case 1115226:
+                return "CKG48";
+            case 1115413:
+                return "BEJ48";
+            default:
+                return roomInfo.getOwnerName();
+        }
+    }
+
+    public static final List<Integer> voidRoomVoiceList = new ArrayList<>();
+
+    public List<Integer> getRoomVoiceList(int roomID, int serverID) {
         String s = post(APIRoomVoice, String.format("{\"channelId\":%d,\"serverId\":%d,\"operateCode\":2}", roomID, serverID));
         JSONObject object = JSONUtil.parseObj(s);
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
             JSONArray a = content.getJSONArray("voiceUserList");
+            List<Integer> l = new ArrayList<>();
             if (a.size() > 0) {
-                logError(s); //暂不知道voiceUserList内元素结构，先测试，静待有成员开播
-                return true;
+                for (Object star_ : a.stream().toArray()) {
+                    JSONObject star = JSONUtil.parseObj(star_);
+                    int starID = star.getInt("userId");
+                    l.add(starID);
+
+                    //优化：names的另一种添加途径
+                    if (!name.containsKey(starID)) {
+                        name.put(starID, star.getStr("nickname"));
+                    }
+                }
+                return l;
             }
 
         } else {
             logError(object.getStr("message"));
         }
-        return false;
+        return voidRoomVoiceList;
     }
 
     /* ----------------------直播类---------------------- */
