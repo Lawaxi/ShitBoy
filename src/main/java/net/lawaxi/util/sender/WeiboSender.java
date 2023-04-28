@@ -5,7 +5,6 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.Shitboy;
-import net.lawaxi.model.MessageWithTime;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.message.data.Message;
 import net.mamoe.mirai.message.data.PlainText;
@@ -33,7 +32,7 @@ public class WeiboSender extends Sender {
 
     @Override
     public void run() {
-        List<MessageWithTime> ms = new ArrayList<>();
+        List<messageWithTime> ms = new ArrayList<>();
 
         try {
             //超话
@@ -114,7 +113,7 @@ public class WeiboSender extends Sender {
                     }
 
                     //发送
-                    ms.add(new MessageWithTime(o.plus("\nlink: " + link), time));
+                    ms.add(new messageWithTime(o.plus("\nlink: " + link), time));
 
                 }
 
@@ -163,7 +162,7 @@ public class WeiboSender extends Sender {
                         m = time;
 
                     //发送
-                    ms.add(new MessageWithTime(new PlainText("【" + name + "微博更新】\n")
+                    ms.add(new messageWithTime(new PlainText("【" + name + "微博更新】\n")
                             .plus(parseUserBlog(b))
                             .plus("\nlink: " + "https://weibo.com/" + id + "/" + b.getStr("mblogid")), time));
                 }
@@ -176,9 +175,9 @@ public class WeiboSender extends Sender {
             e.printStackTrace();
         }
 
-        ms.sort((a, b) -> a.getTime() - b.getTime() > 0 ? 1 : 0); //由小到大排序
-        for (MessageWithTime m : ms) {
-            group.sendMessage(m.getMessage());
+        ms.sort((a, b) -> a.time - b.time > 0 ? 1 : 0); //按时间由小到大排序
+        for (messageWithTime m : ms) {
+            group.sendMessage(toNotification(m.message));
         }
     }
 
@@ -243,5 +242,15 @@ public class WeiboSender extends Sender {
         return oriText.replaceAll("&#xe627;", "▼")
                 .replaceAll("<br>", "\n")
                 .replaceAll("<.*?>", "");
+    }
+
+    private class messageWithTime {
+        public final Message message;
+        public final long time;
+
+        private messageWithTime(Message message, long time) {
+            this.message = message;
+            this.time = time;
+        }
     }
 }

@@ -19,7 +19,8 @@ import java.util.List;
 public class ListenerYLG extends SimpleListenerHost {
 
     private final Pinyin4jEngine engine = new Pinyin4jEngine();
-    private final List<xenonMessage> xenon = new ArrayList<>();
+    private final List<messageWithTime> xenon = new ArrayList<>();
+    private final List<messageWithTime> xenon_recall = new ArrayList<>();
 
     @EventHandler()
     public ListeningStatus onGroupMessage(GroupMessageEvent event) {
@@ -33,7 +34,8 @@ public class ListenerYLG extends SimpleListenerHost {
             //单推人
             if (qqID == 1004297982L) {
                 String t = engine.getPinyin(message, " ");
-                if (t.indexOf("wo wai fu") != -1 || t.indexOf("wo lao po") != -1)
+                if (message.indexOf("wife") != -1 || message.indexOf("wives") != -1
+                        || t.indexOf("wo wai fu") != -1 || t.indexOf("wo lao po") != -1)
                     group.sendMessage("傻逼");
             }
 
@@ -47,7 +49,7 @@ public class ListenerYLG extends SimpleListenerHost {
             if (qqID == 2080539637 && group.getId() == 755732123) {
                 if (xenon.size() == 5)
                     xenon.remove(0);
-                xenon.add(new xenonMessage(event.getTime(), message));
+                xenon.add(new messageWithTime(event.getTime(), message));
             }
 
             //群cp——单糖&乌冬面
@@ -68,7 +70,7 @@ public class ListenerYLG extends SimpleListenerHost {
 
         if (message.equals("查群主") && group.getId() == 755732123) {
             String o = "";
-            for (xenonMessage m : xenon) {
+            for (messageWithTime m : xenon) {
                 o += "· " + m.message + "\n";
             }
             group.sendMessage(
@@ -81,25 +83,56 @@ public class ListenerYLG extends SimpleListenerHost {
     //群主实时撤回播报
     @EventHandler()
     public ListeningStatus onGroupRecall(MessageRecallEvent.GroupRecall event) {
-        if (event.getGroup().getId() == 755732123 && event.getAuthorId() == 2080539637) {
-            for (xenonMessage m : xenon) {
-                if (m.time == (int) event.getMessageTime()) {
-                    event.getGroup().sendMessage("【群主刚刚撤回了】\n" + m.message);
-                    break;
+        if (event.getGroup().getId() == 755732123) {
+            //gethigher
+            if (event.getAuthorId() == 2080539637) {
+                for (messageWithTime m : xenon) {
+                    if (m.time == event.getMessageTime()) {
+                        sendXenonRecallMessage(event.getGroup(), m);
+                        break;
+                    }
                 }
             }
+
+            //G7人
+            if (event.getAuthor().equals(event.getBot())) {
+                Shitboy.INSTANCE.getLogger().info("机器人消息被撤:" + event.getMessageTime());
+                for (messageWithTime m : xenon_recall) {
+                    if (m.send_time == event.getMessageTime()) {
+                        sendXenonRecallMessage(event.getGroup(), m);
+                        break;
+                    }
+                }
+            }
+
         }
 
         return ListeningStatus.LISTENING;
     }
 
-    private class xenonMessage {
+    private void sendXenonRecallMessage(Group group, messageWithTime m) {
+        int g7 = group.sendMessage((m.send_time == 0 ? "" : "别撤我嘤嘤嘤~\n") + "【群主刚刚撤回了】\n" + m.message).getSource().getTime();
+        Shitboy.INSTANCE.getLogger().info("发送消息：" + g7);
+
+        //防止群主再撤回机器人发的消息：见G7人
+        if (xenon_recall.size() == 5)
+            xenon_recall.remove(0);
+        xenon_recall.add(new messageWithTime(m.time, m.message).setG7Time(g7));
+    }
+
+    private class messageWithTime {
         public final int time;
+        public int send_time = 0;
         public final String message;
 
-        public xenonMessage(int time, String message) {
+        public messageWithTime(int time, String message) {
             this.time = time;
             this.message = message;
+        }
+
+        public messageWithTime setG7Time(int send_time) {
+            this.send_time = send_time;
+            return this;
         }
     }
 }

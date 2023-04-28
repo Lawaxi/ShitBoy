@@ -16,6 +16,7 @@ public class Pocket48Handler extends Handler {
     public static final String ROOT = "https://pocketapi.48.cn";
     public static final String SOURCEROOT = "https://source.48.cn/";
     private static final String APILogin = ROOT + "/user/api/v1/login/app/mobile";
+    private static final String APIBalance = ROOT + "/user/api/v1/user/money";
     private static final String APIStar2Server = ROOT + "/im/api/v1/im/server/jump";
     private static final String APIServer2Channel = ROOT + "/im/api/v1/team/last/message/get";
     private static final String APIChannel2Server = ROOT + "/im/api/v1/im/team/room/info";
@@ -32,24 +33,6 @@ public class Pocket48Handler extends Handler {
     public Pocket48Handler() {
         super();
         this.header = new Pocket48HandlerHeader(properties);
-    }
-
-    private void logInfo(String msg) {
-        properties.logger.info(msg);
-    }
-
-    private void logError(String msg) {
-        properties.logger.error(msg);
-    }
-
-    private String post(String url, String body) {
-        return header.setHeader(HttpRequest.post(url))
-                .body(body).execute().body();
-    }
-
-    private String get(String url) {
-        return header.setHeader(HttpRequest.get(url))
-                .execute().body();
     }
 
     //登陆前
@@ -81,7 +64,27 @@ public class Pocket48Handler extends Handler {
         header.setToken(null);
     }
 
+    @Override
+    protected HttpRequest setHeader(HttpRequest request) {
+        return header.setHeader(request);
+    }
+
     /* ----------------------文字获取类---------------------- */
+
+    public int getBalance() {
+        String s = post(APIBalance, String.format("{\"token\":\"%s\"}", header.getToken()));
+        JSONObject object = JSONUtil.parseObj(s);
+
+        if (object.getInt("status") == 200) {
+            JSONObject content = JSONUtil.parseObj(object.getObj("content"));
+            return content.getInt("moneyTotal", 0);
+
+        } else {
+            logError(object.getStr("message"));
+        }
+        return 0;
+    }
+
     private final HashMap<Integer, String> name = new HashMap<>();
 
     public String getStarNameByStarID(int starID) {

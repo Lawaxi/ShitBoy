@@ -1,6 +1,7 @@
 package net.lawaxi;
 
 import net.lawaxi.model.Pocket48Subscribe;
+import net.lawaxi.model.WeidianCookie;
 import net.mamoe.mirai.utils.MiraiLogger;
 
 import java.io.File;
@@ -16,7 +17,7 @@ public class Properties {
     public String[] admins;
     public String[] secureGroup;
 
-    //pocket48
+    //口袋48
     public String pocket48_account;
     public String pocket48_password;
     public HashMap<Long, Pocket48Subscribe> pocket48_subscribe = new HashMap<>();
@@ -25,9 +26,11 @@ public class Properties {
     //bilibili
     public HashMap<Long, List<Integer>> bilibili_subscribe = new HashMap<>();
 
-    //weibo
+    //微博
     public HashMap<Long, List<Long>> weibo_user_subscribe = new HashMap<>();
     public HashMap<Long, List<String>> weibo_superTopic_subscribe = new HashMap<>();
 
+    //微店
+    public HashMap<Long, WeidianCookie> weidian_cookie = new HashMap<>();
 
 }

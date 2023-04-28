@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.setting.Setting;
 import net.lawaxi.Properties;
 import net.lawaxi.model.Pocket48Subscribe;
+import net.lawaxi.model.WeidianCookie;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.MemberPermission;
 
@@ -31,12 +32,12 @@ public class ConfigOperator {
             setting.set("admins", "2330234142");
             setting.set("secureGroup", "");
 
-            //pocket48
-            setting.setByGroup("account", "pocket48", "");
-            setting.setByGroup("password", "pocket48", "");
+            //口袋48
+            setting.setByGroup("account", "pocket48", "12345678901");
+            setting.setByGroup("password", "pocket48", "123456");
 
             JSONObject object = new JSONObject();
-            object.set("qqGroup", 764687233);
+            object.set("qqGroup", 1234567);
             object.set("showAtOne", true);
             object.set("starSubs", new int[]{45285669, 70385975, 64422016});
             object.set("roomSubs", new int[]{1262731, 1361829});
@@ -45,18 +46,25 @@ public class ConfigOperator {
 
             //bilibili
             object = new JSONObject();
-            object.set("qqGroup", 764687233);
+            object.set("qqGroup", 1234567);
             object.set("subscribe", new int[]{21452505, 23771189});
             setting.setByGroup("subscribe", "bilibili",
                     "[" + object + "]");
 
-            //weibo
+            //微博
             object = new JSONObject();
-            object.set("qqGroup", 764687233);
+            object.set("qqGroup", 1234567);
             object.set("userSubs", new long[]{5460950220L, 7824231810L});
             object.set("superTopicSubs", new String[]{"100808d965430a8faf6226034e42c56dca4a2b"});
             setting.setByGroup("subscribe", "weibo",
                     "[" + object + "]");
+
+            //微店
+            object = new JSONObject();
+            object.set("qqGroup", 1234567);
+            object.set("cookie", "");
+            object.set("autoDeliver", false);
+            setting.setByGroup("shops", "weidian", "[" + object + "]");
 
             setting.store();
         }
@@ -79,7 +87,7 @@ public class ConfigOperator {
         if (properties.secureGroup == null)
             properties.secureGroup = new String[]{};
 
-        //pocket48
+        //口袋48
         properties.pocket48_account = setting.getByGroup("account", "pocket48");
         properties.pocket48_password = setting.getByGroup("password", "pocket48");
 
@@ -115,7 +123,7 @@ public class ConfigOperator {
                             subss == null ? new ArrayList<>() : (List<Integer>) subss);
         }
 
-        //weibo
+        //微博
         for (Object a :
                 JSONUtil.parseArray(setting.getByGroup("subscribe", "weibo")).toArray()) {
             JSONObject subs = JSONUtil.parseObj(a);
@@ -126,6 +134,18 @@ public class ConfigOperator {
 
             List sTopicSubs = subs.getBeanList("superTopicSubs", String.class);
             properties.weibo_superTopic_subscribe.put(g, sTopicSubs == null ? new ArrayList<>() : sTopicSubs);
+
+        }
+
+        //微店
+        for (Object a :
+                JSONUtil.parseArray(setting.getByGroup("shops", "weidian")).toArray()) {
+            JSONObject shop = JSONUtil.parseObj(a);
+
+            long g = shop.getLong("qqGroup");
+            String cookie = shop.getStr("cookie", "");
+            boolean autoDeliver = shop.getBool("autoDeliver", false);
+            properties.weidian_cookie.put(g, WeidianCookie.construct(cookie, autoDeliver));
 
         }
     }
@@ -242,6 +262,23 @@ public class ConfigOperator {
         return true;
     }
 
+    public boolean setWeidianCookie(String cookie, long group) {
+        boolean autoDeliver = false;
+        if (properties.weidian_cookie.containsKey(group)) {
+            autoDeliver = properties.weidian_cookie.get(group).autoDeliver;
+        }
+        properties.weidian_cookie.put(group, WeidianCookie.construct(cookie, autoDeliver));
+        saveWeidianConfig();
+        return true;
+    }
+
+    public boolean switchWeidianAutoDeliver(long group) {
+        WeidianCookie cookie = properties.weidian_cookie.get(group);
+        cookie.autoDeliver = !cookie.autoDeliver;
+        saveWeidianConfig();
+        return cookie.autoDeliver;
+    }
+
     private void savePocket48SubscribeConfig() {
         String a = "[";
         for (long group : properties.pocket48_subscribe.keySet()) {
@@ -256,7 +293,6 @@ public class ConfigOperator {
         setting.setByGroup("subscribe", "pocket48", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
         setting.store();
     }
-
 
     private void savePocket48RoomIDConnectConfig() {
         String a = "[";
@@ -292,6 +328,19 @@ public class ConfigOperator {
             a += object + ",";
         }
         setting.setByGroup("subscribe", "weibo", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
+        setting.store();
+    }
+
+    private void saveWeidianConfig() {
+        String a = "[";
+        for (long group : properties.weidian_cookie.keySet()) {
+            JSONObject object = new JSONObject();
+            object.set("qqGroup", group);
+            object.set("cookie", properties.weidian_cookie.get(group).cookie);
+            object.set("autoDeliver", properties.weidian_cookie.get(group).autoDeliver);
+            a += object + ",";
+        }
+        setting.setByGroup("shops", "weidian", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
         setting.store();
     }
 

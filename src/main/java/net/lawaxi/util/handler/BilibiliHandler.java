@@ -1,6 +1,5 @@
 package net.lawaxi.util.handler;
 
-import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 
@@ -40,15 +39,15 @@ public class BilibiliHandler extends Handler {
     }
 
     public JSONObject getLiveData(int room_id) {
-        String s = HttpUtil.get(APILiveInfo + "room_id=" + room_id);
+        String s = get(APILiveInfo + "room_id=" + room_id);
         return JSONUtil.parseObj(s);
     }
 
     public String getNameByMid(int uid) {
-        String s = HttpUtil.get(APIUserInfo + "mid=" + uid);
+        String s = get(APIUserInfo + "mid=" + uid);
         JSONObject o = JSONUtil.parseObj(s);
         if (o.getInt("code") == 1) {
-            //不存在直播间
+            //不存在用户
             return "null";
         }
         JSONObject data = JSONUtil.parseObj(o.getObj("data"));

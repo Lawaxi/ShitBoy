@@ -25,8 +25,7 @@ public class WeiboHandler extends Handler {
     public String getSuperTopicRes(String id) {
 
         if (!cookie.equals("")) {
-            String res = setHeader(HttpRequest.get(String.format(URLsuperTopic, id)))
-                    .header("cookie", cookie).execute().body();
+            String res = get(String.format(URLsuperTopic, id));
             if (!res.equals("")) //否则时效
                 return res.equals("{\"code\":\"100006\",\"msg\":\"\",\"data\":\"https:\\/\\/weibo.com\\/sorry?pagenotfound&\"}") ? null : res;
         }
@@ -60,8 +59,7 @@ public class WeiboHandler extends Handler {
 
     public JSONObject getUserInfo(long id) {
         if (!cookie.equals("")) {
-            String ret = setHeader(HttpRequest.get(String.format(APIUserProfile, id)))
-                    .header("cookie", cookie).execute().body();
+            String ret = get(String.format(APIUserProfile, id));
             if (!ret.equals("")) {
                 JSONObject o = JSONUtil.parseObj(ret);
                 if (o.getInt("ok") == 1) {
@@ -83,8 +81,7 @@ public class WeiboHandler extends Handler {
 
     public Object[] getUserBlog(long id) {
         if (!cookie.equals("")) {
-            String ret = setHeader(HttpRequest.get(String.format(APIUserBlog, id)))
-                    .header("cookie", cookie).execute().body();
+            String ret = get(String.format(APIUserBlog, id));
             if (!ret.equals("")) {
                 JSONObject o = JSONUtil.parseObj(ret);
                 if (o.getInt("ok") == 1) {
@@ -113,37 +110,12 @@ public class WeiboHandler extends Handler {
     }
 
     public void updateLogin() throws Exception {
-        String a = HttpRequest.get(APITID)
-                .header("authority", "weibo.com").header(
-                        "sec-ch-ua", "\"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"").header(
-                        "content-type", "application/x-www-form-urlencoded").header(
-                        "x-requested-with", "XMLHttpRequest").header(
-                        "sec-ch-ua-mobile", "?0").header(
-                        "user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML).header( like Gecko) Chrome/94.0.4606.71 Safari/537.36").header(
-                        "sec-ch-ua-platform", "\"Windows\"").header(
-                        "accept", "*/*").header(
-                        "sec-fetch-site", "same-origin").header(
-                        "sec-fetch-mode", "cors").header(
-                        "sec-fetch-dest", "empty")
-                .execute().body();
-
+        String a = getWithDefaultHeader(APITID);
 
         String tid = a.substring(a.indexOf("\"tid\":\"") + "\"tid\":\"".length(), a.indexOf("\",\"new_tid\""));
         boolean isNew = Boolean.parseBoolean(a.substring(a.indexOf("\"new_tid\":") + "\"new_tid\":".length(), a.indexOf("}})")));
 
-        String b = HttpRequest.get(String.format(APISUB, tid, isNew ? 3 : 2))
-                .header("authority", "weibo.com").header(
-                        "sec-ch-ua", "\"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"").header(
-                        "content-type", "application/x-www-form-urlencoded").header(
-                        "x-requested-with", "XMLHttpRequest").header(
-                        "sec-ch-ua-mobile", "?0").header(
-                        "user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML).header( like Gecko) Chrome/94.0.4606.71 Safari/537.36").header(
-                        "sec-ch-ua-platform", "\"Windows\"").header(
-                        "accept", "*/*").header(
-                        "sec-fetch-site", "same-origin").header(
-                        "sec-fetch-mode", "cors").header(
-                        "sec-fetch-dest", "empty")
-                .execute().body();
+        String b = getWithDefaultHeader(String.format(APISUB, tid, isNew ? 3 : 2));
 
         if (b.contains("\"msg\":\"succ\"") && !b.contains("null")) { //tid不合法时需要重新申请
             String sub = b.substring(b.indexOf("\"sub\":\"") + "\"sub\":\"".length(), b.indexOf("\",\"subp\":\""));
@@ -155,7 +127,7 @@ public class WeiboHandler extends Handler {
         }
     }
 
-    private HttpRequest setHeader(HttpRequest request) {
+    public HttpRequest setDefaultHeader(HttpRequest request) {
         return request.header("authority", "weibo.com").header(
                 "sec-ch-ua", "\"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"").header(
                 "content-type", "application/x-www-form-urlencoded").header(
@@ -167,5 +139,15 @@ public class WeiboHandler extends Handler {
                 "sec-fetch-site", "same-origin").header(
                 "sec-fetch-mode", "cors").header(
                 "sec-fetch-dest", "empty");
+    }
+
+    @Override
+    protected HttpRequest setHeader(HttpRequest request) {
+        return setDefaultHeader(request).header("cookie", cookie);
+    }
+
+    protected String getWithDefaultHeader(String url) {
+        return setDefaultHeader(HttpRequest.get(url))
+                .execute().body();
     }
 }
