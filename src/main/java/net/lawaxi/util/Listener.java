@@ -453,6 +453,7 @@ public class Listener extends SimpleListenerHost {
                 return new PlainText("【微店相关】\n"
                         + "(私聊)/微店 cookie <群id> <Cookie>\n"
                         + "(私聊)/微店 自动发货 <群id>\n"
+                        + "(私聊)/微店 关闭 <群id>\n"
                         + "PK功能未完成，敬请期待\n");
             default:
                 Message a = getHelp(1);
@@ -468,15 +469,39 @@ public class Listener extends SimpleListenerHost {
         String message = event.getMessage().contentToString();
 
         if (message.startsWith("/微店 cookie")) {
-            sender.sendMessage(commandSetWeidianCookie(message, event));
+            String cookie = message.substring(message.indexOf("cookie") + "cookie ".length());
+            long groupId = Long.valueOf(cookie.substring(0, cookie.indexOf(" ")));
+            cookie = cookie.substring(cookie.indexOf(" ") + 1);
+
+            if (t(groupId, event)) {
+                Shitboy.INSTANCE.getConfig().setWeidianCookie(cookie, groupId);
+                WeidianCookie cookie1 = Shitboy.INSTANCE.getProperties().weidian_cookie.get(groupId);
+                sender.sendMessage("设置Cookie成功，当前自动发货为：" + (cookie1.autoDeliver ? "开启" : "关闭") + "。您可以通过/微店 自动发货 " + groupId + "切换");
+            }
+
             return ListeningStatus.LISTENING;
         }
 
         String[] args = message.split(" ");
         if (args[0].equals("/微店")) {
             if (args.length == 3) {
+                long groupId = Long.valueOf(args[2]);
+
                 if (args[1].equals("自动发货")) {
-                    sender.sendMessage(commandSwitchWeidianAutoDeliver(Long.valueOf(args[2]), event));
+                    if (t(groupId, event)) {
+                        int a = Shitboy.INSTANCE.getConfig().switchWeidianAutoDeliver(groupId);
+                        if (a == -1)
+                            sender.sendMessage("该群未设置Cookie");
+                        else
+                            sender.sendMessage("自动发货设为：" + (a == 1 ? "开启" : "关闭"));
+                    }
+                } else if (args[1].equals("关闭")) {
+                    if (t(groupId, event)) {
+                        if (Shitboy.INSTANCE.getConfig().rmWeidianCookie(groupId))
+                            sender.sendMessage("该群微店播报重置");
+                        else
+                            sender.sendMessage("该群微店播报设置为空");
+                    }
                 }
             }
         }
@@ -485,33 +510,19 @@ public class Listener extends SimpleListenerHost {
         return ListeningStatus.LISTENING;
     }
 
-    private String commandSetWeidianCookie(String message, UserMessageEvent event) {
-        String cookie = message.substring(message.indexOf("cookie") + "cookie ".length());
-        long groupId = Long.valueOf(cookie.substring(0, cookie.indexOf(" ")));
-        cookie = cookie.substring(cookie.indexOf(" ") + 1);
-
+    //私聊权限检测
+    private boolean t(long groupId, UserMessageEvent event) {
         Group group = event.getBot().getGroup(groupId);
-        if (group == null)
-            return "群号不存在或机器人不在群";
+        if (group == null) {
+            event.getSender().sendMessage("群号不存在或机器人不在群");
+            return false;
+        }
 
-        if (!Shitboy.INSTANCE.getConfig().isAdmin(group, event.getSender().getId()))
-            return "权限不足喵";
-
-        Shitboy.INSTANCE.getConfig().setWeidianCookie(cookie, groupId);
-        WeidianCookie cookie1 = Shitboy.INSTANCE.getProperties().weidian_cookie.get(groupId);
-        return "设置Cookie成功，当前自动发货为：" + (cookie1.autoDeliver ? "开启" : "关闭") + "。您可以通过/微店 自动发货 " + groupId + "切换";
-    }
-
-    private String commandSwitchWeidianAutoDeliver(long groupId, UserMessageEvent event) {
-        Group group = event.getBot().getGroup(groupId);
-        if (group == null)
-            return "群号不存在或机器人不在群";
-
-        if (!Shitboy.INSTANCE.getConfig().isAdmin(group, event.getSender().getId()))
-            return "权限不足喵";
-
-        boolean a = Shitboy.INSTANCE.getConfig().switchWeidianAutoDeliver(groupId);
-        return "自动发货设为：" + (a ? "开启" : "关闭");
+        if (!Shitboy.INSTANCE.getConfig().isAdmin(group, event.getSender().getId())) {
+            event.getSender().sendMessage("权限不足喵");
+            return false;
+        }
+        return true;
     }
 
     /* 函数工具 */

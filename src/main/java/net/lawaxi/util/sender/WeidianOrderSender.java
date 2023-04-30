@@ -20,7 +20,11 @@ public class WeidianOrderSender extends Sender {
         WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
         WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(group.getId());
 
-        for (WeidianOrder order : weidian.getOrderList(cookie, endTime)) {
+        WeidianOrder[] orders = weidian.getOrderList(cookie, endTime);
+        if (orders == null)
+            return;
+
+        for (WeidianOrder order : orders) {
             group.sendMessage("感谢" + order.buyerName + "在" + order.itemName + "中支持了" + order.price + "！");
         }
     }

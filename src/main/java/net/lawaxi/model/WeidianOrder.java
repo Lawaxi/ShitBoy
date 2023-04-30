@@ -5,10 +5,10 @@ public class WeidianOrder {
     public final String itemName;
     public final long buyerID;
     public final String buyerName;
-    public final int price;
+    public final double price;
     public final String payTime;
 
-    public WeidianOrder(long itemID, String itemName, long buyerID, String buyerName, int price, String payTime) {
+    public WeidianOrder(long itemID, String itemName, long buyerID, String buyerName, double price, String payTime) {
         this.itemID = itemID;
         this.itemName = itemName;
         this.buyerID = buyerID;

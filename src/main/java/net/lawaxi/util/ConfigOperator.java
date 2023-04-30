@@ -272,11 +272,24 @@ public class ConfigOperator {
         return true;
     }
 
-    public boolean switchWeidianAutoDeliver(long group) {
+    public int switchWeidianAutoDeliver(long group) {
+        if (!properties.weidian_cookie.containsKey(group))
+            return -1;
+
         WeidianCookie cookie = properties.weidian_cookie.get(group);
         cookie.autoDeliver = !cookie.autoDeliver;
         saveWeidianConfig();
-        return cookie.autoDeliver;
+        return cookie.autoDeliver ? 1 : 0;
+    }
+
+    public boolean rmWeidianCookie(long group) {
+        if (!properties.weidian_cookie.containsKey(group)) {
+            return false;
+        }
+
+        properties.weidian_cookie.remove(group);
+        saveWeidianConfig();
+        return true;
     }
 
     private void savePocket48SubscribeConfig() {

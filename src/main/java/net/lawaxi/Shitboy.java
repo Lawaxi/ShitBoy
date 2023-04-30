@@ -22,6 +22,7 @@ import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
 import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.BotOnlineEvent;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -37,11 +38,11 @@ public final class Shitboy extends JavaPlugin {
     private WeidianHandler handlerWeidian;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.6-test1" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.6-test2" +
                 "")
                 .name("shitboy")
                 .author("delay")
-                .info("易拉罐人日常刚需")
+                .info("010号机器人")
                 .build());
     }
 
@@ -145,7 +146,7 @@ public final class Shitboy extends JavaPlugin {
 
         //服务
         for (Bot b : Bot.getInstances()) {
-            handlerPocket48.setCronScheduleID(CronUtil.schedule("*/5 * * * * *", new Runnable() {
+            handlerPocket48.setCronScheduleID(CronUtil.schedule("*/5 * * * *", new Runnable() {
                         @Override
                         public void run() {
                             for (long group : properties.pocket48_subscribe.keySet()) {
@@ -163,7 +164,7 @@ public final class Shitboy extends JavaPlugin {
                     }
             ));
 
-            handlerBilibili.setCronScheduleID(CronUtil.schedule("* * * * * *", new Runnable() {
+            handlerBilibili.setCronScheduleID(CronUtil.schedule("* * * * *", new Runnable() {
                         @Override
                         public void run() {
                             for (long group : properties.bilibili_subscribe.keySet()) {
@@ -176,7 +177,7 @@ public final class Shitboy extends JavaPlugin {
                     }
             ));
 
-            handlerWeibo.setCronScheduleID(CronUtil.schedule("*/5 * * * * *", new Runnable() {
+            handlerWeibo.setCronScheduleID(CronUtil.schedule("*/5 * * * *", new Runnable() {
                         @Override
                         public void run() {
                             for (long group : properties.weibo_user_subscribe.keySet()) {
@@ -190,12 +191,13 @@ public final class Shitboy extends JavaPlugin {
             ));
 
             //微店订单播报
-            CronUtil.schedule("*/10 * * * * *", new Runnable() {
+            CronUtil.schedule("*/10 * * * *", new Runnable() {
                         @Override
                         public void run() {
+                            getLogger().info("10");
                             for (long group : properties.weidian_cookie.keySet()) {
                                 if (!weidianEndTime.containsKey(group))
-                                    weidianEndTime.put(group, new EndTime(0));
+                                    weidianEndTime.put(group, new EndTime(new Date().getTime()));
 
                                 new WeidianOrderSender(b, group, weidianEndTime.get(group)).start();
                             }
@@ -204,9 +206,10 @@ public final class Shitboy extends JavaPlugin {
             );
 
             //微店排名统计
-            handlerWeidian.setCronScheduleID(CronUtil.schedule("*/30 * * * * *", new Runnable() {
+            handlerWeidian.setCronScheduleID(CronUtil.schedule("*/10 * * * *", new Runnable() {
                         @Override
                         public void run() {
+                            getLogger().info("5");
                             for (long group : properties.weidian_cookie.keySet()) {
                                 new WeidianSender(b, group).start();
                             }

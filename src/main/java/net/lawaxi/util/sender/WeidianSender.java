@@ -22,18 +22,22 @@ public class WeidianSender extends Sender {
         WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
         WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(group.getId());
 
-        for (WeidianItem item : weidian.getItems(cookie)) {
+        WeidianItem[] items = weidian.getItems(cookie);
+        if (items == null)
+            return;
+
+        for (WeidianItem item : items) {
             long id = item.id;
-            int total = 0;
+            double total = 0;
             WeidianBuyer[] buyers = weidian.getItemBuyer(cookie, id);
             if (buyers == null || buyers.length == 0)
                 continue;
 
             for (WeidianBuyer buyer : buyers) {
-                total += buyer.price;
+                total += buyer.contribution;
             }
 
-            Message m = new PlainText("【微店链接】\n" + item.name + "\n");
+            Message m = new PlainText("【微店链】\n" + item.name + "\n");
             if (!item.pic.equals("")) {
                 try {
                     m = m.plus(group.uploadImage(ExternalResource.create(getRes(item.pic))));
@@ -49,8 +53,9 @@ public class WeidianSender extends Sender {
         String out = "";
         for (int i = 0; i < amount; i++) {
             if (buyers.length > i + 1) {
-                out += "\n" + (i + 1) + ". (" + buyers[i].price + ")" + buyers[i].name;
-            }
+                out += "\n" + (i + 1) + ". (" + buyers[i].contribution + ")" + buyers[i].name;
+            } else
+                break;
         }
         return out;
     }

@@ -15,7 +15,7 @@ public class WeidianHandler extends Handler {
     //setDefaultHeader
     @Override
     protected HttpRequest setHeader(HttpRequest request) {
-        return request.header("Host", "thor.weidian.com").header("Connection", "keep-alive").header("Content-Length", "997").header("sec-ch-ua", "\"Google Chrome\";v=\"107\", \"Chromium\";v=\"107\", \"Not=A?Brand\";v=\"24\"").header("Accept", "application/json, */*").header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").header("sec-ch-ua-mobile", "?0").header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36").header("Origin", "https://d.weidian.com").header("Sec-Fetch-Site", "same-site").header("Sec-Fetch-Mode", "cors").header("Sec-Fetch-Dest", "empty").header("Referer", "https://d.weidian.com/").header("Accept-Encoding", "gzip, deflate, br").header("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6");
+        return request.header("Host", "thor.weidian.com").header("Connection", "keep-alive").header("sec-ch-ua", "\"Google Chrome\";v=\"107\", \"Chromium\";v=\"107\", \"Not=A?Brand\";v=\"24\"").header("Accept", "application/json, */*").header("sec-ch-ua-mobile", "?0").header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36").header("Sec-Fetch-Site", "same-site").header("Sec-Fetch-Mode", "cors").header("Sec-Fetch-Dest", "empty").header("Accept-Encoding", "gzip, deflate, br").header("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6");
     }
 
     protected HttpRequest setHeader(HttpRequest request, WeidianCookie cookie) {
@@ -23,7 +23,7 @@ public class WeidianHandler extends Handler {
     }
 
     protected String post(String url, String body, WeidianCookie cookie) {
-        return setHeader(HttpRequest.post(url), cookie)
+        return setHeader(HttpRequest.post(url).header("Referer", "https://d.weidian.com/"), cookie)
                 .body(body).execute().body();
     }
 
@@ -114,7 +114,7 @@ public class WeidianHandler extends Handler {
                 JSONObject item = JSONUtil.parseObj(itemObject);
                 long itemId = item.getLong("itemId");
                 String itemName = item.getStr("itemName");
-                int price = item.getInt("totalPrice");
+                double price = Double.valueOf(item.getStr("totalPrice"));
 
                 orders.add(new WeidianOrder(itemId, itemName, buyerID, buyerName, price, payTime));
             }
@@ -175,22 +175,22 @@ public class WeidianHandler extends Handler {
             JSONObject receiver = order.getJSONObject("receiver");
             addOrderToBuyer(receiver.getLong("buyerId"),
                     receiver.getStr("buyerName"),
-                    order.getInt("totalPrice"),
+                    Double.valueOf(order.getStr("totalPrice")),
                     buyers);
         }
 
-        buyers.sort((a, b) -> b.price - a.price);
+        buyers.sort((a, b) -> b.contribution - a.contribution > 0 ? 1 : 0);
         return buyers.toArray(new WeidianBuyer[0]);
     }
 
-    private void addOrderToBuyer(long buyerID, String buyerName, int price, List<WeidianBuyer> buyers) {
+    private void addOrderToBuyer(long buyerID, String buyerName, double contribution, List<WeidianBuyer> buyers) {
         for (WeidianBuyer buyer : buyers) {
             if (buyer.id == buyerID) {
-                buyer.add(price);
+                buyer.add(contribution);
                 return;
             }
         }
-        buyers.add(new WeidianBuyer(buyerID, buyerName, price));
+        buyers.add(new WeidianBuyer(buyerID, buyerName, contribution));
     }
 
     public WeidianItem getItemWithSkus(long itemId) {
@@ -220,6 +220,7 @@ public class WeidianHandler extends Handler {
     public WeidianItem[] getItems(WeidianCookie cookie) {
         //【出售中】 仅提取pageSize=5个
         String s = get(APIItemList + cookie.wdtoken, cookie);
+
         JSONObject object = JSONUtil.parseObj(s);
         if (object.getJSONObject("status").getInt("code") == 0) {
             JSONObject result = object.getJSONObject("result");
