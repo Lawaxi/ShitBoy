@@ -24,7 +24,7 @@ public class ShitBoyCommand extends JCompositeCommand {
     @SubCommand({"getRoomID"})
     public void getRoomID(CommandSender sender, int starID) {
         Pocket48Handler handler = Shitboy.INSTANCE.getHandlerPocket48();
-        for (int id : handler.getChannelIDBySeverID(handler.getServerIDByStarID(starID)))
-            sender.sendMessage(String.valueOf(id));
+        for (Integer id : handler.getChannelIDBySeverID(handler.getServerIDByStarID(starID)))
+            sender.sendMessage(id == null ? "无服务器" : String.valueOf(id));
     }
 }

@@ -52,7 +52,7 @@ public class WeidianSender extends Sender {
     private String pickBuyer(WeidianBuyer[] buyers, int amount) {
         String out = "";
         for (int i = 0; i < amount; i++) {
-            if (buyers.length > i + 1) {
+            if (buyers.length >= i + 1) {
                 out += "\n" + (i + 1) + ". (" + buyers[i].contribution + ")" + buyers[i].name;
             } else
                 break;

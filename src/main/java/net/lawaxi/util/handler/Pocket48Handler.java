@@ -142,18 +142,15 @@ public class Pocket48Handler extends Handler {
         return 0;
     }
 
-    public int getServerIDByStarID(int starID) {
+    public Integer getServerIDByStarID(int starID) {
         JSONObject content = getJumpContent(starID);
         if (content != null) {
             JSONObject serverInfo = JSONUtil.parseObj(content.getObj("jumpServerInfo"));
             if (serverInfo != null) {
-                logInfo("获取成功");
                 return serverInfo.getInt("serverId");
             }
-            logError("没有服务器");
-
         }
-        return 0;
+        return null;
     }
 
     public Integer[] getChannelIDBySeverID(int serverID) {
@@ -309,7 +306,9 @@ public class Pocket48Handler extends Handler {
 
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            return content.getBeanList("message", Object.class);
+            List<Object> out = content.getBeanList("message", Object.class);
+            out.sort((a, b) -> JSONUtil.parseObj(b).getLong("msgTime") - JSONUtil.parseObj(a).getLong("msgTime") > 0 ? 1 : 0);//口袋消息好像会乱（？）
+            return out;
 
         } else {
             logError(object.getStr("message"));

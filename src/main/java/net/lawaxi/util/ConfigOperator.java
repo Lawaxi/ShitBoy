@@ -32,11 +32,16 @@ public class ConfigOperator {
             setting.set("admins", "2330234142");
             setting.set("secureGroup", "");
 
+            JSONObject object = new JSONObject();
+            object.set("1", 1234567);
+            object.set("2", "欢迎新宝宝");
+            setting.set("welcome", "[" + object + "]");
+
             //口袋48
             setting.setByGroup("account", "pocket48", "12345678901");
             setting.setByGroup("password", "pocket48", "123456");
 
-            JSONObject object = new JSONObject();
+            object = new JSONObject();
             object.set("qqGroup", 1234567);
             object.set("showAtOne", true);
             object.set("starSubs", new int[]{45285669, 70385975, 64422016});
@@ -86,6 +91,14 @@ public class ConfigOperator {
             properties.admins = new String[]{};
         if (properties.secureGroup == null)
             properties.secureGroup = new String[]{};
+        for (Object a :
+                JSONUtil.parseArray(setting.get("welcome", "[]")).toArray()) {
+            JSONObject welcome = JSONUtil.parseObj(a);
+            properties.welcome.put(
+                    welcome.getLong("1"),
+                    welcome.getStr("2")
+            );
+        }
 
         //口袋48
         properties.pocket48_account = setting.getByGroup("account", "pocket48");
@@ -151,6 +164,21 @@ public class ConfigOperator {
     }
 
     //修改配置并更新缓存的方法
+    public boolean setWelcome(String welcome, long group) {
+        properties.welcome.put(group, welcome);
+
+        String a = "[";
+        for (long g : properties.welcome.keySet()) {
+            JSONObject object = new JSONObject();
+            object.set("1", g);
+            object.set("2", properties.welcome.get(g));
+            a += object + ",";
+        }
+        setting.set("welcome", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
+        setting.store();
+        return true;
+    }
+
     public boolean addPocket48RoomSubscribe(int room_id, long group) {
         if (!properties.pocket48_subscribe.containsKey(group)) {
             properties.pocket48_subscribe.put(group, new Pocket48Subscribe(
@@ -373,6 +401,6 @@ public class ConfigOperator {
                 return true;
         }
 
-        return group.get(qqID).getPermission() == MemberPermission.ADMINISTRATOR;
+        return group.get(qqID).getPermission() == MemberPermission.ADMINISTRATOR || group.get(qqID).getPermission() == MemberPermission.OWNER;
     }
 }

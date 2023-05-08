@@ -16,6 +16,7 @@ public class Properties {
     public Boolean ylg = true;
     public String[] admins;
     public String[] secureGroup;
+    public HashMap<Long, String> welcome = new HashMap<>();
 
     //口袋48
     public String pocket48_account;
