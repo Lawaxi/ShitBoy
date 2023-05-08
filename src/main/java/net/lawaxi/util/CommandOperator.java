@@ -502,10 +502,10 @@ public class CommandOperator {
         if (command.contains(" ")) {
             String[] out = new String[3];
             out[0] = command.substring(0, command.indexOf(" "));
-            command = command.substring(command.indexOf(" "));
+            command = command.substring(command.indexOf(" ") + 1);
             if (command.contains(" ")) {
                 out[1] = command.substring(0, command.indexOf(" "));
-                out[2] = command.substring(command.indexOf(" "));
+                out[2] = command.substring(command.indexOf(" ") + 1);
                 return out;
             }
         }
