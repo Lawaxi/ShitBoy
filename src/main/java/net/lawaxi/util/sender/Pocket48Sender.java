@@ -198,8 +198,8 @@ public class Pocket48Sender extends Sender {
             case REPLY:
             case GIFTREPLY:
                 return new Pocket48SenderMessage(false, null,
-                        new Message[]{new PlainText(message.getReply().getNameTo() + "：" + message.getReply().getMsgTo() + "\n"
-                                + name + message.getReply().getMsgFrom())});
+                        new Message[]{new PlainText(message.getReply().getNameTo() + "：" + pharsePocketTextWithFace(message.getReply().getMsgTo()) + "\n"
+                                + name + pharsePocketTextWithFace(message.getReply().getMsgFrom()))});
             case LIVEPUSH:
                 Image cover = group.uploadImage(ExternalResource.create(getRes(message.getLivePush().getCover())));
                 return new Pocket48SenderMessage(false, null,
@@ -263,6 +263,9 @@ public class Pocket48Sender extends Sender {
     }
 
     public Message pharsePocketFace(String face) {
+        if(face.equals("[亲亲]"))
+            face = "[左亲亲]";
+
         for (int i = 0; i < Face.names.length; i++) {
             if (Face.names[i].equals(face))
                 return new Face(i);

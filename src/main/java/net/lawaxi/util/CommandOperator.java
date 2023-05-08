@@ -109,9 +109,10 @@ public class CommandOperator {
                                 JSONObject server = JSONUtil.parseObj(server_);
                                 String name = server.getStr("serverDefaultName");
                                 String serverName = server.getStr("serverName");
+                                int starId = server.getInt("serverOwner");
                                 Integer serverId = server.getInt("serverId");
 
-                                out += count + ". " + name + "(" + serverName + ")\n";
+                                out += count + ". " + name + "(" + serverName + ")\nid: " + starId + "\n";
                                 try {
                                     out += informationFromPocketServerId(serverId);
                                 } catch (Exception e) {
@@ -405,7 +406,7 @@ public class CommandOperator {
         switch (id) {
             case 1:
                 return new PlainText("【通用】\n"
-                        + "(私聊) /欢迎 <群id> 欢迎词");
+                        + "(私聊) /欢迎 <群id> 欢迎词\n");
             case 2:
                 return new PlainText("【口袋48相关】\n"
                         + "/口袋 搜索 <在团小偶像或队伍名>\n"
