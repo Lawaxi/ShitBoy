@@ -43,7 +43,7 @@ public class Pocket48Sender extends Sender {
             if (roomInfo == null)
                 continue;
 
-            //房间消息
+            //房间消息预处理
             Pocket48Message[] a = pocket.getMessages(roomInfo, endTime);
             if (a.length > 0) {
                 totalMessages.add(a);
@@ -75,21 +75,16 @@ public class Pocket48Sender extends Sender {
             voiceStatus.put(roomID, n);
         }
 
+        //房间消息
         if (totalMessages.size() > 0) {
             if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId()).showAtOne()) {
 
-                List<Pocket48SenderMessage> pharsedMessage = new ArrayList<>();
-                Message roomJoint = null;
-
-                //需要累加的消息
                 for (Pocket48Message[] roomMessage : totalMessages) {
                     Message joint = null;
                     Message title = null;
-                    for (int i = roomMessage.length - 1; i >= 0; i--) { //倒序输出
+                    for (int i = roomMessage.length - 1; i >= 0; i--) {
                         try {
                             Pocket48SenderMessage message1 = pharseMessage(roomMessage[i], group);
-                            pharsedMessage.add(message1);
-
                             if (message1.canJoin()) {
                                 if (joint == null) {
                                     title = joint = message1.getTitle();
@@ -97,33 +92,23 @@ public class Pocket48Sender extends Sender {
                                     joint = joint.plus(message1.getTitle());
                                     title = message1.getTitle();
                                 }
-
                                 joint = joint.plus(message1.getMessage()[0]).plus("\n");
-                            }
+                            } else {
 
-                        } catch (IOException e) {
+                                //遇到不可组合的消息先发送以前的可组合消息
+                                if (joint != null) {
+                                    group.sendMessage(joint);
+                                    joint = null;
+                                    title = null;
+                                }
+
+                                //不可组合消息的发送需要通过for循环完成
+                                for (Message m : message1.getMessage())
+                                    group.sendMessage(m);
+                            }
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }
-
-                    if (roomJoint == null) {
-                        roomJoint = joint;
-                    } else {
-                        roomJoint = roomJoint.plus(joint);
-                    }
-                }
-
-                if (roomJoint != null)
-                    group.sendMessage(roomJoint);
-
-                //不需要累加的消息
-                for (Pocket48SenderMessage message : pharsedMessage) {
-                    if (message.canJoin()) {
-                        for (int i = 1; i < message.getMessage().length; i++)
-                            group.sendMessage(message.getMessage()[i]);
-                    } else {
-                        for (Message m : message.getMessage())
-                            group.sendMessage(m);
                     }
                 }
 
@@ -263,7 +248,7 @@ public class Pocket48Sender extends Sender {
     }
 
     public Message pharsePocketFace(String face) {
-        if(face.equals("[亲亲]"))
+        if (face.equals("[亲亲]"))
             face = "[左亲亲]";
 
         for (int i = 0; i < Face.names.length; i++) {

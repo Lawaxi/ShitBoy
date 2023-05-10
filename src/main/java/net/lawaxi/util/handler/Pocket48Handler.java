@@ -51,6 +51,7 @@ public class Pocket48Handler extends Handler {
             logInfo("口袋48登陆成功");
             return true;
         } else {
+            logInfo("口袋48登陆失败");
             logError(object.getStr("message"));
             return false;
         }

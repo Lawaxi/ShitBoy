@@ -38,7 +38,7 @@ public final class Shitboy extends JavaPlugin {
     private WeidianHandler handlerWeidian;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test3" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test4" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -121,13 +121,15 @@ public final class Shitboy extends JavaPlugin {
         //------------------------------------------------
 
         //口袋48登录
-        this.handlerPocket48.login(
+        boolean pocket48_has_login = this.handlerPocket48.login(
                 properties.pocket48_account,
                 properties.pocket48_password
         );
 
+        boolean weibo_has_login = false;
         try {
             this.handlerWeibo.updateLoginToSuccess();
+            weibo_has_login = true;
             getLogger().info("微博Cookie更新成功");
 
         } catch (Exception e) {
@@ -146,25 +148,27 @@ public final class Shitboy extends JavaPlugin {
 
         //服务
         for (Bot b : Bot.getInstances()) {
-            handlerPocket48.setCronScheduleID(CronUtil.schedule("*/5 * * * *", new Runnable() {
-                        @Override
-                        public void run() {
-                            for (long group : properties.pocket48_subscribe.keySet()) {
-                                if (!pocket48RoomEndTime.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
-                                {
-                                    pocket48RoomEndTime.put(group, new HashMap<>());
-                                    pocket48VoiceStatus.put(group, new HashMap<>());
+            if (pocket48_has_login) {
+                handlerPocket48.setCronScheduleID(CronUtil.schedule(properties.pocket48_pattern, new Runnable() {
+                            @Override
+                            public void run() {
+                                for (long group : properties.pocket48_subscribe.keySet()) {
+                                    if (!pocket48RoomEndTime.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
+                                    {
+                                        pocket48RoomEndTime.put(group, new HashMap<>());
+                                        pocket48VoiceStatus.put(group, new HashMap<>());
+                                    }
+
+                                    new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group)).start();
+
                                 }
 
-                                new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group)).start();
-
                             }
-
                         }
-                    }
-            ));
+                ));
+            }
 
-            handlerBilibili.setCronScheduleID(CronUtil.schedule("* * * * *", new Runnable() {
+            handlerBilibili.setCronScheduleID(CronUtil.schedule(properties.bilibili_pattern, new Runnable() {
                         @Override
                         public void run() {
                             for (long group : properties.bilibili_subscribe.keySet()) {
@@ -177,21 +181,23 @@ public final class Shitboy extends JavaPlugin {
                     }
             ));
 
-            handlerWeibo.setCronScheduleID(CronUtil.schedule("*/5 * * * *", new Runnable() {
-                        @Override
-                        public void run() {
-                            for (long group : properties.weibo_user_subscribe.keySet()) {
-                                if (!weiboEndTime.containsKey(group))
-                                    weiboEndTime.put(group, new HashMap<>());
+            if(weibo_has_login) {
+                handlerWeibo.setCronScheduleID(CronUtil.schedule(properties.weibo_pattern, new Runnable() {
+                            @Override
+                            public void run() {
+                                for (long group : properties.weibo_user_subscribe.keySet()) {
+                                    if (!weiboEndTime.containsKey(group))
+                                        weiboEndTime.put(group, new HashMap<>());
 
-                                new WeiboSender(b, group, weiboEndTime.get(group)).start();
+                                    new WeiboSender(b, group, weiboEndTime.get(group)).start();
+                                }
                             }
                         }
-                    }
-            ));
+                ));
+            }
 
             //微店订单播报
-            CronUtil.schedule("*/10 * * * *", new Runnable() {
+            CronUtil.schedule(properties.weidian_pattern_order, new Runnable() {
                         @Override
                         public void run() {
                             getLogger().info("10");
@@ -206,7 +212,7 @@ public final class Shitboy extends JavaPlugin {
             );
 
             //微店排名统计
-            handlerWeidian.setCronScheduleID(CronUtil.schedule("*/10 * * * *", new Runnable() {
+            handlerWeidian.setCronScheduleID(CronUtil.schedule(properties.weidian_pattern_item, new Runnable() {
                         @Override
                         public void run() {
                             getLogger().info("5");

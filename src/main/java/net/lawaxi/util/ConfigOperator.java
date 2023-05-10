@@ -5,6 +5,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.setting.Setting;
 import net.lawaxi.Properties;
+import net.lawaxi.Shitboy;
 import net.lawaxi.model.Pocket48Subscribe;
 import net.lawaxi.model.WeidianCookie;
 import net.mamoe.mirai.contact.Group;
@@ -37,30 +38,37 @@ public class ConfigOperator {
             object.set("2", "欢迎新宝宝");
             setting.set("welcome", "[" + object + "]");
 
+            //schedule pattern
+            setting.setByGroup("schedule", "pocket48", "* * * * *");
+            setting.setByGroup("schedule", "bilibili", "* * * * *");
+            setting.setByGroup("schedule", "weibo", "*/5 * * * *");
+            setting.setByGroup("schedule_order", "weidian", "*/10 * * * *");
+            setting.setByGroup("schedule_item", "weidian", "*/10 * * * *");
+
             //口袋48
-            setting.setByGroup("account", "pocket48", "12345678901");
-            setting.setByGroup("password", "pocket48", "123456");
+            setting.setByGroup("account", "pocket48", "填写口袋48登录手机号");
+            setting.setByGroup("password", "pocket48", "填写口袋48登陆密码");
 
             object = new JSONObject();
             object.set("qqGroup", 1234567);
             object.set("showAtOne", true);
-            object.set("starSubs", new int[]{45285669, 70385975, 64422016});
-            object.set("roomSubs", new int[]{1262731, 1361829});
+            object.set("starSubs", new int[]{});
+            object.set("roomSubs", new int[]{});
             setting.setByGroup("subscribe", "pocket48",
                     "[" + object + "]");
 
             //bilibili
             object = new JSONObject();
             object.set("qqGroup", 1234567);
-            object.set("subscribe", new int[]{21452505, 23771189});
+            object.set("subscribe", new int[]{});
             setting.setByGroup("subscribe", "bilibili",
                     "[" + object + "]");
 
             //微博
             object = new JSONObject();
             object.set("qqGroup", 1234567);
-            object.set("userSubs", new long[]{5460950220L, 7824231810L});
-            object.set("superTopicSubs", new String[]{"100808d965430a8faf6226034e42c56dca4a2b"});
+            object.set("userSubs", new long[]{});
+            object.set("superTopicSubs", new String[]{});
             setting.setByGroup("subscribe", "weibo",
                     "[" + object + "]");
 
@@ -72,6 +80,7 @@ public class ConfigOperator {
             setting.setByGroup("shops", "weidian", "[" + object + "]");
 
             setting.store();
+            Shitboy.INSTANCE.getLogger().info("首次加载已生成 config/net.lawaxi.shitboy/config.setting 配置文件，请先填写口袋48账号密码用于获取房间消息并重启");
         }
 
         this.setting = new Setting(file, StandardCharsets.UTF_8, false);
@@ -99,6 +108,13 @@ public class ConfigOperator {
                     welcome.getStr("2")
             );
         }
+
+        //schedule pattern
+        properties.pocket48_pattern = setting.getStr("schedule", "pocket48", "* * * * *");
+        properties.bilibili_pattern = setting.getStr("schedule", "pocket48", "* * * * *");
+        properties.weibo_pattern = setting.getStr("schedule", "weibo", "*/5 * * * *");
+        properties.weidian_pattern_order = setting.getStr("schedule_order", "weidian", "*/10 * * * *");
+        properties.weidian_pattern_item = setting.getStr("schedule_item", "weidian", "*/10 * * * *");
 
         //口袋48
         properties.pocket48_account = setting.getByGroup("account", "pocket48");

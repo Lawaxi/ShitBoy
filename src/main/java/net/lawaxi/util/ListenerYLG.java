@@ -95,7 +95,7 @@ public class ListenerYLG extends SimpleListenerHost {
             }
 
             //G7人
-            if (event.getAuthor().equals(event.getBot())) {
+            if (event.getAuthorId() == event.getBot().getId()) {
                 Shitboy.INSTANCE.getLogger().info("机器人消息被撤:" + event.getMessageTime());
                 for (messageWithTime m : xenon_recall) {
                     if (m.send_time == event.getMessageTime()) {
