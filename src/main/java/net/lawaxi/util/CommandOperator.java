@@ -495,6 +495,7 @@ public class CommandOperator {
                     return new PlainText("设置成功");
                 } else {
                     Shitboy.INSTANCE.getConfig().closeWelcome(groupId);
+                    return new PlainText("取消成功");
                 }
             }
             default: {
