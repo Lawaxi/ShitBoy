@@ -38,7 +38,7 @@ public final class Shitboy extends JavaPlugin {
     private WeidianHandler handlerWeidian;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test4" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test5" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -181,7 +181,7 @@ public final class Shitboy extends JavaPlugin {
                     }
             ));
 
-            if(weibo_has_login) {
+            if (weibo_has_login) {
                 handlerWeibo.setCronScheduleID(CronUtil.schedule(properties.weibo_pattern, new Runnable() {
                             @Override
                             public void run() {

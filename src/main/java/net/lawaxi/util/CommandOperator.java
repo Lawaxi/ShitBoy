@@ -406,7 +406,7 @@ public class CommandOperator {
         switch (id) {
             case 1:
                 return new PlainText("【通用】\n"
-                        + "(私聊) /欢迎 <群id> 欢迎词\n");
+                        + "(私聊) /欢迎 <群id> 欢迎词(填写“取消”关闭)\n");
             case 2:
                 return new PlainText("【口袋48相关】\n"
                         + "/口袋 搜索 <在团小偶像或队伍名>\n"
@@ -490,11 +490,15 @@ public class CommandOperator {
                 }
             }
             case "/欢迎": {
-                Shitboy.INSTANCE.getConfig().setWelcome(args[2], groupId);
-                return new PlainText("设置成功");
+                if (!args[2].equals("取消")) {
+                    Shitboy.INSTANCE.getConfig().setWelcome(args[2], groupId);
+                    return new PlainText("设置成功");
+                } else {
+                    Shitboy.INSTANCE.getConfig().closeWelcome(groupId);
+                }
             }
             default: {
-                return null;
+                return getHelp(0);
             }
         }
     }

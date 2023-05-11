@@ -100,8 +100,9 @@ public class ConfigOperator {
             properties.admins = new String[]{};
         if (properties.secureGroup == null)
             properties.secureGroup = new String[]{};
+
         for (Object a :
-                JSONUtil.parseArray(setting.get("welcome", "[]")).toArray()) {
+                JSONUtil.parseArray(setting.getStr("welcome", "[]")).toArray()) {
             JSONObject welcome = JSONUtil.parseObj(a);
             properties.welcome.put(
                     welcome.getLong("1"),
@@ -182,16 +183,13 @@ public class ConfigOperator {
     //修改配置并更新缓存的方法
     public boolean setWelcome(String welcome, long group) {
         properties.welcome.put(group, welcome);
+        saveWelcome();
+        return true;
+    }
 
-        String a = "[";
-        for (long g : properties.welcome.keySet()) {
-            JSONObject object = new JSONObject();
-            object.set("1", g);
-            object.set("2", properties.welcome.get(g));
-            a += object + ",";
-        }
-        setting.set("welcome", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
-        setting.store();
+    public boolean closeWelcome(long group) {
+        properties.welcome.remove(group);
+        saveWelcome();
         return true;
     }
 
@@ -334,6 +332,18 @@ public class ConfigOperator {
         properties.weidian_cookie.remove(group);
         saveWeidianConfig();
         return true;
+    }
+
+    private void saveWelcome() {
+        String a = "[";
+        for (long group : properties.welcome.keySet()) {
+            JSONObject object = new JSONObject();
+            object.set("1", group);
+            object.set("2", properties.welcome.get(group));
+            a += object + ",";
+        }
+        setting.set("welcome", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
+        setting.store();
     }
 
     private void savePocket48SubscribeConfig() {
