@@ -227,7 +227,11 @@ public class WeiboSender extends Sender {
 
         //转发
         else if (b.containsKey("retweeted_status")) {
-            o = o.plus("\n").plus(parseUserBlog(b.getJSONObject("retweeted_status")));//叠呗
+            JSONObject retweet = b.getJSONObject("retweeted_status");
+            String retweet_from = retweet.getJSONObject("user").getStr("screen_name");
+            o = o.plus("------\n\n")
+                    .plus(retweet_from == null ? "" : "@" + retweet_from + "：")
+                    .plus(parseUserBlog(retweet));//叠呗
         }
 
         return o;

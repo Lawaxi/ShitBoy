@@ -110,6 +110,12 @@ public class Pocket48Sender extends Sender {
                             e.printStackTrace();
                         }
                     }
+
+                    if (joint != null) {
+                        group.sendMessage(joint);
+                        joint = null;
+                        title = null;
+                    }
                 }
 
 

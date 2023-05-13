@@ -38,7 +38,7 @@ public final class Shitboy extends JavaPlugin {
     private WeidianHandler handlerWeidian;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test5" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test6" +
                 "")
                 .name("shitboy")
                 .author("delay")

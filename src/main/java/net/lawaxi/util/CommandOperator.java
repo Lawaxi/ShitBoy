@@ -352,7 +352,7 @@ public class CommandOperator {
                         int count = 1;
                         for (long id : Shitboy.INSTANCE.getProperties().weibo_user_subscribe.get(group)) {
                             String name = Shitboy.INSTANCE.getHandlerWeibo().getUserName(id);
-                            out += count + ". " + name + "\n";
+                            out += count + ". (" + id + ")" + name + "\n";
                             count++;
                         }
                         return new PlainText(out);
