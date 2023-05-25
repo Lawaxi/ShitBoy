@@ -5,17 +5,17 @@ import cn.hutool.json.JSONObject;
 public class Pocket48RoomInfo {
     private final String roomName;
     private final String ownerName;//储存question
-    private final int severId;
-    private final int roomId;
+    private final long severId;
+    private final long roomId;
 
     public Pocket48RoomInfo(JSONObject roomInfo) {
         this.roomName = roomInfo.getStr("channelName");
         this.ownerName = roomInfo.getStr("ownerName");
-        this.severId = roomInfo.getInt("serverId");
-        this.roomId = roomInfo.getInt("channelId");
+        this.severId = roomInfo.getLong("serverId");
+        this.roomId = roomInfo.getLong("channelId");
     }
 
-    public Pocket48RoomInfo(String question, int serverId, int roomId) {
+    public Pocket48RoomInfo(String question, long serverId, long roomId) {
         this.severId = serverId;
         this.roomId = roomId;
         this.ownerName = question;
@@ -31,15 +31,15 @@ public class Pocket48RoomInfo {
         return ownerName;
     }
 
-    public int getSeverId() {
+    public long getSeverId() {
         return severId;
     }
 
-    public int getRoomId() {
+    public long getRoomId() {
         return roomId;
     }
 
-    public int getChannelId() {
+    public long getChannelId() {
         return roomId;
     }
 }

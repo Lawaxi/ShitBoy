@@ -1,8 +1,8 @@
-package net.lawaxi.util.handler;
+package net.lawaxi.handler;
 
 import cn.hutool.http.HttpRequest;
-import net.lawaxi.Properties;
 import net.lawaxi.Shitboy;
+import net.lawaxi.util.Properties;
 
 public class Handler {
 

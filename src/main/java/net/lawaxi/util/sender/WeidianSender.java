@@ -4,7 +4,7 @@ import net.lawaxi.Shitboy;
 import net.lawaxi.model.WeidianBuyer;
 import net.lawaxi.model.WeidianCookie;
 import net.lawaxi.model.WeidianItem;
-import net.lawaxi.util.handler.WeidianHandler;
+import net.lawaxi.handler.WeidianHandler;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.message.data.Message;
 import net.mamoe.mirai.message.data.PlainText;

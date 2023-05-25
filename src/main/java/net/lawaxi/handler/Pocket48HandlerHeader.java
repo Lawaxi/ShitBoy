@@ -1,7 +1,7 @@
-package net.lawaxi.util.handler;
+package net.lawaxi.handler;
 
 import cn.hutool.http.HttpRequest;
-import net.lawaxi.Properties;
+import net.lawaxi.util.Properties;
 
 public class Pocket48HandlerHeader {
 

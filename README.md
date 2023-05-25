@@ -44,3 +44,4 @@
 1. BUG修复
 2. test2-欢迎功能
 3. test4-Schedule Pattern可自定义
+4. test8-清理功能 & 全面优化

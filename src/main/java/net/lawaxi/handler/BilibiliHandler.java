@@ -1,4 +1,4 @@
-package net.lawaxi.util.handler;
+package net.lawaxi.handler;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -43,14 +43,19 @@ public class BilibiliHandler extends Handler {
         return JSONUtil.parseObj(s);
     }
 
+    private static final HashMap<Integer, String> name_data = new HashMap<>();
+
     public String getNameByMid(int uid) {
         String s = get(APIUserInfo + "mid=" + uid);
         JSONObject o = JSONUtil.parseObj(s);
         if (o.getInt("code") == 1) {
             //不存在用户
-            return "null";
+            //或访问频繁时会被拒
+            return name_data.containsKey(uid) ? name_data.get(uid) : "null";
         }
         JSONObject data = JSONUtil.parseObj(o.getObj("data"));
-        return data.getStr("name");
+        String n = data.getStr("name");
+        name_data.put(uid, n);
+        return n;
     }
 }

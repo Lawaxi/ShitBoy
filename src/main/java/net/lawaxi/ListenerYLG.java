@@ -1,7 +1,6 @@
-package net.lawaxi.util;
+package net.lawaxi;
 
 import cn.hutool.extra.pinyin.engine.pinyin4j.Pinyin4jEngine;
-import net.lawaxi.Shitboy;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.contact.NormalMember;
@@ -17,10 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ListenerYLG extends SimpleListenerHost {
-
+    private static final long ylg_group = 817151561;
     private final Pinyin4jEngine engine = new Pinyin4jEngine();
-    private final List<messageWithTime> xenon = new ArrayList<>();
-    private final List<messageWithTime> xenon_recall = new ArrayList<>();
+    private final List<messageWithTime> xenon = new ArrayList<>();//群主消息记录
+    private final List<messageWithTime> xenon_recall = new ArrayList<>();//机器人复读的群主消息记录
 
     @EventHandler()
     public ListeningStatus onGroupMessage(GroupMessageEvent event) {
@@ -46,7 +45,7 @@ public class ListenerYLG extends SimpleListenerHost {
             }
 
             //gethigher
-            if (qqID == 2080539637 && group.getId() == 755732123) {
+            if (qqID == 2080539637 && group.getId() == ylg_group) {
                 if (xenon.size() == 5)
                     xenon.remove(0);
                 xenon.add(new messageWithTime(event.getTime(), message));
@@ -68,7 +67,7 @@ public class ListenerYLG extends SimpleListenerHost {
 
         }
 
-        if (message.equals("查群主") && group.getId() == 755732123) {
+        if (message.equals("查群主") && group.getId() == ylg_group) {
             String o = "";
             for (messageWithTime m : xenon) {
                 o += "· " + m.message + "\n";
@@ -83,7 +82,7 @@ public class ListenerYLG extends SimpleListenerHost {
     //群主实时撤回播报
     @EventHandler()
     public ListeningStatus onGroupRecall(MessageRecallEvent.GroupRecall event) {
-        if (event.getGroup().getId() == 755732123) {
+        if (event.getGroup().getId() == ylg_group) {
             //gethigher
             if (event.getAuthorId() == 2080539637) {
                 for (messageWithTime m : xenon) {

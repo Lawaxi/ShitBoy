@@ -1,4 +1,4 @@
-package net.lawaxi;
+package net.lawaxi.util;
 
 import net.lawaxi.model.Pocket48Subscribe;
 import net.lawaxi.model.WeidianCookie;
@@ -23,7 +23,7 @@ public class Properties {
     public String pocket48_account;
     public String pocket48_password;
     public HashMap<Long, Pocket48Subscribe> pocket48_subscribe = new HashMap<>();
-    public HashMap<Integer, Integer> pocket48_serverID = new HashMap<>();//加密房间的severID记录
+    public HashMap<Long, Long> pocket48_serverID = new HashMap<>();//加密房间的severID记录
 
     //bilibili
     public String bilibili_pattern;

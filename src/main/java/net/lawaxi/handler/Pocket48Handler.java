@@ -1,4 +1,4 @@
-package net.lawaxi.util.handler;
+package net.lawaxi.handler;
 
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONArray;
@@ -86,9 +86,9 @@ public class Pocket48Handler extends Handler {
         return 0;
     }
 
-    private final HashMap<Integer, String> name = new HashMap<>();
+    private final HashMap<Long, String> name = new HashMap<>();
 
-    public String getStarNameByStarID(int starID) {
+    public String getStarNameByStarID(long starID) {
         if (name.containsKey(starID))
             return name.get(starID);
 
@@ -102,7 +102,7 @@ public class Pocket48Handler extends Handler {
         return starName_;
     }
 
-    public JSONObject getUserInfo(int starID) {
+    public JSONObject getUserInfo(long starID) {
         String s = post(APIUserInfo, String.format("{\"userId\":%d}", starID));
         JSONObject object = JSONUtil.parseObj(s);
 
@@ -117,7 +117,7 @@ public class Pocket48Handler extends Handler {
 
     }
 
-    private JSONObject getJumpContent(int starID) {
+    private JSONObject getJumpContent(long starID) {
         String s = post(APIStar2Server, String.format("{\"starId\":%d,\"targetType\":1}", starID));
         JSONObject object = JSONUtil.parseObj(s);
 
@@ -130,10 +130,10 @@ public class Pocket48Handler extends Handler {
         return null;
     }
 
-    public int getMainChannelIDByStarID(int starID) {
+    public long getMainChannelIDByStarID(long starID) {
         JSONObject content = getJumpContent(starID);
         if (content != null) {
-            Integer id = content.getInt("channelId");
+            Long id = content.getLong("channelId");
             if (id != null) {
                 logInfo("获取成功");
                 return id;
@@ -143,36 +143,36 @@ public class Pocket48Handler extends Handler {
         return 0;
     }
 
-    public Integer getServerIDByStarID(int starID) {
+    public Long getServerIDByStarID(long starID) {
         JSONObject content = getJumpContent(starID);
         if (content != null) {
             JSONObject serverInfo = JSONUtil.parseObj(content.getObj("jumpServerInfo"));
             if (serverInfo != null) {
-                return serverInfo.getInt("serverId");
+                return serverInfo.getLong("serverId");
             }
         }
         return null;
     }
 
-    public Integer[] getChannelIDBySeverID(int serverID) {
+    public Long[] getChannelIDBySeverID(long serverID) {
         String s = post(APIServer2Channel, String.format("{\"serverId\":\"%d\"}", serverID));
         JSONObject object = JSONUtil.parseObj(s);
 
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            List<Integer> rs = new ArrayList<>();
+            List<Long> rs = new ArrayList<>();
             for (Object room : content.getBeanList("lastMsgList", Object.class)) {
-                rs.add(JSONUtil.parseObj(room).getInt("channelId"));
+                rs.add(JSONUtil.parseObj(room).getLong("channelId"));
             }
-            return rs.toArray(new Integer[0]);
+            return rs.toArray(new Long[0]);
 
         } else {
             logError(object.getStr("message"));
-            return new Integer[0];
+            return new Long[0];
         }
     }
 
-    public Pocket48RoomInfo getRoomInfoByChannelID(int roomID) {
+    public Pocket48RoomInfo getRoomInfoByChannelID(long roomID) {
         String s = post(APIChannel2Server, String.format("{\"channelId\":\"%d\"}", roomID));
         JSONObject object = JSONUtil.parseObj(s);
 
@@ -227,8 +227,8 @@ public class Pocket48Handler extends Handler {
 
     /* ----------------------房间类---------------------- */
     //获取最新消息并整理成Pocket48Message[]
-    public Pocket48Message[] getMessages(Pocket48RoomInfo roomInfo, HashMap<Integer, Long> endTime) {
-        int roomID = roomInfo.getRoomId();
+    public Pocket48Message[] getMessages(Pocket48RoomInfo roomInfo, HashMap<Long, Long> endTime) {
+        long roomID = roomInfo.getRoomId();
         String roomName = roomInfo.getRoomName();
         String ownerName = getOwnerOrTeamName(roomInfo);
         List<Object> msgs = getOriMessages(roomID, roomInfo.getSeverId());
@@ -260,7 +260,7 @@ public class Pocket48Handler extends Handler {
         return new Pocket48Message[0];
     }
 
-    public Pocket48Message[] getMessages(int roomID, HashMap<Integer, Long> endTime) {
+    public Pocket48Message[] getMessages(long roomID, HashMap<Long, Long> endTime) {
         Pocket48RoomInfo roomInfo = getRoomInfoByChannelID(roomID);
         if (roomInfo != null) {
             return getMessages(roomInfo, endTime);
@@ -270,7 +270,7 @@ public class Pocket48Handler extends Handler {
 
     //获取全部消息并整理成Pocket48Message[]
     public Pocket48Message[] getMessages(Pocket48RoomInfo roomInfo) {
-        int roomID = roomInfo.getRoomId();
+        long roomID = roomInfo.getRoomId();
         String roomName = roomInfo.getRoomName();
         String ownerName = getOwnerOrTeamName(roomInfo);
         List<Object> msgs = getOriMessages(roomID, roomInfo.getSeverId());
@@ -290,7 +290,7 @@ public class Pocket48Handler extends Handler {
         return new Pocket48Message[0];
     }
 
-    public Pocket48Message[] getMessages(int roomID) {
+    public Pocket48Message[] getMessages(long roomID) {
         Pocket48RoomInfo roomInfo = getRoomInfoByChannelID(roomID);
         if (roomInfo != null) {
             return getMessages(roomInfo);
@@ -301,7 +301,7 @@ public class Pocket48Handler extends Handler {
 
 
     //获取未整理的消息
-    private List<Object> getOriMessages(int roomID, int serverID) {
+    private List<Object> getOriMessages(long roomID, long serverID) {
         String s = post(APIMsgOwner, String.format("{\"nextTime\":0,\"serverId\":%d,\"channelId\":%d,\"limit\":100}", serverID, roomID));
         JSONObject object = JSONUtil.parseObj(s);
 
@@ -319,43 +319,43 @@ public class Pocket48Handler extends Handler {
     }
 
     public String getOwnerOrTeamName(Pocket48RoomInfo roomInfo) {
-        switch (roomInfo.getSeverId()) {
-            case 1148749:
+        switch (String.valueOf(roomInfo.getSeverId())) {
+            case "1148749":
                 return "TEAM Z";
-            case 1164313:
+            case "1164313":
                 return "TEAM X";
-            case 1164314:
+            case "1164314":
                 return "TEAM NIII";
-            case 1181051:
+            case "1181051":
                 return "TEAM HII";
-            case 1181256:
+            case "1181256":
                 return "TEAM G";
-            case 1213978:
+            case "1213978":
                 return "TEAM NII";
-            case 1214171:
+            case "1214171":
                 return "TEAM SII";
-            case 1115226:
+            case "1115226":
                 return "CKG48";
-            case 1115413:
+            case "1115413":
                 return "BEJ48";
             default:
                 return roomInfo.getOwnerName();
         }
     }
 
-    public static final List<Integer> voidRoomVoiceList = new ArrayList<>();
+    public static final List<Long> voidRoomVoiceList = new ArrayList<>();
 
-    public List<Integer> getRoomVoiceList(int roomID, int serverID) {
+    public List<Long> getRoomVoiceList(long roomID, long serverID) {
         String s = post(APIRoomVoice, String.format("{\"channelId\":%d,\"serverId\":%d,\"operateCode\":2}", roomID, serverID));
         JSONObject object = JSONUtil.parseObj(s);
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
             JSONArray a = content.getJSONArray("voiceUserList");
-            List<Integer> l = new ArrayList<>();
+            List<Long> l = new ArrayList<>();
             if (a.size() > 0) {
                 for (Object star_ : a.stream().toArray()) {
                     JSONObject star = JSONUtil.parseObj(star_);
-                    int starID = star.getInt("userId");
+                    long starID = star.getLong("userId");
                     l.add(starID);
 
                     //优化：names的另一种添加途径

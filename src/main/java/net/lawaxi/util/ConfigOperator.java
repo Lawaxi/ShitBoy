@@ -4,7 +4,6 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.setting.Setting;
-import net.lawaxi.Properties;
 import net.lawaxi.Shitboy;
 import net.lawaxi.model.Pocket48Subscribe;
 import net.lawaxi.model.WeidianCookie;
@@ -52,8 +51,8 @@ public class ConfigOperator {
             object = new JSONObject();
             object.set("qqGroup", 1234567);
             object.set("showAtOne", true);
-            object.set("starSubs", new int[]{});
-            object.set("roomSubs", new int[]{});
+            object.set("starSubs", new long[]{});
+            object.set("roomSubs", new long[]{});
             setting.setByGroup("subscribe", "pocket48",
                     "[" + object + "]");
 
@@ -124,22 +123,22 @@ public class ConfigOperator {
         for (Object a :
                 JSONUtil.parseArray(setting.getByGroup("subscribe", "pocket48")).toArray()) {
             JSONObject sub = JSONUtil.parseObj(a);
-            Object rooms = sub.getBeanList("roomSubs", Integer.class);
-            Object stars = sub.getBeanList("starSubs", Integer.class);
+            Object rooms = sub.getBeanList("roomSubs", Long.class);
+            Object stars = sub.getBeanList("starSubs", Long.class);
 
             properties.pocket48_subscribe
                     .put(sub.getLong("qqGroup"),
                             new Pocket48Subscribe(
                                     sub.getBool("showAtOne", true),
-                                    rooms == null ? new ArrayList<>() : (List<Integer>) rooms,
-                                    stars == null ? new ArrayList<>() : (List<Integer>) stars
+                                    rooms == null ? new ArrayList<>() : (List<Long>) rooms,
+                                    stars == null ? new ArrayList<>() : (List<Long>) stars
                             ));
         }
 
         for (Object a :
                 JSONUtil.parseArray(setting.getByGroup("roomConnection", "pocket48")).toArray()) {
             JSONObject sid = JSONUtil.parseObj(a);
-            properties.pocket48_serverID.put(sid.getInt("roomID"), sid.getInt("serverID"));
+            properties.pocket48_serverID.put(sid.getLong("roomID"), sid.getLong("serverID"));
         }
 
         //bilibili
@@ -181,6 +180,12 @@ public class ConfigOperator {
     }
 
     //修改配置并更新缓存的方法
+    public void swch(boolean on) {
+        setting.set("enable", String.valueOf(on));
+        setting.store();
+        properties.enable = setting.getBool("enable");
+    }
+
     public boolean setWelcome(String welcome, long group) {
         properties.welcome.put(group, welcome);
         saveWelcome();
@@ -193,7 +198,7 @@ public class ConfigOperator {
         return true;
     }
 
-    public boolean addPocket48RoomSubscribe(int room_id, long group) {
+    public boolean addPocket48RoomSubscribe(long room_id, long group) {
         if (!properties.pocket48_subscribe.containsKey(group)) {
             properties.pocket48_subscribe.put(group, new Pocket48Subscribe(
                     true, new ArrayList<>(), new ArrayList<>()
@@ -208,7 +213,7 @@ public class ConfigOperator {
         return true;
     }
 
-    public boolean rmPocket48RoomSubscribe(int room_id, long group) {
+    public boolean rmPocket48RoomSubscribe(long room_id, long group) {
         if (!properties.pocket48_subscribe.get(group).getRoomIDs().contains(room_id))
             return false;
 
@@ -217,7 +222,7 @@ public class ConfigOperator {
         return true;
     }
 
-    public boolean addRoomIDConnection(int room_id, int sever_id) {
+    public boolean addRoomIDConnection(long room_id, long sever_id) {
         if (properties.pocket48_serverID.containsKey(room_id))
             return false;
 
@@ -226,7 +231,7 @@ public class ConfigOperator {
         return true;
     }
 
-    public boolean rmRoomIDConnection(int room_id, int sever_id) {
+    public boolean rmRoomIDConnection(long room_id, long sever_id) {
         if (!properties.pocket48_serverID.containsKey(room_id))
             return false;
 
@@ -334,7 +339,7 @@ public class ConfigOperator {
         return true;
     }
 
-    private void saveWelcome() {
+    public void saveWelcome() {
         String a = "[";
         for (long group : properties.welcome.keySet()) {
             JSONObject object = new JSONObject();
@@ -346,7 +351,7 @@ public class ConfigOperator {
         setting.store();
     }
 
-    private void savePocket48SubscribeConfig() {
+    public void savePocket48SubscribeConfig() {
         String a = "[";
         for (long group : properties.pocket48_subscribe.keySet()) {
             JSONObject object = new JSONObject();
@@ -361,9 +366,9 @@ public class ConfigOperator {
         setting.store();
     }
 
-    private void savePocket48RoomIDConnectConfig() {
+    public void savePocket48RoomIDConnectConfig() {
         String a = "[";
-        for (int room_id : properties.pocket48_serverID.keySet()) {
+        for (long room_id : properties.pocket48_serverID.keySet()) {
             JSONObject object = new JSONObject();
             object.set("roomID", room_id);
             object.set("serverID", properties.pocket48_serverID.get(room_id));
@@ -373,7 +378,7 @@ public class ConfigOperator {
         setting.store();
     }
 
-    private void saveBilibiliConfig() {
+    public void saveBilibiliConfig() {
         String a = "[";
         for (long group : properties.bilibili_subscribe.keySet()) {
             JSONObject object = new JSONObject();
@@ -385,7 +390,7 @@ public class ConfigOperator {
         setting.store();
     }
 
-    private void saveWeiboConfig() {
+    public void saveWeiboConfig() {
         String a = "[";
         for (long group : properties.weibo_user_subscribe.keySet()) {
             JSONObject object = new JSONObject();
@@ -398,7 +403,7 @@ public class ConfigOperator {
         setting.store();
     }
 
-    private void saveWeidianConfig() {
+    public void saveWeidianConfig() {
         String a = "[";
         for (long group : properties.weidian_cookie.keySet()) {
             JSONObject object = new JSONObject();
@@ -409,11 +414,6 @@ public class ConfigOperator {
         }
         setting.setByGroup("shops", "weidian", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
         setting.store();
-    }
-
-    public void swch(boolean on) {
-        setting.set("enable", String.valueOf(on));
-        properties.enable = setting.getBool("enable");
     }
 
     public boolean isAdmin(Group group, long qqID) {
@@ -428,5 +428,13 @@ public class ConfigOperator {
         }
 
         return group.get(qqID).getPermission() == MemberPermission.ADMINISTRATOR || group.get(qqID).getPermission() == MemberPermission.OWNER;
+    }
+
+    public boolean isAdmin(long qqID) {
+        for (String a : properties.admins) {
+            if (a.equals(String.valueOf(qqID)))
+                return true;
+        }
+        return false;
     }
 }

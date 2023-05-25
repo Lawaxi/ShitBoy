@@ -1,6 +1,6 @@
-package net.lawaxi.util;
+package net.lawaxi;
 
-import net.lawaxi.Shitboy;
+import net.lawaxi.util.CommandOperator;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.contact.User;

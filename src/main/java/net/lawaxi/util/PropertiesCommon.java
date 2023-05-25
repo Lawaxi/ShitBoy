@@ -1,4 +1,4 @@
-package net.lawaxi;
+package net.lawaxi.util;
 
 public class PropertiesCommon {
 

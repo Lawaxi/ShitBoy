@@ -5,7 +5,7 @@ import net.lawaxi.Shitboy;
 import net.lawaxi.model.Pocket48Message;
 import net.lawaxi.model.Pocket48RoomInfo;
 import net.lawaxi.model.Pocket48Subscribe;
-import net.lawaxi.util.handler.Pocket48Handler;
+import net.lawaxi.handler.Pocket48Handler;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.message.data.*;
@@ -22,10 +22,10 @@ import java.util.regex.Pattern;
 public class Pocket48Sender extends Sender {
 
     //endTime是一个关于roomID的HashMap
-    private final HashMap<Integer, Long> endTime;
-    private final HashMap<Integer, List<Integer>> voiceStatus;
+    private final HashMap<Long, Long> endTime;
+    private final HashMap<Long, List<Long>> voiceStatus;
 
-    public Pocket48Sender(Bot bot, long group, HashMap<Integer, Long> endTime, HashMap<Integer, List<Integer>> voiceStatus) {
+    public Pocket48Sender(Bot bot, long group, HashMap<Long, Long> endTime, HashMap<Long, List<Long>> voiceStatus) {
         super(bot, group);
         this.endTime = endTime;
         this.voiceStatus = voiceStatus;
@@ -33,116 +33,120 @@ public class Pocket48Sender extends Sender {
 
     @Override
     public void run() {
-        Pocket48Subscribe subscribe = Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId());
-        Pocket48Handler pocket = Shitboy.INSTANCE.getHandlerPocket48();
+        try {
+            Pocket48Subscribe subscribe = Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId());
+            Pocket48Handler pocket = Shitboy.INSTANCE.getHandlerPocket48();
 
-        List<Pocket48Message[]> totalMessages = new ArrayList<>();
+            List<Pocket48Message[]> totalMessages = new ArrayList<>();
 
-        for (int roomID : subscribe.getRoomIDs()) {
-            Pocket48RoomInfo roomInfo = pocket.getRoomInfoByChannelID(roomID);
-            if (roomInfo == null)
-                continue;
+            for (long roomID : subscribe.getRoomIDs()) {
+                Pocket48RoomInfo roomInfo = pocket.getRoomInfoByChannelID(roomID);
+                if (roomInfo == null)
+                    continue;
 
-            //房间消息预处理
-            Pocket48Message[] a = pocket.getMessages(roomInfo, endTime);
-            if (a.length > 0) {
-                totalMessages.add(a);
-            }
-
-            //房间语音
-            List<Integer> n = pocket.getRoomVoiceList(roomID, roomInfo.getSeverId());
-            if (voiceStatus.containsKey(roomID)) {
-                String[] r = handleVoiceList(voiceStatus.get(roomID), n);
-                if (r[0] != null || r[1] != null) {
-                    String ownerName = pocket.getOwnerOrTeamName(roomInfo);
-                    boolean private_ = ownerName.equals(roomInfo.getOwnerName());
-                    String message = "【" + roomInfo.getRoomName() + "(" + ownerName + ")房间语音】\n";
-
-                    if (r[0] != null) {
-                        message += private_ ?
-                                "上麦啦~" //成员房间
-                                : "★ 上麦：\n" + r[0] + "\n"; //队伍房间
-                    }
-                    if (r[1] != null) {
-                        message += private_ ?
-                                "下麦了捏~"
-                                : "☆ 下麦：\n" + r[1];
-                    }
-                    Message m = new PlainText(message);
-                    group.sendMessage(private_ ? toNotification(m) : m);
+                //房间消息预处理
+                Pocket48Message[] a = pocket.getMessages(roomInfo, endTime);
+                if (a.length > 0) {
+                    totalMessages.add(a);
                 }
+
+                //房间语音
+                List<Long> n = pocket.getRoomVoiceList(roomID, roomInfo.getSeverId());
+                if (voiceStatus.containsKey(roomID)) {
+                    String[] r = handleVoiceList(voiceStatus.get(roomID), n);
+                    if (r[0] != null || r[1] != null) {
+                        String ownerName = pocket.getOwnerOrTeamName(roomInfo);
+                        boolean private_ = ownerName.equals(roomInfo.getOwnerName());
+                        String message = "【" + roomInfo.getRoomName() + "(" + ownerName + ")房间语音】\n";
+
+                        if (r[0] != null) {
+                            message += private_ ?
+                                    "上麦啦~" //成员房间
+                                    : "★ 上麦：\n" + r[0] + "\n"; //队伍房间
+                        }
+                        if (r[1] != null) {
+                            message += private_ ?
+                                    "下麦了捏~"
+                                    : "☆ 下麦：\n" + r[1];
+                        }
+                        Message m = new PlainText(message);
+                        group.sendMessage(private_ ? toNotification(m) : m);
+                    }
+                }
+                voiceStatus.put(roomID, n);
             }
-            voiceStatus.put(roomID, n);
-        }
 
-        //房间消息
-        if (totalMessages.size() > 0) {
-            if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId()).showAtOne()) {
+            //房间消息
+            if (totalMessages.size() > 0) {
+                if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId()).showAtOne()) {
 
-                for (Pocket48Message[] roomMessage : totalMessages) {
-                    Message joint = null;
-                    Message title = null;
-                    for (int i = roomMessage.length - 1; i >= 0; i--) {
-                        try {
-                            Pocket48SenderMessage message1 = pharseMessage(roomMessage[i], group);
-                            if (message1.canJoin()) {
-                                if (joint == null) {
-                                    title = joint = message1.getTitle();
-                                } else if (!title.contentEquals(message1.getTitle(), false)) {
-                                    joint = joint.plus(message1.getTitle());
-                                    title = message1.getTitle();
+                    for (Pocket48Message[] roomMessage : totalMessages) {
+                        Message joint = null;
+                        Message title = null;
+                        for (int i = roomMessage.length - 1; i >= 0; i--) {
+                            try {
+                                Pocket48SenderMessage message1 = pharseMessage(roomMessage[i], group);
+                                if (message1.canJoin()) {
+                                    if (joint == null) {
+                                        title = joint = message1.getTitle();
+                                    } else if (!title.contentEquals(message1.getTitle(), false)) {
+                                        joint = joint.plus(message1.getTitle());
+                                        title = message1.getTitle();
+                                    }
+                                    joint = joint.plus(message1.getMessage()[0]).plus("\n");
+                                } else {
+
+                                    //遇到不可组合的消息先发送以前的可组合消息
+                                    if (joint != null) {
+                                        group.sendMessage(joint);
+                                        joint = null;
+                                        title = null;
+                                    }
+
+                                    //不可组合消息的发送需要通过for循环完成
+                                    for (Message m : message1.getMessage())
+                                        group.sendMessage(m);
                                 }
-                                joint = joint.plus(message1.getMessage()[0]).plus("\n");
-                            } else {
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
 
-                                //遇到不可组合的消息先发送以前的可组合消息
-                                if (joint != null) {
-                                    group.sendMessage(joint);
-                                    joint = null;
-                                    title = null;
-                                }
+                        if (joint != null) {
+                            group.sendMessage(joint);
+                            joint = null;
+                            title = null;
+                        }
+                    }
 
-                                //不可组合消息的发送需要通过for循环完成
-                                for (Message m : message1.getMessage())
+
+                } else {
+                    for (Pocket48Message[] roomMessage : totalMessages) {
+                        for (int i = roomMessage.length - 1; i >= 0; i--) { //倒序输出
+                            try {
+                                for (Message m : pharseMessage(roomMessage[i], group).getUnjointMessage()) {
                                     group.sendMessage(m);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    if (joint != null) {
-                        group.sendMessage(joint);
-                        joint = null;
-                        title = null;
-                    }
-                }
-
-
-            } else {
-                for (Pocket48Message[] roomMessage : totalMessages) {
-                    for (int i = roomMessage.length - 1; i >= 0; i--) { //倒序输出
-                        try {
-                            for (Message m : pharseMessage(roomMessage[i], group).getUnjointMessage()) {
-                                group.sendMessage(m);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
                     }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    private String[] handleVoiceList(List<Integer> a, List<Integer> b) {
+    private String[] handleVoiceList(List<Long> a, List<Long> b) {
         String zengjia = "";
         String jianshao = "";
-        for (Integer b0 : b) {
+        for (Long b0 : b) {
             if (!a.contains(b0))
                 zengjia += "，" + b0;
         }
-        for (Integer a0 : a) {
+        for (Long a0 : a) {
             if (!b.contains(a0))
                 jianshao += "，" + a0;
         }

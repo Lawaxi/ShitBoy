@@ -5,12 +5,12 @@ import cn.hutool.extra.pinyin.engine.pinyin4j.Pinyin4jEngine;
 import net.lawaxi.command.ShitBoyCommand;
 import net.lawaxi.model.EndTime;
 import net.lawaxi.util.ConfigOperator;
-import net.lawaxi.util.Listener;
-import net.lawaxi.util.ListenerYLG;
-import net.lawaxi.util.handler.BilibiliHandler;
-import net.lawaxi.util.handler.Pocket48Handler;
-import net.lawaxi.util.handler.WeiboHandler;
-import net.lawaxi.util.handler.WeidianHandler;
+import net.lawaxi.util.Properties;
+import net.lawaxi.util.PropertiesCommon;
+import net.lawaxi.handler.BilibiliHandler;
+import net.lawaxi.handler.Pocket48Handler;
+import net.lawaxi.handler.WeiboHandler;
+import net.lawaxi.handler.WeidianHandler;
 import net.lawaxi.util.sender.*;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.command.CommandManager;
@@ -38,7 +38,7 @@ public final class Shitboy extends JavaPlugin {
     private WeidianHandler handlerWeidian;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test6" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test8" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -139,11 +139,11 @@ public final class Shitboy extends JavaPlugin {
         //服务
 
         //endTime: 已发送房间消息的最晚时间
-        HashMap<Long, HashMap<Integer, Long>> pocket48RoomEndTime = new HashMap<>();
+        HashMap<Long, HashMap<Long, Long>> pocket48RoomEndTime = new HashMap<>();
         HashMap<Long, HashMap<String, Long>> weiboEndTime = new HashMap<>(); //同时包含超话和个人(long -> String)
         HashMap<Long, EndTime> weidianEndTime = new HashMap<>();
         //status: 上次检测的开播状态
-        HashMap<Long, HashMap<Integer, List<Integer>>> pocket48VoiceStatus = new HashMap<>();
+        HashMap<Long, HashMap<Long, List<Long>>> pocket48VoiceStatus = new HashMap<>();
         HashMap<Long, HashMap<Integer, Boolean>> bilibiliLiveStatus = new HashMap<>();
 
         //服务
@@ -153,6 +153,9 @@ public final class Shitboy extends JavaPlugin {
                             @Override
                             public void run() {
                                 for (long group : properties.pocket48_subscribe.keySet()) {
+                                    if (b.getGroup(group) == null)
+                                        continue;
+
                                     if (!pocket48RoomEndTime.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
                                     {
                                         pocket48RoomEndTime.put(group, new HashMap<>());
@@ -172,6 +175,9 @@ public final class Shitboy extends JavaPlugin {
                         @Override
                         public void run() {
                             for (long group : properties.bilibili_subscribe.keySet()) {
+                                if (b.getGroup(group) == null)
+                                    continue;
+
                                 if (!bilibiliLiveStatus.containsKey(group))
                                     bilibiliLiveStatus.put(group, new HashMap<>());
 
@@ -186,6 +192,9 @@ public final class Shitboy extends JavaPlugin {
                             @Override
                             public void run() {
                                 for (long group : properties.weibo_user_subscribe.keySet()) {
+                                    if (b.getGroup(group) == null)
+                                        continue;
+
                                     if (!weiboEndTime.containsKey(group))
                                         weiboEndTime.put(group, new HashMap<>());
 
@@ -202,6 +211,9 @@ public final class Shitboy extends JavaPlugin {
                         public void run() {
                             getLogger().info("10");
                             for (long group : properties.weidian_cookie.keySet()) {
+                                if (b.getGroup(group) == null)
+                                    continue;
+
                                 if (!weidianEndTime.containsKey(group))
                                     weidianEndTime.put(group, new EndTime(new Date().getTime()));
 
@@ -217,6 +229,9 @@ public final class Shitboy extends JavaPlugin {
                         public void run() {
                             getLogger().info("5");
                             for (long group : properties.weidian_cookie.keySet()) {
+                                if (b.getGroup(group) == null)
+                                    continue;
+
                                 new WeidianSender(b, group).start();
                             }
                         }

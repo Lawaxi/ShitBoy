@@ -6,7 +6,8 @@ import cn.hutool.json.JSONUtil;
 import net.lawaxi.Shitboy;
 import net.lawaxi.model.Pocket48RoomInfo;
 import net.lawaxi.model.WeidianCookie;
-import net.lawaxi.util.handler.Pocket48Handler;
+import net.lawaxi.handler.Pocket48Handler;
+import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.event.events.UserMessageEvent;
 import net.mamoe.mirai.message.data.Message;
@@ -35,7 +36,7 @@ public class CommandOperator {
                                 return new PlainText("暂无");
 
                             int count = 1;
-                            for (int room_id : Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs()) {
+                            for (long room_id : Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group).getRoomIDs()) {
 
                                 try {
                                     out += count + ". (" + room_id + ")";
@@ -109,8 +110,8 @@ public class CommandOperator {
                                 JSONObject server = JSONUtil.parseObj(server_);
                                 String name = server.getStr("serverDefaultName");
                                 String serverName = server.getStr("serverName");
-                                int starId = server.getInt("serverOwner");
-                                Integer serverId = server.getInt("serverId");
+                                long starId = server.getLong("serverOwner");
+                                Long serverId = server.getLong("serverId");
 
                                 out += count + ". " + name + "(" + serverName + ")\nid: " + starId + "\n";
                                 try {
@@ -123,7 +124,7 @@ public class CommandOperator {
                             return new PlainText(out);
                         }
                         case "查询": {
-                            int star_ID = Integer.valueOf(args[2]);
+                            long star_ID = Long.valueOf(args[2]);
                             JSONObject info = Shitboy.INSTANCE.getHandlerPocket48().getUserInfo(star_ID);
                             if (info == null)
                                 return new PlainText("用户不存在");
@@ -138,7 +139,7 @@ public class CommandOperator {
                                     + "关注 " + friends + " 粉丝 " + followers + "\n";
 
                             //Server
-                            Integer serverId = Shitboy.INSTANCE.getHandlerPocket48().getServerIDByStarID(star_ID);
+                            Long serverId = Shitboy.INSTANCE.getHandlerPocket48().getServerIDByStarID(star_ID);
                             try {
                                 out += informationFromPocketServerId(serverId);
                             } catch (Exception e) {
@@ -154,7 +155,7 @@ public class CommandOperator {
                             }
                         }
                         case "查询2": {
-                            int server_id = Integer.valueOf(args[2]);
+                            long server_id = Long.valueOf(args[2]);
                             if (server_id != 0) {
                                 try {
                                     return new PlainText(informationFromPocketServerId(server_id));
@@ -168,12 +169,12 @@ public class CommandOperator {
                             if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                 return new PlainText("权限不足喵");
 
-                            Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
+                            Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Long.valueOf(args[2]));
                             if (roomInfo == null) {
                                 return new PlainText("房间ID不存在。查询房间ID请输入/口袋 查询 <成员ID>");
                             }
 
-                            if (Shitboy.INSTANCE.getConfig().addPocket48RoomSubscribe(Integer.valueOf(args[2]), group)) {
+                            if (Shitboy.INSTANCE.getConfig().addPocket48RoomSubscribe(Long.valueOf(args[2]), group)) {
                                 String roomName = roomInfo.getRoomName();
                                 String ownerName = roomInfo.getOwnerName();
                                 return new PlainText("本群新增关注：" + roomName + "(" + ownerName + ")");
@@ -188,8 +189,8 @@ public class CommandOperator {
                             if (!Shitboy.INSTANCE.getProperties().pocket48_subscribe.containsKey(group))
                                 return new PlainText("本群暂无房间关注，先添加一个吧~");
 
-                            if (Shitboy.INSTANCE.getConfig().rmPocket48RoomSubscribe(Integer.valueOf(args[2]), group)) {
-                                Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Integer.valueOf(args[2]));
+                            if (Shitboy.INSTANCE.getConfig().rmPocket48RoomSubscribe(Long.valueOf(args[2]), group)) {
+                                Pocket48RoomInfo roomInfo = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(Long.valueOf(args[2]));
                                 if (roomInfo != null) {
                                     String roomName = roomInfo.getRoomName();
                                     String ownerName = roomInfo.getOwnerName();
@@ -202,8 +203,8 @@ public class CommandOperator {
                     }
                 } else if (args.length == 4) {
                     if (args[1].equals("连接")) {
-                        int room_id = Integer.valueOf(args[2]);
-                        int server_id = Integer.valueOf(args[3]);
+                        long room_id = Long.valueOf(args[2]);
+                        long server_id = Long.valueOf(args[3]);
                         if (testRoomIDWithServerID(room_id, server_id)) {
                             if (Shitboy.INSTANCE.getConfig().addRoomIDConnection(room_id, server_id))
                                 return new PlainText("连接成功");
@@ -404,6 +405,9 @@ public class CommandOperator {
 
     public Message getHelp(int id) {
         switch (id) {
+            case -1:
+                return new PlainText("【管理员指令】\n"
+                        + "(私聊) /清理\n");
             case 1:
                 return new PlainText("【通用】\n"
                         + "(私聊) /欢迎 <群id> 欢迎词(填写“取消”关闭)\n");
@@ -458,6 +462,9 @@ public class CommandOperator {
             return test; //权限检测
 
         switch (args[0]) {
+            case "/帮助":
+            case "/help":
+                return getHelp(0);
             case "/微店": {
                 if (args[2].startsWith("cookie")) {
                     if (args[2].contains(" ")) {
@@ -498,6 +505,68 @@ public class CommandOperator {
                     return new PlainText("取消成功");
                 }
             }
+            case "/清理": {
+                if (testPermission(event) == null) {
+                    Properties properties = Shitboy.INSTANCE.getProperties();
+                    ConfigOperator config = Shitboy.INSTANCE.getConfig();
+                    Bot b = event.getBot();
+                    Message log = new PlainText("【清理完成】\n");
+
+                    //口袋48
+                    int match = 0;
+                    for (long group : properties.pocket48_subscribe.keySet()) {
+                        if (b.getGroup(group) == null) {
+                            properties.pocket48_subscribe.remove(group);
+                            match++;
+                        }
+                    }
+                    if (match > 0) {
+                        config.savePocket48SubscribeConfig();
+                        log.plus("口袋48关注失效群: " + match + "个\n");
+                        match = 0;
+                    }
+
+                    //Bilibili
+                    for (long group : properties.bilibili_subscribe.keySet()) {
+                        if (b.getGroup(group) == null) {
+                            properties.bilibili_subscribe.remove(group);
+                            match++;
+                        }
+                    }
+                    if (match > 0) {
+                        config.saveBilibiliConfig();
+                        log.plus("Bilibili直播关注失效群: " + match + "个\n");
+                        match = 0;
+                    }
+
+                    //微博
+                    for (long group : properties.weibo_user_subscribe.keySet()) {
+                        if (b.getGroup(group) == null) {
+                            properties.weibo_user_subscribe.remove(group);
+                            properties.weibo_superTopic_subscribe.remove(group);
+                            match++;
+                        }
+                    }
+                    if (match > 0) {
+                        config.saveWeiboConfig();
+                        log.plus("微博关注失效群: " + match + "个\n");
+                        match = 0;
+                    }
+
+                    //微店
+                    for (long group : properties.weidian_cookie.keySet()) {
+                        if (b.getGroup(group) == null) {
+                            properties.weidian_cookie.remove(group);
+                            match++;
+                        }
+                    }
+                    if (match > 0) {
+                        config.saveWeidianConfig();
+                        log.plus("微店播报失效群: " + match + "个\n");
+                        match = 0;
+                    }
+                }
+            }
             default: {
                 return getHelp(0);
             }
@@ -531,18 +600,25 @@ public class CommandOperator {
         return null;
     }
 
+    public Message testPermission(UserMessageEvent event) {
+        if (!Shitboy.INSTANCE.getConfig().isAdmin(event.getSender().getId())) {
+            return new PlainText("权限不足喵");
+        }
+        return null;
+    }
+
     /* 函数工具 */
-    private boolean testRoomIDWithServerID(int room_id, int server_id) {
-        for (int i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
+    private boolean testRoomIDWithServerID(long room_id, long server_id) {
+        for (long i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
             if (i == room_id)
                 return true;
         }
         return false;
     }
 
-    private String informationFromPocketServerId(int server_id) throws Exception {
+    private String informationFromPocketServerId(long server_id) throws Exception {
         String out = "Server_id: " + server_id + "\n";
-        for (Integer i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
+        for (Long i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
             out += i != null ? "(" + i + ")" + Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(i).getRoomName() + "\n" : "";
         }
         return out;

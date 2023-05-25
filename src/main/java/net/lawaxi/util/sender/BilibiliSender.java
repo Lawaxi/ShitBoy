@@ -2,7 +2,7 @@ package net.lawaxi.util.sender;
 
 import cn.hutool.json.JSONObject;
 import net.lawaxi.Shitboy;
-import net.lawaxi.util.handler.BilibiliHandler;
+import net.lawaxi.handler.BilibiliHandler;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.utils.ExternalResource;

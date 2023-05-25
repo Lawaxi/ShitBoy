@@ -4,7 +4,7 @@ import net.lawaxi.Shitboy;
 import net.lawaxi.model.EndTime;
 import net.lawaxi.model.WeidianCookie;
 import net.lawaxi.model.WeidianOrder;
-import net.lawaxi.util.handler.WeidianHandler;
+import net.lawaxi.handler.WeidianHandler;
 import net.mamoe.mirai.Bot;
 
 public class WeidianOrderSender extends Sender {

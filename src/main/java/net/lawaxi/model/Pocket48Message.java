@@ -3,7 +3,7 @@ package net.lawaxi.model;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.Shitboy;
-import net.lawaxi.util.handler.Pocket48Handler;
+import net.lawaxi.handler.Pocket48Handler;
 
 public class Pocket48Message {
     private final String room;
