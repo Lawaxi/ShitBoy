@@ -7,7 +7,7 @@ import net.lawaxi.Shitboy;
 
 import java.util.HashMap;
 
-public class WeiboHandler extends Handler {
+public class WeiboHandler extends WebHandler {
 
     //微博监测采取游客登陆的方式，但也时刻要注意cookie失效
 

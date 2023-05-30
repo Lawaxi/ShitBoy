@@ -4,7 +4,7 @@ import cn.hutool.http.HttpRequest;
 import net.lawaxi.Shitboy;
 import net.lawaxi.util.Properties;
 
-public class Handler {
+public class WebHandler {
 
     private String cronScheduleID;
 
@@ -20,7 +20,7 @@ public class Handler {
 
     public final Properties properties;
 
-    public Handler() {
+    public WebHandler() {
         this.properties = Shitboy.INSTANCE.getProperties();
     }
 

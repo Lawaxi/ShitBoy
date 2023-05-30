@@ -5,7 +5,7 @@ import cn.hutool.json.JSONUtil;
 
 import java.util.HashMap;
 
-public class BilibiliHandler extends Handler {
+public class BilibiliHandler extends WebHandler {
 
     private static final String APILiveInfo = "https://api.live.bilibili.com/room/v1/Room/get_info?";
     private static final String APIUserInfo = "https://api.bilibili.com/x/space/acc/info?";

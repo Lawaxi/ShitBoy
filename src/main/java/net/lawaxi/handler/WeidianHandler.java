@@ -10,7 +10,7 @@ import net.lawaxi.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WeidianHandler extends Handler {
+public class WeidianHandler extends WebHandler {
 
     //setDefaultHeader
     @Override

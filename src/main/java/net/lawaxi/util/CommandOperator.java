@@ -4,9 +4,9 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.Shitboy;
+import net.lawaxi.handler.Pocket48Handler;
 import net.lawaxi.model.Pocket48RoomInfo;
 import net.lawaxi.model.WeidianCookie;
-import net.lawaxi.handler.Pocket48Handler;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.event.events.UserMessageEvent;
@@ -618,9 +618,20 @@ public class CommandOperator {
 
     private String informationFromPocketServerId(long server_id) throws Exception {
         String out = "Server_id: " + server_id + "\n";
-        for (Long i : Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id)) {
-            out += i != null ? "(" + i + ")" + Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(i).getRoomName() + "\n" : "";
+        Long[] rooms = Shitboy.INSTANCE.getHandlerPocket48().getChannelIDBySeverID(server_id);
+        //无房间
+        if (rooms.length == 0) {
+            return out + "无房间\n";
         }
-        return out;
+        //有房间
+        else {
+            for (Long i : rooms) {
+                Pocket48RoomInfo info = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(i);
+                if (info != null) { //口袋48bug之已删除的房间也会保留，但无法获取信息，见陈琳Server的(3311605)都是小团体
+                    out += (i != null) ? "(" + i + ")" + info.getRoomName() + "\n" : "";
+                }
+            }
+            return out;
+        }
     }
 }

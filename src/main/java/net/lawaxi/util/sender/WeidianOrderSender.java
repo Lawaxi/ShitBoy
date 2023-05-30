@@ -1,18 +1,21 @@
 package net.lawaxi.util.sender;
 
 import net.lawaxi.Shitboy;
+import net.lawaxi.handler.WeidianHandler;
+import net.lawaxi.handler.WeidianSenderHandler;
 import net.lawaxi.model.EndTime;
 import net.lawaxi.model.WeidianCookie;
 import net.lawaxi.model.WeidianOrder;
-import net.lawaxi.handler.WeidianHandler;
 import net.mamoe.mirai.Bot;
 
 public class WeidianOrderSender extends Sender {
     private final EndTime endTime;
+    private final WeidianSenderHandler handler;
 
-    public WeidianOrderSender(Bot bot, long group, EndTime endTime) {
+    public WeidianOrderSender(Bot bot, long group, EndTime endTime, WeidianSenderHandler handler) {
         super(bot, group);
         this.endTime = endTime;
+        this.handler = handler;
     }
 
     @Override
@@ -25,7 +28,7 @@ public class WeidianOrderSender extends Sender {
             return;
 
         for (WeidianOrder order : orders) {
-            group.sendMessage("感谢" + order.buyerName + "在" + order.itemName + "中支持了" + order.price + "！");
+            handler.executeOrderMessage(order, group);
         }
     }
 

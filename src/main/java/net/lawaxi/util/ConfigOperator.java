@@ -217,7 +217,7 @@ public class ConfigOperator {
         if (!properties.pocket48_subscribe.get(group).getRoomIDs().contains(room_id))
             return false;
 
-        properties.pocket48_subscribe.get(group).getRoomIDs().remove((Object) room_id);
+        properties.pocket48_subscribe.get(group).getRoomIDs().remove(room_id);
         savePocket48SubscribeConfig();
         return true;
     }

@@ -3,14 +3,11 @@ package net.lawaxi;
 import cn.hutool.cron.CronUtil;
 import cn.hutool.extra.pinyin.engine.pinyin4j.Pinyin4jEngine;
 import net.lawaxi.command.ShitBoyCommand;
+import net.lawaxi.handler.*;
 import net.lawaxi.model.EndTime;
 import net.lawaxi.util.ConfigOperator;
 import net.lawaxi.util.Properties;
 import net.lawaxi.util.PropertiesCommon;
-import net.lawaxi.handler.BilibiliHandler;
-import net.lawaxi.handler.Pocket48Handler;
-import net.lawaxi.handler.WeiboHandler;
-import net.lawaxi.handler.WeidianHandler;
 import net.lawaxi.util.sender.*;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.command.CommandManager;
@@ -38,7 +35,7 @@ public final class Shitboy extends JavaPlugin {
     private WeidianHandler handlerWeidian;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test8" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test9" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -206,6 +203,7 @@ public final class Shitboy extends JavaPlugin {
             }
 
             //微店订单播报
+            WeidianSenderHandler weidianSenderHandler = new WeidianSenderHandler(b);
             CronUtil.schedule(properties.weidian_pattern_order, new Runnable() {
                         @Override
                         public void run() {
@@ -217,7 +215,7 @@ public final class Shitboy extends JavaPlugin {
                                 if (!weidianEndTime.containsKey(group))
                                     weidianEndTime.put(group, new EndTime(new Date().getTime()));
 
-                                new WeidianOrderSender(b, group, weidianEndTime.get(group)).start();
+                                new WeidianOrderSender(b, group, weidianEndTime.get(group), weidianSenderHandler).start();
                             }
                         }
                     }
@@ -232,7 +230,7 @@ public final class Shitboy extends JavaPlugin {
                                 if (b.getGroup(group) == null)
                                     continue;
 
-                                new WeidianSender(b, group).start();
+                                new WeidianSender(b, group, weidianSenderHandler).start();
                             }
                         }
                     }

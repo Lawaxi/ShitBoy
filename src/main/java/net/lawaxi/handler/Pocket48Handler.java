@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Pocket48Handler extends Handler {
+public class Pocket48Handler extends WebHandler {
 
     public static final String ROOT = "https://pocketapi.48.cn";
     public static final String SOURCEROOT = "https://source.48.cn/";
