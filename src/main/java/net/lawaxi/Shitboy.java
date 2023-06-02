@@ -31,11 +31,11 @@ public final class Shitboy extends JavaPlugin {
     private Pocket48Handler handlerPocket48;
     private BilibiliHandler handlerBilibili;
     private WeiboHandler handlerWeibo;
-
     private WeidianHandler handlerWeidian;
+    private WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test9" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test10" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -67,6 +67,7 @@ public final class Shitboy extends JavaPlugin {
         handlerBilibili = new BilibiliHandler();
         handlerWeibo = new WeiboHandler();
         handlerWeidian = new WeidianHandler();
+        handlerWeidianSender = new WeidianSenderHandler();
     }
 
     private void registerCommand() {
@@ -95,6 +96,10 @@ public final class Shitboy extends JavaPlugin {
 
     public WeidianHandler getHandlerWeidian() {
         return handlerWeidian;
+    }
+
+    public WeidianSenderHandler getHandlerWeidianSender() {
+        return handlerWeidianSender;
     }
 
     private void loadConfig() {
@@ -203,7 +208,6 @@ public final class Shitboy extends JavaPlugin {
             }
 
             //微店订单播报
-            WeidianSenderHandler weidianSenderHandler = new WeidianSenderHandler(b);
             CronUtil.schedule(properties.weidian_pattern_order, new Runnable() {
                         @Override
                         public void run() {
@@ -215,7 +219,7 @@ public final class Shitboy extends JavaPlugin {
                                 if (!weidianEndTime.containsKey(group))
                                     weidianEndTime.put(group, new EndTime(new Date().getTime()));
 
-                                new WeidianOrderSender(b, group, weidianEndTime.get(group), weidianSenderHandler).start();
+                                new WeidianOrderSender(b, group, weidianEndTime.get(group), handlerWeidianSender).start();
                             }
                         }
                     }
@@ -230,7 +234,7 @@ public final class Shitboy extends JavaPlugin {
                                 if (b.getGroup(group) == null)
                                     continue;
 
-                                new WeidianSender(b, group, weidianSenderHandler).start();
+                                new WeidianSender(b, group, handlerWeidianSender).start();
                             }
                         }
                     }

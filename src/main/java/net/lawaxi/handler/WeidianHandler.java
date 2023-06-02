@@ -175,11 +175,11 @@ public class WeidianHandler extends WebHandler {
             JSONObject receiver = order.getJSONObject("receiver");
             addOrderToBuyer(receiver.getLong("buyerId"),
                     receiver.getStr("buyerName"),
-                    Double.valueOf(order.getStr("totalPrice")),
+                    new Double(order.getStr("totalPrice")),
                     buyers);
         }
 
-        buyers.sort((a, b) -> b.contribution - a.contribution > 0 ? 1 : 0);
+        buyers.sort((a, b) -> b.contribution - a.contribution > 0 ? 1 : -1);
         return buyers.toArray(new WeidianBuyer[0]);
     }
 
@@ -234,6 +234,18 @@ public class WeidianHandler extends WebHandler {
                 items.add(new WeidianItem(id, name, pic));
             }
             return items.toArray(new WeidianItem[0]);
+        }
+        return null;
+    }
+
+    public WeidianItem searchItem(WeidianCookie cookie, long id) {
+        return searchItem(getItems(cookie), id);
+    }
+
+    public WeidianItem searchItem(WeidianItem[] items, long id) {
+        for (WeidianItem item : items) {
+            if (item.id == id)
+                return item;
         }
         return null;
     }

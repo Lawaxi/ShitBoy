@@ -9,6 +9,7 @@ import net.lawaxi.model.Pocket48Subscribe;
 import net.lawaxi.model.WeidianCookie;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.MemberPermission;
+import net.mamoe.mirai.contact.NormalMember;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -76,6 +77,7 @@ public class ConfigOperator {
             object.set("qqGroup", 1234567);
             object.set("cookie", "");
             object.set("autoDeliver", false);
+            object.set("highlight", "[]");
             setting.setByGroup("shops", "weidian", "[" + object + "]");
 
             setting.store();
@@ -174,7 +176,9 @@ public class ConfigOperator {
             long g = shop.getLong("qqGroup");
             String cookie = shop.getStr("cookie", "");
             boolean autoDeliver = shop.getBool("autoDeliver", false);
-            properties.weidian_cookie.put(g, WeidianCookie.construct(cookie, autoDeliver));
+            List<Long> highlight = shop.getBeanList("highlight", Long.class);
+            properties.weidian_cookie.put(g, WeidianCookie.construct(cookie, autoDeliver,
+                    highlight == null ? new ArrayList<>() : highlight));
 
         }
     }
@@ -311,10 +315,12 @@ public class ConfigOperator {
 
     public boolean setWeidianCookie(String cookie, long group) {
         boolean autoDeliver = false;
+        List<Long> highlightItem = new ArrayList<>();
         if (properties.weidian_cookie.containsKey(group)) {
             autoDeliver = properties.weidian_cookie.get(group).autoDeliver;
+            highlightItem = properties.weidian_cookie.get(group).highlightItem;
         }
-        properties.weidian_cookie.put(group, WeidianCookie.construct(cookie, autoDeliver));
+        properties.weidian_cookie.put(group, WeidianCookie.construct(cookie, autoDeliver, highlightItem));
         saveWeidianConfig();
         return true;
     }
@@ -337,6 +343,21 @@ public class ConfigOperator {
         properties.weidian_cookie.remove(group);
         saveWeidianConfig();
         return true;
+    }
+
+    public int highlightWeidianItem(long group, long itemid) {
+        if (!properties.weidian_cookie.containsKey(group)) {
+            return -1;
+        }
+
+        List<Long> it = properties.weidian_cookie.get(group).highlightItem;
+        if (it.contains(itemid)) {
+            it.remove(itemid);
+        } else {
+            it.add(itemid);
+        }
+        saveWeidianConfig();
+        return it.contains(itemid) ? 1 : 0;
     }
 
     public void saveWelcome() {
@@ -410,6 +431,7 @@ public class ConfigOperator {
             object.set("qqGroup", group);
             object.set("cookie", properties.weidian_cookie.get(group).cookie);
             object.set("autoDeliver", properties.weidian_cookie.get(group).autoDeliver);
+            object.set("highlight", properties.weidian_cookie.get(group).highlightItem.toString());
             a += object + ",";
         }
         setting.setByGroup("shops", "weidian", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");
@@ -427,7 +449,11 @@ public class ConfigOperator {
                 return true;
         }
 
-        return group.get(qqID).getPermission() == MemberPermission.ADMINISTRATOR || group.get(qqID).getPermission() == MemberPermission.OWNER;
+        NormalMember m = group.get(qqID);
+        if (m == null)
+            return false;
+
+        return m.getPermission() == MemberPermission.ADMINISTRATOR || m.getPermission() == MemberPermission.OWNER;
     }
 
     public boolean isAdmin(long qqID) {

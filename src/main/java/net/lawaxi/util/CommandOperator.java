@@ -5,8 +5,10 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.Shitboy;
 import net.lawaxi.handler.Pocket48Handler;
+import net.lawaxi.handler.WeidianHandler;
 import net.lawaxi.model.Pocket48RoomInfo;
 import net.lawaxi.model.WeidianCookie;
+import net.lawaxi.model.WeidianItem;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.event.events.UserMessageEvent;
@@ -441,8 +443,12 @@ public class CommandOperator {
                 return new PlainText("【微店相关】\n"
                         + "(私聊)/微店 <群id> cookie <Cookie>\n"
                         + "(私聊)/微店 <群id> 自动发货\n"
+                        + "(私聊)/微店 <群id> # <商品id>\n"
+                        + "(私聊)/微店 <群id> 全部\n"
+                        + "(私聊)/微店 <群id> 查 <商品id>\n"
                         + "(私聊)/微店 <群id> 关闭\n"
-                        + "PK功能未完成，敬请期待\n");
+                        + "注：\"#\"指令的意思是切换一个商品的普链/特殊链形质，特殊链会实时播报\n"
+                        + "注：\"查询\"#指令可以获取榜单\n");
             default:
                 Message a = getHelp(1);
                 for (int i = 2; i <= maxID; i++)
@@ -453,8 +459,8 @@ public class CommandOperator {
 
     public Message executePrivate(String message, UserMessageEvent event) {
         String[] args = splitPrivateCommand(message);
-        if (args == null)
-            return null; //指令判断
+        if (args == null || args.length == 1)
+            return getHelp(0); //指令判断
 
         long groupId = Long.valueOf(args[1]);
         Message test = testPermission(groupId, event);
@@ -464,6 +470,7 @@ public class CommandOperator {
         switch (args[0]) {
             case "/帮助":
             case "/help":
+            case "/?":
                 return getHelp(0);
             case "/微店": {
                 if (args[2].startsWith("cookie")) {
@@ -471,28 +478,70 @@ public class CommandOperator {
                         String cookie = args[2].substring(args[2].indexOf(" ") + 1);
                         Shitboy.INSTANCE.getConfig().setWeidianCookie(cookie, groupId);
                         WeidianCookie cookie1 = Shitboy.INSTANCE.getProperties().weidian_cookie.get(groupId);
-                        return new PlainText("设置Cookie成功，当前自动发货为：" + (cookie1.autoDeliver ? "开启" : "关闭") + "。您可以通过/微店 自动发货 " + groupId + "切换");
-
+                        return new PlainText("设置Cookie成功，当前自动发货为：" + (cookie1.autoDeliver ? "开启" : "关闭") + "。您可以通过\"/微店 " + groupId + " 自动发货\"切换");
                     }
                     return new PlainText("请输入Cookie");
                 }
 
-                String[] argsIn = args[2].split(" ");
-                if (argsIn.length == 2) {
-                    switch (argsIn[0]) {
-                        case "自动发货": {
-                            int a = Shitboy.INSTANCE.getConfig().switchWeidianAutoDeliver(groupId);
-                            if (a == -1)
-                                return new PlainText("该群未设置Cookie");
-                            else
-                                return new PlainText("自动发货设为：" + (a == 1 ? "开启" : "关闭"));
-                        }
-                        case "关闭": {
-                            if (Shitboy.INSTANCE.getConfig().rmWeidianCookie(groupId))
+                if (!Shitboy.INSTANCE.getProperties().weidian_cookie.containsKey(groupId)) {
+                    return new PlainText("该群未设置Cookie");
+                } else {
+                    String[] argsIn = args[2].split(" ");
+                    if (argsIn.length == 1) {
+                        switch (argsIn[0]) {
+                            case "自动发货": {
+                                return new PlainText("自动发货设为：" + (Shitboy.INSTANCE.getConfig().switchWeidianAutoDeliver(groupId) == 1 ? "开启" : "关闭"));
+                            }
+                            case "关闭": {
+                                Shitboy.INSTANCE.getConfig().rmWeidianCookie(groupId);
                                 return new PlainText("该群微店播报重置");
-                            else
-                                return new PlainText("该群微店播报设置为空");
+                            }
+                            case "全部": {
+                                WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
+                                WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(groupId);
+
+                                WeidianItem[] items = weidian.getItems(cookie);
+                                String o = "当前共有商品" + items.length + "个：";
+                                for (int i = 0; i < items.length; i++) {
+                                    o += "\n[" + (cookie.highlightItem.contains(items[i].id) ? "特殊链" : "普链") +
+                                            "](" + items[i].id + ")." + items[i].name;
+                                }
+                                return new PlainText(o);
+                            }
+                            default:
+                                return getHelp(6);
                         }
+                    } else if (argsIn.length == 2) {
+                        switch (argsIn[0]) {
+                            case "#": {
+                                long id = Long.valueOf(argsIn[1]);
+                                if (Shitboy.INSTANCE.getConfig().highlightWeidianItem(groupId, id) == 0)
+                                    return new PlainText("将商品id为" + id + "的商品设为：普链");
+                                else
+                                    return new PlainText("将商品id为" + id + "的商品设为：特殊链");
+                            }
+                            case "查": {
+                                WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
+                                WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(groupId);
+
+                                long id = Long.valueOf(argsIn[1]);
+                                WeidianItem item = weidian.searchItem(cookie, id);
+                                if (item == null) {
+                                    return new PlainText("未找到该商品，您可以使用\"/微店 " + groupId + " 全部\"获得商品id");
+                                } else {
+                                    return new PlainText((cookie.highlightItem.contains(id) ? "【特殊链】\n" : "【普链】\n")).plus(Shitboy.INSTANCE.getHandlerWeidianSender().getItemMessage(
+                                            item,
+                                            cookie,
+                                            0,
+                                            event.getSender()
+                                    ));
+                                }
+                            }
+                            default:
+                                return getHelp(6);
+                        }
+                    } else {
+                        return getHelp(6);
                     }
                 }
             }

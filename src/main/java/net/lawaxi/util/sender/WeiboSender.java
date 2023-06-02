@@ -175,7 +175,7 @@ public class WeiboSender extends Sender {
             e.printStackTrace();
         }
 
-        ms.sort((a, b) -> a.time - b.time > 0 ? 1 : 0); //按时间由小到大排序
+        ms.sort((a, b) -> a.time - b.time > 0 ? 1 : -1); //按时间由小到大排序
         for (messageWithTime m : ms) {
             group.sendMessage(toNotification(m.message));
         }

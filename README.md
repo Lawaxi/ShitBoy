@@ -45,3 +45,4 @@
 2. test2-欢迎功能
 3. test4-Schedule Pattern可自定义
 4. test8-清理功能 & 全面优化
+5. test10-微店功能更新

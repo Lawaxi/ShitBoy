@@ -6,6 +6,10 @@ import net.lawaxi.handler.WeidianSenderHandler;
 import net.lawaxi.model.WeidianCookie;
 import net.lawaxi.model.WeidianItem;
 import net.mamoe.mirai.Bot;
+import net.mamoe.mirai.message.data.Message;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class WeidianSender extends Sender {
 
@@ -26,9 +30,16 @@ public class WeidianSender extends Sender {
         if (items == null)
             return;
 
+        //合并发送（仅特殊链）
+        List<Message> messages = new ArrayList<>();
         for (WeidianItem item : items) {
-            handler.executeItemMessages(item, group);
+            if (cookie.highlightItem.contains(item.id)) {
+                messages.add(handler.executeItemMessages(item, group));
+            }
         }
+        Message t = combine(messages);
+        if (t != null)
+            group.sendMessage(t);
     }
 
 

@@ -6,8 +6,10 @@ import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.MemberPermission;
 import net.mamoe.mirai.message.data.AtAll;
 import net.mamoe.mirai.message.data.Message;
+import net.mamoe.mirai.message.data.PlainText;
 
 import java.io.InputStream;
+import java.util.List;
 
 public class Sender extends Thread { //异步进程
     public final Bot bot;
@@ -31,5 +33,21 @@ public class Sender extends Thread { //异步进程
         if (this.group.getBotAsMember().getPermission() == MemberPermission.ADMINISTRATOR)
             return AtAll.INSTANCE.plus("\n").plus(m);
         return m;
+    }
+
+    public Message combine(List<Message> messages) {
+        if (messages.size() == 1)
+            return messages.get(0);
+        else if (messages.size() > 1) {
+            Message t = new PlainText("");
+            for (int i = 0; i < messages.size(); i++) {
+                if (i != 0)
+                    t.plus("\n+++++++++");
+                t.plus(messages.get(i));
+            }
+            return t;
+        } else {
+            return null;
+        }
     }
 }
