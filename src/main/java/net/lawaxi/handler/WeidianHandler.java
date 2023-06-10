@@ -102,7 +102,8 @@ public class WeidianHandler extends WebHandler {
             if (time <= endTime.time) {
                 break;
             } else {
-                lastTime = time;
+                if(time > lastTime)
+                    lastTime = time;
             }
 
             JSONObject receiver = order.getJSONObject("receiver");
