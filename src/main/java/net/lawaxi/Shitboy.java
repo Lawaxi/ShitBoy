@@ -5,6 +5,7 @@ import cn.hutool.extra.pinyin.engine.pinyin4j.Pinyin4jEngine;
 import net.lawaxi.command.ShitBoyCommand;
 import net.lawaxi.handler.*;
 import net.lawaxi.model.EndTime;
+import net.lawaxi.model.Pocket48SenderCache;
 import net.lawaxi.util.ConfigOperator;
 import net.lawaxi.util.Properties;
 import net.lawaxi.util.PropertiesCommon;
@@ -28,14 +29,14 @@ public final class Shitboy extends JavaPlugin {
     public static final Shitboy INSTANCE = new Shitboy();
     private final ConfigOperator configOperator = new ConfigOperator();
     private final Properties properties = new Properties();
-    private Pocket48Handler handlerPocket48;
-    private BilibiliHandler handlerBilibili;
-    private WeiboHandler handlerWeibo;
-    private WeidianHandler handlerWeidian;
-    private WeidianSenderHandler handlerWeidianSender;
+    public Pocket48Handler handlerPocket48;
+    public BilibiliHandler handlerBilibili;
+    public WeiboHandler handlerWeibo;
+    public WeidianHandler handlerWeidian;
+    public WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test10" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test13" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -123,10 +124,18 @@ public final class Shitboy extends JavaPlugin {
         //------------------------------------------------
 
         //口袋48登录
-        boolean pocket48_has_login = this.handlerPocket48.login(
-                properties.pocket48_account,
-                properties.pocket48_password
-        );
+        boolean pocket48_has_login = false;
+        if (!properties.pocket48_token.equals("")) {
+            this.handlerPocket48.login(properties.pocket48_token, false);
+            pocket48_has_login = true;
+        } else if (!(properties.pocket48_account.equals("") || properties.pocket48_password.equals(""))) {
+            pocket48_has_login = this.handlerPocket48.login(
+                    properties.pocket48_account,
+                    properties.pocket48_password
+            );
+        } else {
+            getLogger().info("开启口袋48播报需填写config/net.lawaxi.shitboy/config.setting并重启");
+        }
 
         boolean weibo_has_login = false;
         try {
@@ -154,6 +163,8 @@ public final class Shitboy extends JavaPlugin {
                 handlerPocket48.setCronScheduleID(CronUtil.schedule(properties.pocket48_pattern, new Runnable() {
                             @Override
                             public void run() {
+                                HashMap<Long, Pocket48SenderCache> cache = new HashMap();
+
                                 for (long group : properties.pocket48_subscribe.keySet()) {
                                     if (b.getGroup(group) == null)
                                         continue;
@@ -164,7 +175,7 @@ public final class Shitboy extends JavaPlugin {
                                         pocket48VoiceStatus.put(group, new HashMap<>());
                                     }
 
-                                    new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group)).start();
+                                    new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group), cache).start();
 
                                 }
 

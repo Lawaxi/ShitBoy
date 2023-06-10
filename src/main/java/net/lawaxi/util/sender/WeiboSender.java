@@ -93,8 +93,11 @@ public class WeiboSender extends Sender {
                         info = info.substring(info.indexOf("WB_media_a") + "WB_media_a".length());
 
                         if (info.contains("WB_video")) {//视频获取链接(原始地址无权限访问)
-                            o = o.plus(URLVideo + info.substring(info.indexOf("objectid=") + "objectid=".length(),
-                                    info.indexOf("keys=")));
+                            String objectid = info.substring(info.indexOf("objectid=") + "objectid=".length(),
+                                    info.indexOf("keys="));
+                            String cover = info.substring(info.indexOf("cover_img=") + "cover_img=".length(), info.indexOf("card_height="));
+                            o = o.plus(group.uploadImage(ExternalResource.create(getRes(cover))))
+                                    .plus(URLVideo + objectid);
                         } else {//图片时获取原始地址
                             if (info.indexOf("&thumb_picSrc=") == -1) { //单张图
                                 info = info.substring(info.indexOf("clear_picSrc=") + "clear_picSrc=".length());
@@ -191,6 +194,8 @@ public class WeiboSender extends Sender {
             for (Object media_ : b.getJSONObject("mix_media_info").getJSONArray("items").stream().toArray()) {
                 JSONObject media = JSONUtil.parseObj(media_);
                 String id = media.getStr("id");
+                JSONObject data = media.getJSONObject("data");
+                String cover = data.getStr("page_pic");
                 if (media.getStr("type").equals("pic")) {
                     //图片
                     String src = media.getJSONObject("data")
@@ -200,7 +205,8 @@ public class WeiboSender extends Sender {
 
                 } else {
                     //视频
-                    o = o.plus(URLVideo + id);
+                    o = o.plus(group.uploadImage(ExternalResource.create(getRes(cover))))
+                            .plus(URLVideo + id);
                 }
             }
         }
@@ -221,7 +227,9 @@ public class WeiboSender extends Sender {
             JSONObject page_info = b.getJSONObject("page_info");
             if (page_info.getStr("object_type").equals("video")) {
                 String id = page_info.getStr("object_id");
-                o = o.plus(URLVideo + id);
+                String cover = page_info.getStr("page_pic");//缩略图
+                o = o.plus(group.uploadImage(ExternalResource.create(getRes(cover))))
+                        .plus(URLVideo + id);
             }
         }
 

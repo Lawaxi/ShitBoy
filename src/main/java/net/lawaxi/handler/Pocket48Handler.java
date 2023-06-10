@@ -4,6 +4,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import net.lawaxi.Shitboy;
 import net.lawaxi.model.Pocket48Message;
 import net.lawaxi.model.Pocket48RoomInfo;
 
@@ -47,14 +48,19 @@ public class Pocket48Handler extends WebHandler {
         JSONObject object = JSONUtil.parseObj(s);
         if (object.getInt("status") == 200) {
             JSONObject content = JSONUtil.parseObj(object.getObj("content"));
-            header.setToken(content.getStr("token"));
-            logInfo("口袋48登陆成功");
+            login(content.getStr("token"), true);
             return true;
         } else {
-            logInfo("口袋48登陆失败");
-            logError(object.getStr("message"));
+            logInfo("口袋48登陆失败：" + object.getStr("message"));
             return false;
         }
+    }
+
+    public void login(String token, boolean save) {
+        header.setToken(token);
+        logInfo("口袋48登陆成功");
+        if (save)
+            Shitboy.INSTANCE.getConfig().setAndSaveToken(token);
     }
 
     public boolean isLogin() {
@@ -63,6 +69,20 @@ public class Pocket48Handler extends WebHandler {
 
     public void logout() {
         header.setToken(null);
+    }
+
+    @Override
+    protected void logError(String msg) {
+        if (msg.equals("非法授权")) { //掉token时重新登陆一下，因为没传入code参数，就这样了~
+            if (properties.pocket48_account.equals("") || properties.pocket48_password.equals("")) {
+                logout();
+                super.logError("口袋48 token失效请重新填写，同时填写token和账密可在token时效时登录（优先使用token）");
+            } else {
+                login(properties.pocket48_account, properties.pocket48_password);
+            }
+        }
+
+        super.logError(msg);
     }
 
     @Override
@@ -237,22 +257,27 @@ public class Pocket48Handler extends WebHandler {
             Long latest = null;
             for (Object message : msgs) {
                 JSONObject m = JSONUtil.parseObj(message);
-                long time = m.getLong("msgTime");
-                if (latest == null) {
-                    latest = time;
-                    if (!endTime.containsKey(roomID))
+                try {
+                    long time = m.getLong("msgTime");
+                    if (latest == null) {
+                        latest = time;
+                        if (!endTime.containsKey(roomID))
+                            break;
+                    }
+
+                    if (m.getLong("msgTime") <= endTime.get(roomID))
                         break;
+
+                    rs.add(Pocket48Message.construct(
+                            roomName,
+                            ownerName,
+                            m,
+                            time
+                    ));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Shitboy.INSTANCE.getLogger().info(m.toString());
                 }
-
-                if (m.getLong("msgTime") <= endTime.get(roomID))
-                    break;
-
-                rs.add(Pocket48Message.construct(
-                        roomName,
-                        ownerName,
-                        m,
-                        time
-                ));
             }
             endTime.put(roomID, latest);
             return rs.toArray(new Pocket48Message[0]);

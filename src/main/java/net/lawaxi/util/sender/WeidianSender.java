@@ -34,13 +34,12 @@ public class WeidianSender extends Sender {
         List<Message> messages = new ArrayList<>();
         for (WeidianItem item : items) {
             if (cookie.highlightItem.contains(item.id)) {
-                messages.add(handler.executeItemMessages(item, group));
+                messages.add(handler.executeItemMessages(item, group, 10));
             }
         }
         Message t = combine(messages);
         if (t != null)
             group.sendMessage(t);
     }
-
 
 }

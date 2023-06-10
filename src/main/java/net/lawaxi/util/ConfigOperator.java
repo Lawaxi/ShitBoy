@@ -46,8 +46,9 @@ public class ConfigOperator {
             setting.setByGroup("schedule_item", "weidian", "*/10 * * * *");
 
             //口袋48
-            setting.setByGroup("account", "pocket48", "填写口袋48登录手机号");
-            setting.setByGroup("password", "pocket48", "填写口袋48登陆密码");
+            setting.setByGroup("account", "pocket48", "");
+            setting.setByGroup("password", "pocket48", "");
+            setting.setByGroup("token", "pocket48", "");
 
             object = new JSONObject();
             object.set("qqGroup", 1234567);
@@ -119,8 +120,9 @@ public class ConfigOperator {
         properties.weidian_pattern_item = setting.getStr("schedule_item", "weidian", "*/10 * * * *");
 
         //口袋48
-        properties.pocket48_account = setting.getByGroup("account", "pocket48");
-        properties.pocket48_password = setting.getByGroup("password", "pocket48");
+        properties.pocket48_account = setting.getStr("account", "pocket48", "");
+        properties.pocket48_password = setting.getStr("password", "pocket48", "");
+        properties.pocket48_token = setting.getStr("token", "pocket48", "");
 
         for (Object a :
                 JSONUtil.parseArray(setting.getByGroup("subscribe", "pocket48")).toArray()) {
@@ -199,6 +201,13 @@ public class ConfigOperator {
     public boolean closeWelcome(long group) {
         properties.welcome.remove(group);
         saveWelcome();
+        return true;
+    }
+
+    public boolean setAndSaveToken(String token) {
+        properties.pocket48_token = token;
+        setting.setByGroup("token", "pocket48", token);
+        setting.store();
         return true;
     }
 

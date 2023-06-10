@@ -22,6 +22,7 @@ public class Properties {
     public String pocket48_pattern;
     public String pocket48_account;
     public String pocket48_password;
+    public String pocket48_token;
     public HashMap<Long, Pocket48Subscribe> pocket48_subscribe = new HashMap<>();
     public HashMap<Long, Long> pocket48_serverID = new HashMap<>();//加密房间的severID记录
 

@@ -32,7 +32,7 @@ public class WeidianOrderSender extends Sender {
         if (orders == null)
             return;
 
-        //合并发送（将普链ItemMessages附在最后）
+        //合并发送
         List<Message> messages = new ArrayList<>();
         List<Long> itemIDs = new ArrayList<>();
         for (int i = 0; i < orders.length; i++) {
@@ -40,13 +40,13 @@ public class WeidianOrderSender extends Sender {
             if (!itemIDs.contains(id) && !cookie.highlightItem.contains(id))
                 itemIDs.add(id);
             messages.add(handler.executeOrderMessage(orders[i], group));
-        }
+        }//（将普链ItemMessages附在最后）
         if (itemIDs.size() > 0) {
             WeidianItem[] items = weidian.getItems(cookie);
             for (Long id : itemIDs) {
                 WeidianItem item = weidian.searchItem(items, id);
                 if (item != null)
-                    messages.add(handler.executeItemMessages(item, group));
+                    messages.add(handler.executeItemMessages(item, group, 5));
             }
         }
 
