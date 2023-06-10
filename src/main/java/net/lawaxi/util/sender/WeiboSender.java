@@ -222,6 +222,15 @@ public class WeiboSender extends Sender {
             }
         }
 
+        //转发：与下方视频else if不能颠倒
+        else if (b.containsKey("retweeted_status")) {
+            JSONObject retweet = b.getJSONObject("retweeted_status");
+            String retweet_from = retweet.getJSONObject("user").getStr("screen_name");
+            o = o.plus("------\n\n")
+                    .plus(retweet_from == null ? "" : "@" + retweet_from + "：")
+                    .plus(parseUserBlog(retweet));//叠呗
+        }
+
         //单独视频
         else if (b.containsKey("page_info")) {
             JSONObject page_info = b.getJSONObject("page_info");
@@ -231,15 +240,6 @@ public class WeiboSender extends Sender {
                 o = o.plus(group.uploadImage(ExternalResource.create(getRes(cover))))
                         .plus(URLVideo + id);
             }
-        }
-
-        //转发
-        else if (b.containsKey("retweeted_status")) {
-            JSONObject retweet = b.getJSONObject("retweeted_status");
-            String retweet_from = retweet.getJSONObject("user").getStr("screen_name");
-            o = o.plus("------\n\n")
-                    .plus(retweet_from == null ? "" : "@" + retweet_from + "：")
-                    .plus(parseUserBlog(retweet));//叠呗
         }
 
         return o;
