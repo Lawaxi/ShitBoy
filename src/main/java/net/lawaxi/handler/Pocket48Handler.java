@@ -86,7 +86,7 @@ public class Pocket48Handler extends WebHandler {
     }
 
     @Override
-    public HttpRequest setHeader(HttpRequest request) {
+    protected HttpRequest setHeader(HttpRequest request) {
         return header.setHeader(request);
     }
 
