@@ -43,6 +43,12 @@ public class WebHandler {
                 .execute().body();
     }
 
+    public HttpRequest setHeader_Public(HttpRequest request) {
+        if(!properties.save_login)
+            return setHeader(request);
+        else return request;
+    }
+
     protected HttpRequest setHeader(HttpRequest request) {
         return request;
     }

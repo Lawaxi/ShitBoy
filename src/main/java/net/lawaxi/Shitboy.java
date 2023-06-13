@@ -1,7 +1,6 @@
 package net.lawaxi;
 
 import cn.hutool.cron.CronUtil;
-import cn.hutool.extra.pinyin.engine.pinyin4j.Pinyin4jEngine;
 import net.lawaxi.command.ShitBoyCommand;
 import net.lawaxi.handler.*;
 import net.lawaxi.model.EndTime;
@@ -36,7 +35,7 @@ public final class Shitboy extends JavaPlugin {
     public WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test14" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test15" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -53,12 +52,42 @@ public final class Shitboy extends JavaPlugin {
         GlobalEventChannel.INSTANCE.registerListenerHost(new Listener());
         if (properties.ylg)
             GlobalEventChannel.INSTANCE.registerListenerHost(new ListenerYLG());
+
+        //------------------------------------------------
+        //服务
+        CronUtil.getScheduler().clear();
+
+        //口袋48登录
+        final boolean pocket48_has_login;
+        if (!properties.pocket48_token.equals("")) {
+            this.handlerPocket48.login(properties.pocket48_token, false);
+            pocket48_has_login = true;
+        } else if (!(properties.pocket48_account.equals("") || properties.pocket48_password.equals(""))) {
+            pocket48_has_login = this.handlerPocket48.login(
+                    properties.pocket48_account,
+                    properties.pocket48_password
+            );
+        } else {
+            pocket48_has_login = false;
+            getLogger().info("开启口袋48播报需填写config/net.lawaxi.shitboy/config.setting并重启");
+        }
+
+        boolean weibo_has_login = false;
+        try {
+            this.handlerWeibo.updateLoginToSuccess();
+            weibo_has_login = true;
+            getLogger().info("微博Cookie更新成功");
+
+        } catch (Exception e) {
+            getLogger().info("微博Cookie更新失败");
+        }
+
+        boolean finalWeibo_has_login = weibo_has_login;
         GlobalEventChannel.INSTANCE.parentScope(INSTANCE).subscribeOnce(BotOnlineEvent.class, event -> {
-            listenBroadcast();
+            listenBroadcast(event.getBot(), pocket48_has_login, finalWeibo_has_login);
         });
 
         getLogger().info("Shit boy!");
-        getLogger().info(new Pinyin4jEngine().getPinyin("拼音测试", " "));
     }
 
     private void initProperties() {
@@ -119,35 +148,7 @@ public final class Shitboy extends JavaPlugin {
     }
 
 
-    private void listenBroadcast() {
-        CronUtil.getScheduler().clear();
-        //------------------------------------------------
-
-        //口袋48登录
-        boolean pocket48_has_login = false;
-        if (!properties.pocket48_token.equals("")) {
-            this.handlerPocket48.login(properties.pocket48_token, false);
-            pocket48_has_login = true;
-        } else if (!(properties.pocket48_account.equals("") || properties.pocket48_password.equals(""))) {
-            pocket48_has_login = this.handlerPocket48.login(
-                    properties.pocket48_account,
-                    properties.pocket48_password
-            );
-        } else {
-            getLogger().info("开启口袋48播报需填写config/net.lawaxi.shitboy/config.setting并重启");
-        }
-
-        boolean weibo_has_login = false;
-        try {
-            this.handlerWeibo.updateLoginToSuccess();
-            weibo_has_login = true;
-            getLogger().info("微博Cookie更新成功");
-
-        } catch (Exception e) {
-            getLogger().info("微博Cookie更新失败");
-        }
-
-        //服务
+    private void listenBroadcast(Bot b, boolean pocket48_has_login, boolean weibo_has_login) {
 
         //endTime: 已发送房间消息的最晚时间
         HashMap<Long, HashMap<Long, Long>> pocket48RoomEndTime = new HashMap<>();
@@ -158,99 +159,97 @@ public final class Shitboy extends JavaPlugin {
         HashMap<Long, HashMap<Integer, Boolean>> bilibiliLiveStatus = new HashMap<>();
 
         //服务
-        for (Bot b : Bot.getInstances()) {
-            if (pocket48_has_login) {
-                handlerPocket48.setCronScheduleID(CronUtil.schedule(properties.pocket48_pattern, new Runnable() {
-                            @Override
-                            public void run() {
-                                HashMap<Long, Pocket48SenderCache> cache = new HashMap();
-
-                                for (long group : properties.pocket48_subscribe.keySet()) {
-                                    if (b.getGroup(group) == null)
-                                        continue;
-
-                                    if (!pocket48RoomEndTime.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
-                                    {
-                                        pocket48RoomEndTime.put(group, new HashMap<>());
-                                        pocket48VoiceStatus.put(group, new HashMap<>());
-                                    }
-
-                                    new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group), cache).start();
-
-                                }
-
-                            }
-                        }
-                ));
-            }
-
-            handlerBilibili.setCronScheduleID(CronUtil.schedule(properties.bilibili_pattern, new Runnable() {
+        if (pocket48_has_login) {
+            handlerPocket48.setCronScheduleID(CronUtil.schedule(properties.pocket48_pattern, new Runnable() {
                         @Override
                         public void run() {
-                            for (long group : properties.bilibili_subscribe.keySet()) {
+                            HashMap<Long, Pocket48SenderCache> cache = new HashMap();
+
+                            for (long group : properties.pocket48_subscribe.keySet()) {
                                 if (b.getGroup(group) == null)
                                     continue;
 
-                                if (!bilibiliLiveStatus.containsKey(group))
-                                    bilibiliLiveStatus.put(group, new HashMap<>());
+                                if (!pocket48RoomEndTime.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
+                                {
+                                    pocket48RoomEndTime.put(group, new HashMap<>());
+                                    pocket48VoiceStatus.put(group, new HashMap<>());
+                                }
 
-                                new BilibiliSender(b, group, bilibiliLiveStatus.get(group)).start();
+                                new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group), cache).start();
+
                             }
+
                         }
                     }
             ));
+        }
 
-            if (weibo_has_login) {
-                handlerWeibo.setCronScheduleID(CronUtil.schedule(properties.weibo_pattern, new Runnable() {
-                            @Override
-                            public void run() {
-                                for (long group : properties.weibo_user_subscribe.keySet()) {
-                                    if (b.getGroup(group) == null)
-                                        continue;
+        handlerBilibili.setCronScheduleID(CronUtil.schedule(properties.bilibili_pattern, new Runnable() {
+                    @Override
+                    public void run() {
+                        for (long group : properties.bilibili_subscribe.keySet()) {
+                            if (b.getGroup(group) == null)
+                                continue;
 
-                                    if (!weiboEndTime.containsKey(group))
-                                        weiboEndTime.put(group, new HashMap<>());
+                            if (!bilibiliLiveStatus.containsKey(group))
+                                bilibiliLiveStatus.put(group, new HashMap<>());
 
-                                    new WeiboSender(b, group, weiboEndTime.get(group)).start();
-                                }
-                            }
-                        }
-                ));
-            }
-
-            //微店订单播报
-            CronUtil.schedule(properties.weidian_pattern_order, new Runnable() {
-                        @Override
-                        public void run() {
-                            getLogger().info("10");
-                            for (long group : properties.weidian_cookie.keySet()) {
-                                if (b.getGroup(group) == null)
-                                    continue;
-
-                                if (!weidianEndTime.containsKey(group))
-                                    weidianEndTime.put(group, new EndTime(new Date().getTime()));
-
-                                new WeidianOrderSender(b, group, weidianEndTime.get(group), handlerWeidianSender).start();
-                            }
+                            new BilibiliSender(b, group, bilibiliLiveStatus.get(group)).start();
                         }
                     }
-            );
+                }
+        ));
 
-            //微店排名统计
-            handlerWeidian.setCronScheduleID(CronUtil.schedule(properties.weidian_pattern_item, new Runnable() {
+        if (weibo_has_login) {
+            handlerWeibo.setCronScheduleID(CronUtil.schedule(properties.weibo_pattern, new Runnable() {
                         @Override
                         public void run() {
-                            getLogger().info("5");
-                            for (long group : properties.weidian_cookie.keySet()) {
+                            for (long group : properties.weibo_user_subscribe.keySet()) {
                                 if (b.getGroup(group) == null)
                                     continue;
 
-                                new WeidianSender(b, group, handlerWeidianSender).start();
+                                if (!weiboEndTime.containsKey(group))
+                                    weiboEndTime.put(group, new HashMap<>());
+
+                                new WeiboSender(b, group, weiboEndTime.get(group)).start();
                             }
                         }
                     }
             ));
         }
+
+        //微店订单播报
+        CronUtil.schedule(properties.weidian_pattern_order, new Runnable() {
+                    @Override
+                    public void run() {
+                        getLogger().info("10");
+                        for (long group : properties.weidian_cookie.keySet()) {
+                            if (b.getGroup(group) == null)
+                                continue;
+
+                            if (!weidianEndTime.containsKey(group))
+                                weidianEndTime.put(group, new EndTime(new Date().getTime()));
+
+                            new WeidianOrderSender(b, group, weidianEndTime.get(group), handlerWeidianSender).start();
+                        }
+                    }
+                }
+        );
+
+        //微店排名统计
+        handlerWeidian.setCronScheduleID(CronUtil.schedule(properties.weidian_pattern_item, new Runnable() {
+                    @Override
+                    public void run() {
+                        getLogger().info("5");
+                        for (long group : properties.weidian_cookie.keySet()) {
+                            if (b.getGroup(group) == null)
+                                continue;
+
+                            new WeidianSender(b, group, handlerWeidianSender).start();
+                        }
+                    }
+                }
+        ));
 
         //------------------------------------------------
         if (properties.enable) {

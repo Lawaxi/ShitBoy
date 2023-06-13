@@ -102,7 +102,7 @@ public class WeidianHandler extends WebHandler {
             if (time <= endTime.time) {
                 break;
             } else {
-                if(time > lastTime)
+                if (time > lastTime)
                     lastTime = time;
             }
 

@@ -57,6 +57,14 @@ public class Pocket48Message {
         return body;
     }
 
+    public String getText() {
+        if (getType() == Pocket48MessageType.GIFT_TEXT) {
+            JSONObject info = JSONUtil.parseObj(JSONUtil.parseObj(getBody()).getObj("giftInfo"));
+            return "送给 " + info.getStr("userName") + " " + info.getInt("giftNum") + "个" + info.getStr("giftName");
+        }
+        return getBody();
+    }
+
     public Pocket48MessageType getType() {
         return type;
     }

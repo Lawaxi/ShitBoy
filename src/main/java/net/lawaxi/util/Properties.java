@@ -12,8 +12,9 @@ public class Properties {
 
     public MiraiLogger logger;
     public File configData;
-    public Boolean enable = true;
-    public Boolean ylg = true;
+    public boolean enable;
+    public boolean save_login;
+    public boolean ylg;
     public String[] admins;
     public String[] secureGroup;
     public HashMap<Long, String> welcome = new HashMap<>();

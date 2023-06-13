@@ -175,8 +175,9 @@ public class Pocket48Sender extends Sender {
 
         switch (message.getType()) {
             case TEXT:
+            case GIFT_TEXT:
                 return new Pocket48SenderMessage(true, new PlainText(name),
-                        new Message[]{pharsePocketTextWithFace(message.getBody())});
+                        new Message[]{pharsePocketTextWithFace(message.getText())});
             case AUDIO: {
                 Audio audio = group.uploadAudio(ExternalResource.create(getRes(message.getResLoc())));
                 return single_subscribe ? new Pocket48SenderMessage(false, null,

@@ -2,6 +2,7 @@ package net.lawaxi.model;
 
 public enum Pocket48MessageType {
     TEXT,
+    GIFT_TEXT,
     AUDIO,
     IMAGE,
     VIDEO,

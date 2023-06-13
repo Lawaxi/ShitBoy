@@ -29,7 +29,8 @@ public class ConfigOperator {
             FileUtil.touch(file);
             Setting setting = new Setting(file, StandardCharsets.UTF_8, false);
             setting.set("enable", "true");
-            setting.set("ylg", "true");
+            setting.set("save_login", "false");
+            setting.set("ylg", "false");
             setting.set("admins", "2330234142");
             setting.set("secureGroup", "");
 
@@ -95,7 +96,8 @@ public class ConfigOperator {
 
     public void init() {
         properties.enable = setting.getBool("enable", true);
-        properties.ylg = setting.getBool("ylg", true);
+        properties.save_login = setting.getBool("save_login", false);
+        properties.ylg = setting.getBool("ylg", false);
         properties.admins = setting.getStrings("admins");
         properties.secureGroup = setting.getStrings("secureGroup");
         if (properties.admins == null)
