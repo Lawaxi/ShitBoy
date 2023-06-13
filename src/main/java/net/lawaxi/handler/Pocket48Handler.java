@@ -137,6 +137,15 @@ public class Pocket48Handler extends WebHandler {
 
     }
 
+    public String getUserNickName(long id){
+        try {
+            return getUserInfo(id).getStr("nickname");
+        }catch (Exception e){
+            e.printStackTrace();
+            return "null";
+        }
+    }
+
     private JSONObject getJumpContent(long starID) {
         String s = post(APIStar2Server, String.format("{\"starId\":%d,\"targetType\":1}", starID));
         JSONObject object = JSONUtil.parseObj(s);
