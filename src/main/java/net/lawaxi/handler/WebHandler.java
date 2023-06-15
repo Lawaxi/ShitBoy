@@ -44,7 +44,7 @@ public class WebHandler {
     }
 
     public HttpRequest setHeader_Public(HttpRequest request) {
-        if(!properties.save_login)
+        if (!properties.save_login)
             return setHeader(request);
         else return request;
     }

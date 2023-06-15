@@ -22,7 +22,6 @@ public class ConfigOperator {
     private Properties properties;
 
     public void load(Properties properties) {
-
         this.properties = properties;
         File file = properties.configData;
         if (!file.exists()) {

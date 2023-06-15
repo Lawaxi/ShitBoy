@@ -127,3 +127,4 @@ schedule = * * * * * #监测时间间隔，具体搜索Cron定时任务表达式
 5. test10-微店功能更新
 6. test15-Addon初步适配，关闭save_login后附属插件可以借setHeader_Public方法读取登录信息
 7. test16-getUserNickName
+8. test17-Addon适配更新，CommandOperator help更新

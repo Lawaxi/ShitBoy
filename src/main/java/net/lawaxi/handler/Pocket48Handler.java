@@ -137,10 +137,10 @@ public class Pocket48Handler extends WebHandler {
 
     }
 
-    public String getUserNickName(long id){
+    public String getUserNickName(long id) {
         try {
             return getUserInfo(id).getStr("nickname");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return "null";
         }
