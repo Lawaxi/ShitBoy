@@ -2,6 +2,17 @@
 
 Mirai-Console插件，构建mirai（[mamoe/mirai](https://github.com/mamoe/mirai), [docs.mirai.mamoe.net](https://docs.mirai.mamoe.net/)）后拖入plugins文件夹运行即可，首次运行生成配置，全部内容可在QQ中使用指令自助完成。
 
+## Add-on
+
+本插件尽可能简化功能，如您需要更多功能，推荐您在*安装本插件的同时*安装下列Add-ons
+
+- [Lawaxi/ShitBoyJuJuAddon](https://github.com/Lawaxi/ShitBoyJuJuAddon)
+  - 在所有房间监测某些聚聚的发言
+  - 注：本插件需要将Shitboy配置中pocket48/save_login设置为false
+- [Lawaxi/ShitBoyWeidianAddon](https://github.com/Lawaxi/ShitBoyWeidianAddon)
+  - 微店订单抽卡
+  - 微店PK
+
 ## 使用说明
 
 在群内或私聊机器人输入`“/帮助”“/help”“/?”`均可获得指令表

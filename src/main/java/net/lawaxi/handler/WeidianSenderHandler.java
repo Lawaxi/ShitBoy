@@ -24,9 +24,7 @@ public class WeidianSenderHandler {
     }
 
     public Message executeItemMessages(WeidianItem item, Group group) {
-        WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
-        WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(group.getId());
-        return new PlainText(getItemMessage(item, cookie, 5, group));
+        return this.executeItemMessages(item,group,5);
     }
 
     public Message executeItemMessages(WeidianItem item, Group group, int pickAmount) {
