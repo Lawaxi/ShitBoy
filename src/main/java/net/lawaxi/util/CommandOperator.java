@@ -25,6 +25,7 @@ public class CommandOperator {
 
     public CommandOperator() {
         INSTANCE = this;
+        initHelp();
         //需自行编写指令执行方法，本operator的插件外部方法仅addHelp
     }
 
@@ -401,12 +402,18 @@ public class CommandOperator {
     public Message executePrivate(String message, UserMessageEvent event) {
         String[] args = splitPrivateCommand(message);
         if (args == null || args.length == 1)
-            return getHelp(0); //指令判断
+            return null; //指令判断
 
-        long groupId = Long.valueOf(args[1]);
-        Message test = testPermission(groupId, event);
-        if (test != null)
-            return test; //权限检测
+        //权限检测
+        switch (args[0]) {
+            case "/微店":
+            case "/欢迎": {
+                long groupId = Long.valueOf(args[1]);
+                Message test = testPermission(groupId, event);
+                if (test != null)
+                    return test;
+            }
+        }
 
         switch (args[0]) {
             case "/帮助":
@@ -414,6 +421,13 @@ public class CommandOperator {
             case "/?":
                 return getHelp(-1);
             case "/微店": {
+                long groupId;
+                try {
+                    groupId = Long.valueOf(args[1]);
+                } catch (Exception e) {
+                    return getHelp(6);
+                }
+
                 if (args[2].startsWith("cookie")) {
                     if (args[2].contains(" ")) {
                         String cookie = args[2].substring(args[2].indexOf(" ") + 1);
@@ -469,12 +483,8 @@ public class CommandOperator {
                                     if (item == null) {
                                         return new PlainText("未找到该商品，您可以使用\"/微店 " + groupId + " 全部\"获得商品id");
                                     } else {
-                                        return new PlainText((cookie.highlightItem.contains(id) ? "【特殊链】\n" : "【普链】\n")).plus(Shitboy.INSTANCE.getHandlerWeidianSender().getItemMessage(
-                                                item,
-                                                cookie,
-                                                0,
-                                                event.getSender()
-                                        ));
+                                        return new PlainText((cookie.highlightItem.contains(id) ? "【特殊链】\n" : "【普链】\n"))
+                                                .plus(Shitboy.INSTANCE.getHandlerWeidianSender().executeItemMessages(item, event.getBot().getGroup(groupId), 0));
                                     }
                                 }
                             }
@@ -547,6 +557,13 @@ public class CommandOperator {
                 //getHelp(0);
             }
             case "/欢迎": {
+                long groupId;
+                try {
+                    groupId = Long.valueOf(args[1]);
+                } catch (Exception e) {
+                    return getHelp(1);
+                }
+
                 if (!args[2].equals("取消")) {
                     Shitboy.INSTANCE.getConfig().setWelcome(args[2], groupId);
                     return new PlainText("设置成功");
@@ -556,10 +573,8 @@ public class CommandOperator {
                 }
                 //getHelp(1);
             }
-            default: {
-                return getHelp(-1);
-            }
         }
+        return null;
     }
 
     private final ArrayList<String> helps = new ArrayList<>();

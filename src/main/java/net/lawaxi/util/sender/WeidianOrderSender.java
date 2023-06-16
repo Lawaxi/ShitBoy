@@ -46,7 +46,7 @@ public class WeidianOrderSender extends Sender {
             for (Long id : itemIDs) {
                 WeidianItem item = weidian.searchItem(items, id);
                 if (item != null)
-                    messages.add(handler.executeItemMessages(item, group, 5));
+                    messages.add(handler.executeItemMessages(item, group));
             }
         }
 

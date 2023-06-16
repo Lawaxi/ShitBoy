@@ -78,7 +78,7 @@ public class Pocket48Sender extends Sender {
                                     : "☆ 下麦：\n" + r[1];
                         }
                         Message m = new PlainText(message);
-                        group.sendMessage(private_ ? toNotification(m) : m);
+                        group.sendMessage(r[0] != null ? toNotification(m) : m); //有人上麦时才@all
                     }
                 }
                 voiceStatus.put(roomID, n);
