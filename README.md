@@ -4,7 +4,7 @@ Mirai-Console插件，构建mirai（[mamoe/mirai](https://github.com/mamoe/mirai
 
 ## Add-on
 
-本插件尽可能简化功能，如您需要更多功能，推荐您在*安装本插件的同时*安装下列Add-ons
+本插件尽可能简化功能，如您需要更多功能，推荐您在**安装本插件的同时**安装下列Add-ons
 
 - [Lawaxi/ShitBoyJuJuAddon](https://github.com/Lawaxi/ShitBoyJuJuAddon)
   - 在所有房间监测某些聚聚的发言
