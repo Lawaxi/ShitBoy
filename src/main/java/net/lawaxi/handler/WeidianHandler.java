@@ -187,7 +187,8 @@ public class WeidianHandler extends WebHandler {
         List<WeidianBuyer> buyers = new ArrayList<>();
         for (Object object : objectList.toArray(new Object[0])) {
             JSONObject order = JSONUtil.parseObj(object);
-            if (order.getStr("statusDesc").equals("已关闭"))
+            if (order.getStr("statusDesc").equals("已关闭")
+            || order.getStr("statusDesc").equals("待付款"))
                 continue;
 
             JSONObject receiver = order.getJSONObject("receiver");
