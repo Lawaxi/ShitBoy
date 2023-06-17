@@ -143,18 +143,35 @@ public class WeidianHandler extends WebHandler {
 
     private JSONArray getItemOriOrderList(WeidianCookie cookie, long itemId) {
         //获取【全部】列表中单个商品的订单（不保证付款）
-        String s = post(APIOrderList, "param={\"listType\":0,\"pageNum\":0,\"pageSize\":5,\"statusList\":[\"all\"],\"refundStatusList\":[],\"channel\":\"pc\",\"shipRole\":0,\"orderIdList\":\"\",\"itemId\":\"" + itemId + "\",\"buyerName\":\"\",\"timeSearch\":{},\"orderBizType\":\"\",\"promotionType\":\"\",\"shipType\":\"\",\"newGhSearchSellerRole\":7,\"memberLevel\":\"all\",\"repayStatus\":2,\"bSellerId\":\"\",\"itemSource\":\"\",\"shipper\":\"\",\"nSellerName\":\"\",\"partnerName\":\"\",\"noteSearchCondition\":{\"buyerNote\":\"\"},\"specialOrderSearchCondition\":{\"notShowGroupUnsuccess\":0,\"notShowFxOrder\":0,\"notShowUnRepayOrder\":0,\"notShowBuyerRepayOrder\":0,\"showAllPeriodOrder\":0,\"notShowTencentShopOrder\":0,\"notShowWithoutTimelinessOrder\":0},\"orderType\":2}&wdtoken=" + cookie.wdtoken, cookie);
+        String s = post(APIOrderList, "param={\"listType\":0,\"pageNum\":0,\"pageSize\":20,\"statusList\":[\"all\"],\"refundStatusList\":[],\"channel\":\"pc\",\"shipRole\":0,\"orderIdList\":\"\",\"itemId\":\"" + itemId + "\",\"buyerName\":\"\",\"timeSearch\":{},\"orderBizType\":\"\",\"promotionType\":\"\",\"shipType\":\"\",\"newGhSearchSellerRole\":7,\"memberLevel\":\"all\",\"repayStatus\":2,\"bSellerId\":\"\",\"itemSource\":\"\",\"shipper\":\"\",\"nSellerName\":\"\",\"partnerName\":\"\",\"noteSearchCondition\":{\"buyerNote\":\"\"},\"specialOrderSearchCondition\":{\"notShowGroupUnsuccess\":0,\"notShowFxOrder\":0,\"notShowUnRepayOrder\":0,\"notShowBuyerRepayOrder\":0,\"showAllPeriodOrder\":0,\"notShowTencentShopOrder\":0,\"notShowWithoutTimelinessOrder\":0},\"orderType\":2}&wdtoken=" + cookie.wdtoken, cookie);
         JSONObject object = JSONUtil.parseObj(s);
         if (object.getJSONObject("status").getInt("code") == 0) {
             JSONObject result = object.getJSONObject("result");
             int totalNum = result.getInt("total");
-            if (totalNum <= 5)
+            int pageN = (totalNum + 19) / 20;
+            if (pageN < 2) {
                 return result.getJSONArray("orderList");
+            } else {
+                String page0 = result.getJSONArray("orderList").toString();
+                page0 = page0.substring(0, page0.length() - 1);
 
-            //优化策略
-            String s1 = post(APIOrderList, "param={\"listType\":0,\"pageNum\":0,\"pageSize\":" + totalNum + ",\"statusList\":[\"all\"],\"refundStatusList\":[],\"channel\":\"pc\",\"shipRole\":0,\"orderIdList\":\"\",\"itemId\":\"" + itemId + "\",\"buyerName\":\"\",\"timeSearch\":{},\"orderBizType\":\"\",\"promotionType\":\"\",\"shipType\":\"\",\"newGhSearchSellerRole\":7,\"memberLevel\":\"all\",\"repayStatus\":2,\"bSellerId\":\"\",\"itemSource\":\"\",\"shipper\":\"\",\"nSellerName\":\"\",\"partnerName\":\"\",\"noteSearchCondition\":{\"buyerNote\":\"\"},\"specialOrderSearchCondition\":{\"notShowGroupUnsuccess\":0,\"notShowFxOrder\":0,\"notShowUnRepayOrder\":0,\"notShowBuyerRepayOrder\":0,\"showAllPeriodOrder\":0,\"notShowTencentShopOrder\":0,\"notShowWithoutTimelinessOrder\":0},\"orderType\":2}&wdtoken=" + cookie.wdtoken, cookie);
-            JSONObject result1 = JSONUtil.parseObj(s1).getJSONObject("result");
-            return result1.getJSONArray("orderList");
+                for (int i = 1; i < pageN; i++) {
+                    String pagei = getItemOriOrderList(cookie, itemId, i).toString();
+                    pagei = pagei.substring(1, pagei.length() - 1);
+                    page0 += "," + pagei;
+                }
+                return JSONUtil.parseArray(page0 + "]");
+            }
+        }
+        return null;
+    }
+
+    private JSONArray getItemOriOrderList(WeidianCookie cookie, long itemId, int page) {
+        String s = post(APIOrderList, "param={\"listType\":0,\"pageNum\":" + page + ",\"pageSize\":20,\"statusList\":[\"all\"],\"refundStatusList\":[],\"channel\":\"pc\",\"shipRole\":0,\"orderIdList\":\"\",\"itemId\":\"" + itemId + "\",\"buyerName\":\"\",\"timeSearch\":{},\"orderBizType\":\"\",\"promotionType\":\"\",\"shipType\":\"\",\"newGhSearchSellerRole\":7,\"memberLevel\":\"all\",\"repayStatus\":2,\"bSellerId\":\"\",\"itemSource\":\"\",\"shipper\":\"\",\"nSellerName\":\"\",\"partnerName\":\"\",\"noteSearchCondition\":{\"buyerNote\":\"\"},\"specialOrderSearchCondition\":{\"notShowGroupUnsuccess\":0,\"notShowFxOrder\":0,\"notShowUnRepayOrder\":0,\"notShowBuyerRepayOrder\":0,\"showAllPeriodOrder\":0,\"notShowTencentShopOrder\":0,\"notShowWithoutTimelinessOrder\":0},\"orderType\":2}&wdtoken=" + cookie.wdtoken, cookie);
+        JSONObject object = JSONUtil.parseObj(s);
+        if (object.getJSONObject("status").getInt("code") == 0) {
+            JSONObject result = object.getJSONObject("result");
+            return result.getJSONArray("orderList");
         }
         return null;
     }

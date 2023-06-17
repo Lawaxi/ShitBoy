@@ -117,8 +117,8 @@ public class ConfigOperator {
         properties.pocket48_pattern = setting.getStr("schedule", "pocket48", "* * * * *");
         properties.bilibili_pattern = setting.getStr("schedule", "pocket48", "* * * * *");
         properties.weibo_pattern = setting.getStr("schedule", "weibo", "*/5 * * * *");
-        properties.weidian_pattern_order = setting.getStr("schedule_order", "weidian", "*/10 * * * *");
-        properties.weidian_pattern_item = setting.getStr("schedule_item", "weidian", "*/10 * * * *");
+        properties.weidian_pattern_order = setting.getStr("schedule_order", "weidian", "*/2 * * * *");
+        properties.weidian_pattern_item = setting.getStr("schedule_item", "weidian", "*/5 * * * *");
 
         //口袋48
         properties.pocket48_account = setting.getStr("account", "pocket48", "");

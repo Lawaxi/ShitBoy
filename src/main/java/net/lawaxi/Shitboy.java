@@ -35,7 +35,7 @@ public final class Shitboy extends JavaPlugin {
     public WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test18" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test19" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -236,7 +236,7 @@ public final class Shitboy extends JavaPlugin {
                 }
         );
 
-        //微店排名统计
+        //微店商品播报
         handlerWeidian.setCronScheduleID(CronUtil.schedule(properties.weidian_pattern_item, new Runnable() {
                     @Override
                     public void run() {
