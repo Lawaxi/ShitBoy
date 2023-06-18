@@ -139,3 +139,4 @@ schedule = * * * * * #监测时间间隔，具体搜索Cron定时任务表达式
 6. test15-save_login
 7. test16-getUserNickName
 9. test19-微店BUG修复 & 调增
+10. test20-WeidianBuyer使用int储存金额

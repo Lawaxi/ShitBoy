@@ -13,6 +13,7 @@ import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.utils.ExternalResource;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 
 public class WeidianSenderHandler {
 
@@ -33,7 +34,7 @@ public class WeidianSenderHandler {
         WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(group.getId());
         //统计总值
         long id = item.id;
-        double total = 0;
+        int total = 0;
         WeidianBuyer[] buyers = weidian.getItemBuyer(cookie, id);
 
         Message m = new PlainText(item.name + "\n");
@@ -50,15 +51,12 @@ public class WeidianSenderHandler {
                     "\n" + DateTime.now());
 
         //有人购买
-        //double精度修正
-        total = (double) Math.round(total * 100) / 100;
-
         for (WeidianBuyer buyer : buyers) {
             total += buyer.contribution;
         }
         return m.plus("人数：" + buyers.length +
-                "\n进度：" + total +
-                "\n均：" + (double) Math.round((total / buyers.length) * 100) / 100 +
+                "\n进度：" + new BigDecimal(total).divide(new BigDecimal(100.0)).toPlainString() +
+                "\n均：" + new BigDecimal(total / buyers.length).divide(new BigDecimal(100.0)).toPlainString() +
                 "\n" + DateTime.now() +
                 "\n---------" + pickBuyer(buyers, pickAmount));
     }
@@ -70,7 +68,7 @@ public class WeidianSenderHandler {
         String out = "";
         for (int i = 0; i < amount; i++) {
             if (buyers.length >= i + 1) {
-                out += "\n" + (i + 1) + ". (" + buyers[i].contribution + ")" + buyers[i].name;
+                out += "\n" + (i + 1) + ". (" + new BigDecimal(buyers[i].contribution).divide(new BigDecimal(100.0)).toPlainString() + ")" + buyers[i].name;
             } else
                 break;
         }

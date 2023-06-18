@@ -7,6 +7,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.model.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -188,21 +189,21 @@ public class WeidianHandler extends WebHandler {
         for (Object object : objectList.toArray(new Object[0])) {
             JSONObject order = JSONUtil.parseObj(object);
             if (order.getStr("statusDesc").equals("已关闭")
-            || order.getStr("statusDesc").equals("待付款"))
+                    || order.getStr("statusDesc").equals("待付款"))
                 continue;
 
             JSONObject receiver = order.getJSONObject("receiver");
             addOrderToBuyer(receiver.getLong("buyerId"),
                     receiver.getStr("buyerName"),
-                    new Double(order.getStr("totalPrice")),
+                    new BigDecimal(order.getStr("totalPrice")).multiply(new BigDecimal(100)).intValue(),
                     buyers);
         }
 
-        buyers.sort((a, b) -> b.contribution - a.contribution > 0 ? 1 : -1);
+        buyers.sort((a, b) -> b.contribution - a.contribution);
         return buyers.toArray(new WeidianBuyer[0]);
     }
 
-    private void addOrderToBuyer(long buyerID, String buyerName, double contribution, List<WeidianBuyer> buyers) {
+    private void addOrderToBuyer(long buyerID, String buyerName, int contribution, List<WeidianBuyer> buyers) {
         for (WeidianBuyer buyer : buyers) {
             if (buyer.id == buyerID) {
                 buyer.add(contribution);
