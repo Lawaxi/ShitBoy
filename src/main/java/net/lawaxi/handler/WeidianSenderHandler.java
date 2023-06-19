@@ -55,8 +55,8 @@ public class WeidianSenderHandler {
             total += buyer.contribution;
         }
         return m.plus("人数：" + buyers.length +
-                "\n进度：" + new BigDecimal(total).divide(new BigDecimal(100.0)).toPlainString() +
-                "\n均：" + new BigDecimal(total / buyers.length).divide(new BigDecimal(100.0)).toPlainString() +
+                "\n进度：" + new BigDecimal(total).divide(new BigDecimal("100.0")).toPlainString() +
+                "\n均：" + new BigDecimal(total / buyers.length).divide(new BigDecimal("100.0")).toPlainString() +
                 "\n" + DateTime.now() +
                 "\n---------" + pickBuyer(buyers, pickAmount));
     }
@@ -68,7 +68,7 @@ public class WeidianSenderHandler {
         String out = "";
         for (int i = 0; i < amount; i++) {
             if (buyers.length >= i + 1) {
-                out += "\n" + (i + 1) + ". (" + new BigDecimal(buyers[i].contribution).divide(new BigDecimal(100.0)).toPlainString() + ")" + buyers[i].name;
+                out += "\n" + (i + 1) + ". (" + new BigDecimal(buyers[i].contribution).divide(new BigDecimal("100.0")).toPlainString() + ")" + buyers[i].name;
             } else
                 break;
         }

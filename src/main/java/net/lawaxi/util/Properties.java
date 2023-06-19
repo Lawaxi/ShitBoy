@@ -29,6 +29,7 @@ public class Properties {
 
     //bilibili
     public String bilibili_pattern;
+    public HashMap<Long, List<Integer>> bililive_subscribe = new HashMap<>();
     public HashMap<Long, List<Integer>> bilibili_subscribe = new HashMap<>();
 
     //微博

@@ -3,13 +3,14 @@ package net.lawaxi.model;
 import net.lawaxi.Shitboy;
 import net.lawaxi.handler.Pocket48Handler;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 public class Pocket48SenderCache {
 
     public final Pocket48RoomInfo roomInfo;
-    public final Pocket48Message[] messages;
+    public Pocket48Message[] messages;
     public final List<Long> voiceList;
 
     public Pocket48SenderCache(Pocket48RoomInfo roomInfo, Pocket48Message[] messages, List<Long> voiceList) {
@@ -27,5 +28,11 @@ public class Pocket48SenderCache {
 
         return new Pocket48SenderCache(roomInfo, pocket.getMessages(roomInfo, endTime),
                 pocket.getRoomVoiceList(roomID, roomInfo.getSeverId()));
+    }
+
+    public void addMessage(Pocket48Message message) {
+        List<Pocket48Message> messages1 = Arrays.asList(this.messages);
+        messages1.add(message);
+        this.messages = messages1.toArray(new Pocket48Message[0]);
     }
 }

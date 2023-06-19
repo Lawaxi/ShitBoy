@@ -5,6 +5,7 @@ import net.lawaxi.command.ShitBoyCommand;
 import net.lawaxi.handler.*;
 import net.lawaxi.model.EndTime;
 import net.lawaxi.model.Pocket48SenderCache;
+import net.lawaxi.model.Pocket48Subscribe;
 import net.lawaxi.util.ConfigOperator;
 import net.lawaxi.util.Properties;
 import net.lawaxi.util.PropertiesCommon;
@@ -35,7 +36,7 @@ public final class Shitboy extends JavaPlugin {
     public WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.7-test20" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.8-test1" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -153,6 +154,7 @@ public final class Shitboy extends JavaPlugin {
         //endTime: 已发送房间消息的最晚时间
         HashMap<Long, HashMap<Long, Long>> pocket48RoomEndTime = new HashMap<>();
         HashMap<Long, HashMap<String, Long>> weiboEndTime = new HashMap<>(); //同时包含超话和个人(long -> String)
+        HashMap<Long, HashMap<Integer, Long>> bilibiliEndTime = new HashMap<>();
         HashMap<Long, EndTime> weidianEndTime = new HashMap<>();
         //status: 上次检测的开播状态
         HashMap<Long, HashMap<Long, List<Long>>> pocket48VoiceStatus = new HashMap<>();
@@ -175,6 +177,17 @@ public final class Shitboy extends JavaPlugin {
                                     pocket48VoiceStatus.put(group, new HashMap<>());
                                 }
 
+                                //房间消息获取
+                                Pocket48Subscribe subscribe = Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group);
+                                for (long roomID : subscribe.getRoomIDs()) {
+                                    if (!cache.containsKey(roomID)) {
+                                        cache.put(roomID, Pocket48SenderCache.create(roomID, pocket48RoomEndTime.get(group)));
+                                    }
+                                }
+
+                                //房间消息通讯
+                                //未完
+
                                 new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group), cache).start();
 
                             }
@@ -191,10 +204,12 @@ public final class Shitboy extends JavaPlugin {
                             if (b.getGroup(group) == null)
                                 continue;
 
-                            if (!bilibiliLiveStatus.containsKey(group))
+                            if (!bilibiliLiveStatus.containsKey(group)) {
                                 bilibiliLiveStatus.put(group, new HashMap<>());
+                                bilibiliEndTime.put(group, new HashMap<>());
+                            }
 
-                            new BilibiliSender(b, group, bilibiliLiveStatus.get(group)).start();
+                            new BilibiliSender(b, group, bilibiliEndTime.get(group), bilibiliLiveStatus.get(group)).start();
                         }
                     }
                 }

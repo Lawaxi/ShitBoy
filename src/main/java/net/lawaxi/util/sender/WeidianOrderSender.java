@@ -35,7 +35,7 @@ public class WeidianOrderSender extends Sender {
         //合并发送
         List<Message> messages = new ArrayList<>();
         List<Long> itemIDs = new ArrayList<>();
-        for (int i = 0; i < orders.length; i++) {
+        for (int i = orders.length - 1; i >= 0; i--) {
             long id = orders[i].itemID;
             if (!itemIDs.contains(id) && !cookie.highlightItem.contains(id))
                 itemIDs.add(id);

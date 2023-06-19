@@ -150,11 +150,28 @@ public class ConfigOperator {
         for (Object a :
                 JSONUtil.parseArray(setting.getByGroup("subscribe", "bilibili")).toArray()) {
             JSONObject subs = JSONUtil.parseObj(a);
+            if (subs.containsKey("bili_subscribe") && subs.containsKey("bili_subscribe")) {
+                Object bili_subs = subs.getBeanList("bili_subscribe", Integer.class);
+                properties.bilibili_subscribe
+                        .put(subs.getLong("qqGroup"),
+                                bili_subs == null ? new ArrayList<>() : (List<Integer>) bili_subs);
 
-            Object subss = subs.getBeanList("subscribe", Integer.class);
-            properties.bilibili_subscribe
-                    .put(subs.getLong("qqGroup"),
-                            subss == null ? new ArrayList<>() : (List<Integer>) subss);
+                Object live_subs = subs.getBeanList("live_subscribe", Integer.class);
+                properties.bililive_subscribe
+                        .put(subs.getLong("qqGroup"),
+                                live_subs == null ? new ArrayList<>() : (List<Integer>) live_subs);
+
+
+            } else if (subs.containsKey("subscribe")) { //旧版配置
+                properties.bilibili_subscribe
+                        .put(subs.getLong("qqGroup"), new ArrayList<>());
+
+                Object live_subs = subs.getBeanList("subscribe", Integer.class);
+                properties.bililive_subscribe
+                        .put(subs.getLong("qqGroup"),
+                                live_subs == null ? new ArrayList<>() : (List<Integer>) live_subs);
+
+            }
         }
 
         //微博
@@ -254,26 +271,54 @@ public class ConfigOperator {
         return true;
     }
 
-    public boolean addBilibiliLiveSubscribe(int room_id, long group) {
+    public boolean addBililiveSubscribe(int room_id, long group) {
         if (!properties.bilibili_subscribe.containsKey(group)) {
             properties.bilibili_subscribe.put(group, new ArrayList<>());
+            properties.bililive_subscribe.put(group, new ArrayList<>());
         }
 
-        if (properties.bilibili_subscribe.get(group).contains(room_id))
+        if (properties.bililive_subscribe.get(group).contains(room_id))
             return false;
 
-        properties.bilibili_subscribe.get(group).add(room_id);
+        properties.bililive_subscribe.get(group).add(room_id);
         saveBilibiliConfig();
         return true;
     }
 
-    public boolean rmBilibiliLiveSubscribe(int room_id, long group) {
-        if (!properties.bilibili_subscribe.get(group).contains(room_id))
+    public boolean rmBililiveSubscribe(int room_id, long group) {
+        if (properties.bilibili_subscribe.containsKey(group)) {
+            if (properties.bililive_subscribe.get(group).contains(room_id)) {
+                properties.bililive_subscribe.get(group).remove((Object) room_id);
+                saveBilibiliConfig();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean addBilibiliSubscribe(int uid, long group) {
+        if (!properties.bilibili_subscribe.containsKey(group)) {
+            properties.bilibili_subscribe.put(group, new ArrayList<>());
+            properties.bililive_subscribe.put(group, new ArrayList<>());
+        }
+
+        if (properties.bilibili_subscribe.get(group).contains(uid))
             return false;
 
-        properties.bilibili_subscribe.get(group).remove((Object) room_id);
+        properties.bilibili_subscribe.get(group).add(uid);
         saveBilibiliConfig();
         return true;
+    }
+
+    public boolean rmBilibiliSubscribe(int uid, long group) {
+        if (properties.bilibili_subscribe.containsKey(group)) {
+            if (properties.bilibili_subscribe.get(group).contains(uid)) {
+                properties.bilibili_subscribe.get(group).remove((Object) uid);
+                saveBilibiliConfig();
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -414,7 +459,8 @@ public class ConfigOperator {
         for (long group : properties.bilibili_subscribe.keySet()) {
             JSONObject object = new JSONObject();
             object.set("qqGroup", group);
-            object.set("subscribe", properties.bilibili_subscribe.get(group));
+            object.set("bili_subscribe", properties.bilibili_subscribe.get(group));
+            object.set("live_subscribe", properties.bililive_subscribe.get(group));
             a += object + ",";
         }
         setting.setByGroup("subscribe", "bilibili", (a.length() > 1 ? a.substring(0, a.length() - 1) : a) + "]");

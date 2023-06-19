@@ -39,13 +39,6 @@ public class Pocket48Sender extends Sender {
 
             List<Pocket48Message[]> totalMessages = new ArrayList<>();
 
-
-            for (long roomID : subscribe.getRoomIDs()) {
-                if (!cache.containsKey(roomID)) {
-                    cache.put(roomID, Pocket48SenderCache.create(roomID, endTime));
-                }
-            }
-
             for (long roomID : subscribe.getRoomIDs()) {
                 if (cache.get(roomID) == null)
                     continue;

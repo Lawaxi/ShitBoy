@@ -217,7 +217,7 @@ public class CommandOperator {
                     default:
                         return getHelp(2);
                 }
-            case "/bili":
+            case "/bililive":
                 switch (args.length) {
                     case 2:
                         if (args[1].equals("关注列表")) {
@@ -226,7 +226,7 @@ public class CommandOperator {
                                 return new PlainText("暂无");
 
                             int count = 1;
-                            for (int room_id : Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group)) {
+                            for (int room_id : Shitboy.INSTANCE.getProperties().bililive_subscribe.get(group)) {
                                 out += count + ". (" + room_id + ")";
                                 count++;
 
@@ -235,7 +235,8 @@ public class CommandOperator {
                                     JSONObject info = JSONUtil.parseObj(data.getObj("data"));
                                     String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(info.getInt("uid"));
                                     out += name + "\n";
-                                }
+                                } else
+                                    out += "未知\n";
                             }
                             return new PlainText(out);
                         }
@@ -250,7 +251,7 @@ public class CommandOperator {
                                     return new PlainText("直播ID不存在。提示：直播ID是直播间链接最后的数字，不是B站用户uid");
                                 }
 
-                                if (Shitboy.INSTANCE.getConfig().addBilibiliLiveSubscribe(Integer.valueOf(args[2]), group)) {
+                                if (Shitboy.INSTANCE.getConfig().addBililiveSubscribe(Integer.valueOf(args[2]), group)) {
                                     JSONObject info = JSONUtil.parseObj(data.getObj("data"));
                                     String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(info.getInt("uid"));
                                     return new PlainText("本群新增关注：" + name + "的直播间");
@@ -264,7 +265,7 @@ public class CommandOperator {
                                 if (!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
                                     return new PlainText("本群暂无Bilibili直播间关注，先添加一个吧~");
 
-                                if (Shitboy.INSTANCE.getConfig().rmBilibiliLiveSubscribe(Integer.valueOf(args[2]), group)) {
+                                if (Shitboy.INSTANCE.getConfig().rmBililiveSubscribe(Integer.valueOf(args[2]), group)) {
                                     JSONObject data = Shitboy.INSTANCE.getHandlerBilibili().getLiveData(Integer.valueOf(args[2]));
                                     if (data.getInt("code") == 0) {
                                         JSONObject info = JSONUtil.parseObj(data.getObj("data"));
@@ -277,6 +278,65 @@ public class CommandOperator {
                         }
                     default:
                         return getHelp(3);
+                }
+            case "/bili":
+                switch (args.length) {
+                    case 2:
+                        if (args[1].equals("关注列表")) {
+                            String out = "本群Bilibili博主关注列表：\n";
+                            if (!Shitboy.INSTANCE.getProperties().bililive_subscribe.containsKey(group))
+                                return new PlainText("暂无");
+
+                            int count = 1;
+                            for (int uid : Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group)) {
+                                out += count + ". (" + uid + ")";
+                                count++;
+
+                                String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(uid);
+                                if (name != null) {
+                                    out += name + "\n";
+                                } else {
+                                    out += "未知\n";
+                                }
+                            }
+                            return new PlainText(out);
+                        }
+                    case 3:
+                        switch (args[1]) {
+                            case "关注": {
+                                if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
+                                    return new PlainText("权限不足喵");
+
+                                String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(Integer.valueOf(args[2]));
+                                if (name == null) {
+                                    return new PlainText("uid不存在");
+                                }
+
+                                if (Shitboy.INSTANCE.getConfig().addBilibiliSubscribe(Integer.valueOf(args[2]), group)) {
+                                    return new PlainText("本群新增关注：" + name);
+                                } else
+                                    return new PlainText("本群已经关注过这个b人了");
+                            }
+                            case "取消关注": {
+                                if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
+                                    return new PlainText("权限不足喵");
+
+                                if (!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
+                                    return new PlainText("本群暂无Bilibili关注，先添加一个吧~");
+
+                                if (Shitboy.INSTANCE.getConfig().rmBilibiliSubscribe(Integer.valueOf(args[2]), group)) {
+                                    String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(Integer.valueOf(args[2]));
+                                    if (name != null) {
+                                        return new PlainText("本群取消关注：" + name);
+                                    } else {
+                                        return new PlainText("本群取消关注：未知");
+                                    }
+                                } else
+                                    return new PlainText("本群没有关注此b人捏~");
+                            }
+                        }
+                    default:
+                        return getHelp(4);
                 }
             case "/超话":
                 switch (args.length) {
@@ -339,7 +399,7 @@ public class CommandOperator {
                             }
                         }
                     default:
-                        return getHelp(4);
+                        return getHelp(5);
                 }
             case "/微博":
                 switch (args.length) {
@@ -388,7 +448,7 @@ public class CommandOperator {
                             }
                         }
                     default:
-                        return getHelp(5);
+                        return getHelp(6);
                 }
             case "/帮助":
             case "/help":
@@ -580,13 +640,13 @@ public class CommandOperator {
     private final ArrayList<String> helps = new ArrayList<>();
 
     private void initHelp() {
-        addHelp("【管理员指令】\n"
+        addHelp("【管理员指令】\n" //0
                 + "(私聊) /清理\n");
 
-        addHelp("【通用】\n"
+        addHelp("【通用】\n" //1
                 + "(私聊) /欢迎 <群id> 欢迎词(填写“取消”关闭)\n");
 
-        addHelp("【口袋48相关】\n"
+        addHelp("【口袋48相关】\n" //2
                 + "/口袋 搜索 <在团小偶像或队伍名>\n"
                 + "/口袋 查询 <ID>\n"
                 + "/口袋 查询2 <Server_id>\n"
@@ -597,22 +657,27 @@ public class CommandOperator {
                 + "注1：关注步骤：搜索名字，关注房间\n"
                 + "注2：不知道密码的加密房间如果知道Server_Id，通过连接功能连接以后照样可以关注并获取消息\n");
 
-        addHelp("【B站直播相关】\n"
-                + "/bili 关注 <直播ID>\n"
-                + "/bili 取消关注 <直播ID>\n"
+        addHelp("【B站直播相关】\n" //3
+                + "/bililive 关注 <直播ID>\n"
+                + "/bililive 取消关注 <直播ID>\n"
+                + "/bililive 关注列表\n");
+
+        addHelp("【B站主站相关】\n" //4
+                + "/bili 关注 <UID>\n"
+                + "/bili 取消关注 <UID>\n"
                 + "/bili 关注列表\n");
 
-        addHelp("【微博超话相关】\n"
+        addHelp("【微博超话相关】\n" //5
                 + "/超话 关注 <超话ID>\n"
                 + "/超话 取消关注 <超话ID>\n"
                 + "/超话 关注列表\n");
 
-        addHelp("【微博相关】\n"
+        addHelp("【微博相关】\n" //6
                 + "/微博 关注 <UID>\n"
                 + "/微博 取消关注 <UID>\n"
                 + "/微博 关注列表\n");
 
-        addHelp("【微店相关】\n"
+        addHelp("【微店相关】\n" //7
                 + "(私聊)/微店 <群id> cookie <Cookie>\n"
                 + "(私聊)/微店 <群id> 自动发货\n"
                 + "(私聊)/微店 <群id> # <商品id>\n"
