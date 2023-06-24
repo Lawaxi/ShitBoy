@@ -544,7 +544,7 @@ public class CommandOperator {
                                         return new PlainText("未找到该商品，您可以使用\"/微店 " + groupId + " 全部\"获得商品id");
                                     } else {
                                         return new PlainText((cookie.highlightItem.contains(id) ? "【特殊链】\n" : "【普链】\n"))
-                                                .plus(Shitboy.INSTANCE.getHandlerWeidianSender().executeItemMessages(item, event.getBot().getGroup(groupId), 0));
+                                                .plus(Shitboy.INSTANCE.getHandlerWeidianSender().executeItemMessages(item, event.getBot().getGroup(groupId), 0).getMessage());
                                     }
                                 }
                             }

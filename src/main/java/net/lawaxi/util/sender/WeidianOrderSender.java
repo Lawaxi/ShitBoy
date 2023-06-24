@@ -3,14 +3,13 @@ package net.lawaxi.util.sender;
 import net.lawaxi.Shitboy;
 import net.lawaxi.handler.WeidianHandler;
 import net.lawaxi.handler.WeidianSenderHandler;
-import net.lawaxi.model.EndTime;
-import net.lawaxi.model.WeidianCookie;
-import net.lawaxi.model.WeidianItem;
-import net.lawaxi.model.WeidianOrder;
+import net.lawaxi.model.*;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.message.data.Message;
+import net.mamoe.mirai.message.data.PlainText;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class WeidianOrderSender extends Sender {
@@ -32,25 +31,43 @@ public class WeidianOrderSender extends Sender {
         if (orders == null)
             return;
 
-        //合并发送
-        List<Message> messages = new ArrayList<>();
+        List<WeidianMessage> messages = new ArrayList<>();
         List<Long> itemIDs = new ArrayList<>();
+        HashMap<Long, WeidianBuyer[]> itemBuyers = new HashMap<>();
+
         for (int i = orders.length - 1; i >= 0; i--) {
             long id = orders[i].itemID;
-            if (!itemIDs.contains(id) && !cookie.highlightItem.contains(id))
+            if (!itemIDs.contains(id))
                 itemIDs.add(id);
+            //订单信息
             messages.add(handler.executeOrderMessage(orders[i], group));
-        }//（将普链ItemMessages附在最后）
-        if (itemIDs.size() > 0) {
-            WeidianItem[] items = weidian.getItems(cookie);
-            for (Long id : itemIDs) {
-                WeidianItem item = weidian.searchItem(items, id);
-                if (item != null)
-                    messages.add(handler.executeItemMessages(item, group));
+        }
+
+        WeidianItem[] items = weidian.getItems(cookie);
+        for (Long id : itemIDs) {
+            WeidianItem item = weidian.searchItem(items, id);
+            if (item != null) {
+                if(cookie.highlightItem.contains(id)) {//特殊链
+                    itemBuyers.put(id, weidian.getItemBuyer(cookie, id));
+                }else{ //普链
+                    WeidianItemMessage itemMessage = handler.executeItemMessages(item, group);
+                    messages.add(itemMessage); //普链商品信息附在最后
+                    itemBuyers.put(id, itemMessage.buyers);
+                }
             }
         }
 
-        Message t = combine(messages);
+        List<Message> messages1 = new ArrayList<>();
+        for(WeidianMessage message : messages){
+            if(message instanceof WeidianOrderMessage){
+                long id = ((WeidianOrderMessage) message).itemId;
+                messages1.add(((WeidianOrderMessage) message).getMessage(itemBuyers.get(id)));
+            }else{
+                messages1.add(message.getMessage());
+            }
+        }
+
+        Message t = combine(messages1);
         if (t != null)
             group.sendMessage(t);
     }

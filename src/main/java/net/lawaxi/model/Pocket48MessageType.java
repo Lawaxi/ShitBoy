@@ -14,5 +14,6 @@ public enum Pocket48MessageType {
     FLIPCARD_AUDIO,
     FLIPCARD_VIDEO,
     PASSWORD_REDPACKAGE,
-    VOTE
+    VOTE,
+    SHARE_POSTS
 }

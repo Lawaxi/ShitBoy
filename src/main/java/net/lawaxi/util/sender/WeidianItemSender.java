@@ -11,11 +11,11 @@ import net.mamoe.mirai.message.data.Message;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WeidianSender extends Sender {
+public class WeidianItemSender extends Sender {
 
     private final WeidianSenderHandler handler;
 
-    public WeidianSender(Bot bot, long group, WeidianSenderHandler handler) {
+    public WeidianItemSender(Bot bot, long group, WeidianSenderHandler handler) {
         super(bot, group);
         this.handler = handler;
     }
@@ -34,7 +34,7 @@ public class WeidianSender extends Sender {
         List<Message> messages = new ArrayList<>();
         for (WeidianItem item : items) {
             if (cookie.highlightItem.contains(item.id)) {
-                messages.add(handler.executeItemMessages(item, group, 10));
+                messages.add(handler.executeItemMessages(item, group, 10).getMessage());
             }
         }
         Message t = combine(messages);
