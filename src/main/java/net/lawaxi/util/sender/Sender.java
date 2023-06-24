@@ -1,7 +1,6 @@
 package net.lawaxi.util.sender;
 
 import cn.hutool.http.HttpRequest;
-import net.lawaxi.model.WeidianMessage;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.MemberPermission;

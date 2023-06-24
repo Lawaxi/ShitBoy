@@ -50,15 +50,15 @@ public class BilibiliHandler extends WebHandler {
     public String getNameByMid(int uid) {
         String s = get(APIUserInfo + "mid=" + uid);
         JSONObject o = JSONUtil.parseObj(s);
-        if (o.getInt("code") == 1) {
-            //不存在用户
-            //或访问频繁时会被拒
-            return name_data.containsKey(uid) ? name_data.get(uid) : "null";
+        if (o.getInt("code") == 0) {
+            JSONObject data = JSONUtil.parseObj(o.getObj("data"));
+            String n = data.getStr("name");
+            name_data.put(uid, n);
+            return n;
+        } else if (o.getInt("code") == -799) { //访问频繁时被拒
+            return name_data.containsKey(uid) ? name_data.get(uid) : getNameByMid(uid);
         }
-        JSONObject data = JSONUtil.parseObj(o.getObj("data"));
-        String n = data.getStr("name");
-        name_data.put(uid, n);
-        return n;
+        return "null";
     }
 
     public JSONArray getOriSpaceData(int uid, HashMap<Integer, Long> endTime) {

@@ -3,7 +3,7 @@ package net.lawaxi.model;
 import net.mamoe.mirai.message.data.Message;
 import net.mamoe.mirai.message.data.PlainText;
 
-public class WeidianOrderMessage implements WeidianMessage{
+public class WeidianOrderMessage implements WeidianMessage {
     protected Message message;
     public final String name_buyer;
     public final long buyerId;
@@ -12,7 +12,7 @@ public class WeidianOrderMessage implements WeidianMessage{
     public final double price;
     public final String payTime;
 
-    public WeidianOrderMessage(long buyerId, long itemId,String nameBuyer,  String nameItem, Message message, double price, String payTime) {
+    public WeidianOrderMessage(long buyerId, long itemId, String nameBuyer, String nameItem, Message message, double price, String payTime) {
         this.message = message;
         name_buyer = nameBuyer;
         this.buyerId = buyerId;
@@ -39,15 +39,15 @@ public class WeidianOrderMessage implements WeidianMessage{
 
 
     public Message getMessage(WeidianBuyer[] buyers) {
-        for(int i = 0;i<buyers.length;i++){
-            if(this.buyerId == buyers[i].id){
-                return this.message.plus("\n当前总计："+buyers[i].contribution+" 排名："+(i+1));
+        for (int i = 0; i < buyers.length; i++) {
+            if (this.buyerId == buyers[i].id) {
+                return this.message.plus("\n当前总计：" + buyers[i].contribution + " 排名：" + (i + 1));
             }
         }
         return this.message;
     }
 
-    public static WeidianOrderMessage construct(WeidianOrder order){
+    public static WeidianOrderMessage construct(WeidianOrder order) {
         return new WeidianOrderMessage(
                 order.buyerID,
                 order.itemID,

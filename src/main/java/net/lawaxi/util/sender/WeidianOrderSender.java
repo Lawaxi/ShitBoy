@@ -6,7 +6,6 @@ import net.lawaxi.handler.WeidianSenderHandler;
 import net.lawaxi.model.*;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.message.data.Message;
-import net.mamoe.mirai.message.data.PlainText;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,9 +46,9 @@ public class WeidianOrderSender extends Sender {
         for (Long id : itemIDs) {
             WeidianItem item = weidian.searchItem(items, id);
             if (item != null) {
-                if(cookie.highlightItem.contains(id)) {//特殊链
+                if (cookie.highlightItem.contains(id)) {//特殊链
                     itemBuyers.put(id, weidian.getItemBuyer(cookie, id));
-                }else{ //普链
+                } else { //普链
                     WeidianItemMessage itemMessage = handler.executeItemMessages(item, group);
                     messages.add(itemMessage); //普链商品信息附在最后
                     itemBuyers.put(id, itemMessage.buyers);
@@ -58,11 +57,11 @@ public class WeidianOrderSender extends Sender {
         }
 
         List<Message> messages1 = new ArrayList<>();
-        for(WeidianMessage message : messages){
-            if(message instanceof WeidianOrderMessage){
+        for (WeidianMessage message : messages) {
+            if (message instanceof WeidianOrderMessage) {
                 long id = ((WeidianOrderMessage) message).itemId;
                 messages1.add(((WeidianOrderMessage) message).getMessage(itemBuyers.get(id)));
-            }else{
+            } else {
                 messages1.add(message.getMessage());
             }
         }

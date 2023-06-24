@@ -1,17 +1,13 @@
 package net.lawaxi.handler;
 
-import cn.hutool.core.date.DateTime;
 import cn.hutool.http.HttpRequest;
 import net.lawaxi.Shitboy;
 import net.lawaxi.model.*;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.message.data.Image;
-import net.mamoe.mirai.message.data.Message;
-import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.utils.ExternalResource;
 
 import java.io.InputStream;
-import java.math.BigDecimal;
 
 public class WeidianSenderHandler {
 
@@ -43,7 +39,7 @@ public class WeidianSenderHandler {
             }
         }
 
-        return WeidianItemMessage.construct(item.id,item.name,image, buyers, pickAmount);
+        return WeidianItemMessage.construct(item.id, item.name, image, buyers, pickAmount);
     }
 
     public WeidianOrderMessage executeOrderMessage(WeidianOrder order, Group group) {

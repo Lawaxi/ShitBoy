@@ -307,7 +307,7 @@ public class CommandOperator {
                                 if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                     return new PlainText("权限不足喵");
 
-                                String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(Integer.valueOf(args[2]));
+                                String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(Integer.valueOf(args[2].replace("UID:", "")));
                                 if (name == null) {
                                     return new PlainText("uid不存在");
                                 }
