@@ -28,8 +28,7 @@ public class WeidianOrderMessage implements WeidianMessage {
     }
 
     public WeidianOrderMessage generateMessage() {
-        return this.setMessage(new PlainText("感谢" + name_buyer + "在" + name_item + "中支持了" + price + "！"
-                + "\n" + payTime));
+        return this.setMessage(new PlainText("感谢" + name_buyer + "在" + name_item + "中支持了" + price + "！"));
     }
 
     @Override
@@ -41,10 +40,17 @@ public class WeidianOrderMessage implements WeidianMessage {
     public Message getMessage(WeidianBuyer[] buyers) {
         for (int i = 0; i < buyers.length; i++) {
             if (this.buyerId == buyers[i].id) {
-                return this.message.plus("\n当前总计：" + buyers[i].contribution + " 排名：" + (i + 1));
+                int j = i;
+                while (j >= 0 && buyers[j].contribution == buyers[i].contribution) {
+                    j--;
+                }
+                //j-1+1
+
+                return this.message.plus("\n共" + (buyers[i].contribution / 100.0) + " 排名" + j + (i == 0 ? "" : " 距离上一名" + (buyers[j - 1].contribution - buyers[j].contribution) / 100.0)
+                        + "\n" + payTime);
             }
         }
-        return this.message;
+        return this.message.plus("\n" + payTime);
     }
 
     public static WeidianOrderMessage construct(WeidianOrder order) {
