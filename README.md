@@ -38,12 +38,16 @@ Mirai-Console插件，构建mirai（[mamoe/mirai](https://github.com/mamoe/mirai
     - 同上`“/口袋 查询 id”`可根据id自动查询server_id、room_id
     - 同上`“/口袋 查询2 server_id”`可根据server_id查下属room_id
 
-#### （2）B站直播
+#### （2）B站
 
-1. 关注
-    - 群管理在群内直接输入`“/bili 关注 room_id”`
-    - 同上`“/bili 取消关注 room_id”`
-    - 任意群成员输入`“/bili 关注列表”`
+1. 博主关注
+   - 群管理在群内直接输入`“/bili 关注 uid”`
+   - 同上`“/bili 取消关注 uid”`
+   - 任意群成员输入`“/bili 关注列表”`
+2. 直播关注
+    - 群管理在群内直接输入`“/bililive 关注 room_id”`
+    - 同上`“/bililive 取消关注 room_id”`
+    - 任意群成员输入`“/bililive 关注列表”`
     - room_id为直播间链接最后的数字，是直播间单独，区别于主站uid
 
 ### （3）微博
