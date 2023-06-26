@@ -86,6 +86,7 @@ public class WeidianHandler extends WebHandler {
         return orders.toArray(new WeidianOrder[0]);
     }
 
+    //采用13位时间戳
     public WeidianOrder[] getOrderList(WeidianCookie cookie, EndTime endTime) {
         if (cookie == null)
             return null;

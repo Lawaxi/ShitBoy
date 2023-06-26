@@ -34,20 +34,30 @@ public class BilibiliSender extends Sender {
         List<Integer> bili_subs = Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group.getId());
         List<Integer> live_subs = Shitboy.INSTANCE.getProperties().bililive_subscribe.get(group.getId());
 
-        for (Integer uid : live_subs) {
-            JSONArray a = bili.getOriSpaceData(uid, endTime);
-            if (a.size() != 0) {
-                Object[] a1 = a.stream().toArray();
+        for (Integer uid : bili_subs) {
+            if (!endTime.containsKey(uid)) {
+                endTime.put(uid, Shitboy.START_TIME);
+            }
+
+            List<JSONObject> a = bili.getOriSpaceData(uid, endTime);
+            if (a == null) {
+                Shitboy.INSTANCE.getLogger().info("获取uid为" + uid + "b站主页错误");
+                continue;
+            }
+            if (a.size() > 0) {
                 String name = bili.getNameByMid(uid);
-                for (int i = a1.length - 1; i >= 0; i--) {
-                    JSONObject a0 = JSONUtil.parseObj(a1[i]);
-                    if (a0.containsKey("item")) {
-                        //动态
-                        JSONObject item = JSONUtil.parseObj(a0.getStr("card"))
-                                .getJSONObject("item");
-                        JSONObject push;
+                for (int i = a.size() - 1; i >= 0; i--) {
+                    JSONObject a0 = a.get(i);
+                    JSONObject card = JSONUtil.parseObj(a0.getStr("card")
+                            .replace("\\\\/", "/")
+                            .replace("\\", ""));
+
+                    //动态
+                    if (card.containsKey("item")) {
+                        JSONObject item = card.getJSONObject("item");
 
                         //直播推送或捞视频
+                        JSONObject push;
                         try {
                             push = JSONUtil.parseObj(a0.getJSONObject("display").getJSONArray("add_on_card_info")
                                     .get(0));
@@ -56,17 +66,15 @@ public class BilibiliSender extends Sender {
                         }
 
                         if (item.containsKey("content")) {
+                            //纯文字动态 & 直播推送
                             group.sendMessage(push == null ?
-                                    "【" + name + " B站未知推送】\n" + item.getStr("content") :
-                                    "【" + name + " 发布了B站直播预约】\n" + item.getStr("content") + "\n---------\n" + push.getStr("title"));
+                                    new PlainText("【" + name + " 发布了B站动态】\n").plus(pharseBilibiliContent(item.getStr("content") , a0)) :
+                                    new PlainText("【" + name + " 发布了B站直播预约】\n").plus(pharseBilibiliContent(item.getStr("content"), a0)).plus("\n---------\n" + push.getStr("title")));
 
 
                         } else if (item.containsKey("description")) {
-                            //普通动态
-                            Message content = pharseBilibiliContentWithEmoji(item.getStr("description"),
-                                    a0.getJSONObject("display")
-                                            .getJSONObject("emoji_info")
-                                            .getJSONArray("emoji_details"));
+                            //带图动态
+                            Message content = pharseBilibiliContent(item.getStr("description"), a0);
 
                             //图片
                             if (item.containsKey("pictures")) {
@@ -98,13 +106,10 @@ public class BilibiliSender extends Sender {
                         }
 
 
-                    } else {
-                        //视频投稿
-                        JSONObject card = JSONUtil.parseObj(a0.getStr("card"));
-                        Message content = pharseBilibiliContentWithEmoji(card.getStr("desc"),
-                                a0.getJSONObject("display")
-                                        .getJSONObject("emoji_info")
-                                        .getJSONArray("emoji_details"));
+                    }
+                    //视频投稿
+                    else if (card.containsKey("desc")) {
+                        Message content = pharseBilibiliContent(card.getStr("desc"), a0);
 
                         try {//封面
                             //
@@ -121,6 +126,9 @@ public class BilibiliSender extends Sender {
                         content = content.plus("https://b23.tv/" + desc.getStr("bvid"));
 
                         group.sendMessage(new PlainText("【" + name + " 发布了B站" + (card.containsKey("copyright") ? "" : "动态") + "视频】\n").plus(content));
+                    } else {
+                        group.sendMessage(new PlainText("【" + name + " B站更新】\n未知内容"));
+                        Shitboy.INSTANCE.getLogger().warning(a0.toString());
                     }
 
                 }
@@ -144,6 +152,17 @@ public class BilibiliSender extends Sender {
                 }
             }
         }
+
+    }
+
+    public Message pharseBilibiliContent(String body, JSONObject a0) {
+        if (a0.getJSONObject("display").containsKey("emoji_info"))
+            return pharseBilibiliContentWithEmoji(body,
+                    a0.getJSONObject("display")
+                            .getJSONObject("emoji_info")
+                            .getJSONArray("emoji_details"));
+        else
+            return new PlainText(body);
     }
 
     public Message pharseBilibiliContentWithEmoji(String body, JSONArray emoji_details) {

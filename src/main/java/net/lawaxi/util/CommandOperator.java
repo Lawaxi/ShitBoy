@@ -307,12 +307,13 @@ public class CommandOperator {
                                 if (!Shitboy.INSTANCE.getConfig().isAdmin(g, senderID))
                                     return new PlainText("权限不足喵");
 
-                                String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(Integer.valueOf(args[2].replace("UID:", "")));
+                                int uid = Integer.valueOf(args[2].replace("UID:", ""));
+                                String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(uid);
                                 if (name == null) {
                                     return new PlainText("uid不存在");
                                 }
 
-                                if (Shitboy.INSTANCE.getConfig().addBilibiliSubscribe(Integer.valueOf(args[2]), group)) {
+                                if (Shitboy.INSTANCE.getConfig().addBilibiliSubscribe(uid, group)) {
                                     return new PlainText("本群新增关注：" + name);
                                 } else
                                     return new PlainText("本群已经关注过这个b人了");
@@ -324,8 +325,9 @@ public class CommandOperator {
                                 if (!Shitboy.INSTANCE.getProperties().bilibili_subscribe.containsKey(group))
                                     return new PlainText("本群暂无Bilibili关注，先添加一个吧~");
 
-                                if (Shitboy.INSTANCE.getConfig().rmBilibiliSubscribe(Integer.valueOf(args[2]), group)) {
-                                    String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(Integer.valueOf(args[2]));
+                                int uid = Integer.valueOf(args[2].replace("UID:", ""));
+                                if (Shitboy.INSTANCE.getConfig().rmBilibiliSubscribe(uid, group)) {
+                                    String name = Shitboy.INSTANCE.getHandlerBilibili().getNameByMid(uid);
                                     if (name != null) {
                                         return new PlainText("本群取消关注：" + name);
                                     } else {

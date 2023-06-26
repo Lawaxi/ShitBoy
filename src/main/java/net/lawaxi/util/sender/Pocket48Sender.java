@@ -37,6 +37,13 @@ public class Pocket48Sender extends Sender {
             Pocket48Subscribe subscribe = Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId());
             Pocket48Handler pocket = Shitboy.INSTANCE.getHandlerPocket48();
 
+            //房间消息获取
+            for (long roomID : subscribe.getRoomIDs()) {
+                if (!cache.containsKey(roomID)) {
+                    cache.put(roomID, Pocket48SenderCache.create(roomID, endTime));
+                }
+            }
+
             List<Pocket48Message[]> totalMessages = new ArrayList<>();
 
             for (long roomID : subscribe.getRoomIDs()) {

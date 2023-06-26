@@ -5,7 +5,6 @@ import net.lawaxi.command.ShitBoyCommand;
 import net.lawaxi.handler.*;
 import net.lawaxi.model.EndTime;
 import net.lawaxi.model.Pocket48SenderCache;
-import net.lawaxi.model.Pocket48Subscribe;
 import net.lawaxi.util.ConfigOperator;
 import net.lawaxi.util.Properties;
 import net.lawaxi.util.PropertiesCommon;
@@ -27,6 +26,7 @@ import java.util.List;
 
 public final class Shitboy extends JavaPlugin {
     public static final Shitboy INSTANCE = new Shitboy();
+    public static long START_TIME;
     private final ConfigOperator configOperator = new ConfigOperator();
     private final Properties properties = new Properties();
     public Pocket48Handler handlerPocket48;
@@ -36,7 +36,7 @@ public final class Shitboy extends JavaPlugin {
     public WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.9-test3" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.9-test4" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -46,6 +46,7 @@ public final class Shitboy extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        START_TIME = new Date().getTime();
         initProperties();
         loadConfig();
         registerPermission();
@@ -177,17 +178,6 @@ public final class Shitboy extends JavaPlugin {
                                     pocket48VoiceStatus.put(group, new HashMap<>());
                                 }
 
-                                //房间消息获取
-                                Pocket48Subscribe subscribe = Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group);
-                                for (long roomID : subscribe.getRoomIDs()) {
-                                    if (!cache.containsKey(roomID)) {
-                                        cache.put(roomID, Pocket48SenderCache.create(roomID, pocket48RoomEndTime.get(group)));
-                                    }
-                                }
-
-                                //房间消息通讯
-                                //未完
-
                                 new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group), cache).start();
 
                             }
@@ -237,13 +227,12 @@ public final class Shitboy extends JavaPlugin {
         CronUtil.schedule(properties.weidian_pattern_order, new Runnable() {
                     @Override
                     public void run() {
-                        getLogger().info("10");
                         for (long group : properties.weidian_cookie.keySet()) {
                             if (b.getGroup(group) == null)
                                 continue;
 
                             if (!weidianEndTime.containsKey(group))
-                                weidianEndTime.put(group, new EndTime(new Date().getTime()));
+                                weidianEndTime.put(group, new EndTime());
 
                             new WeidianOrderSender(b, group, weidianEndTime.get(group), handlerWeidianSender).start();
                         }
@@ -255,7 +244,6 @@ public final class Shitboy extends JavaPlugin {
         handlerWeidian.setCronScheduleID(CronUtil.schedule(properties.weidian_pattern_item, new Runnable() {
                     @Override
                     public void run() {
-                        getLogger().info("5");
                         for (long group : properties.weidian_cookie.keySet()) {
                             if (b.getGroup(group) == null)
                                 continue;

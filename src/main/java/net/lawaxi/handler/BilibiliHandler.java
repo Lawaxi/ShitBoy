@@ -4,7 +4,9 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class BilibiliHandler extends WebHandler {
 
@@ -61,47 +63,34 @@ public class BilibiliHandler extends WebHandler {
         return "null";
     }
 
-    public JSONArray getOriSpaceData(int uid, HashMap<Integer, Long> endTime) {
-        JSONArray a = getOriSpaceData(uid);
-        if (a == null)
+    //注意endTime中无key=uid时此方法返回null
+    //采用13位时间戳
+    public List<JSONObject> getOriSpaceData(int uid, HashMap<Integer, Long> endTime) {
+        if (!endTime.containsKey(uid))
             return null;
 
-        JSONArray b = null;
-        long latest = 0;
-        for (Object o : a.stream().toArray()) {
-            JSONObject o1 = JSONUtil.parseObj(o);
-            JSONObject card = JSONUtil.parseObj(o1.getStr("card"));
-            long t;
-            if (card.containsKey("item")) {
-                JSONObject item = card.getJSONObject("item");
-                t = item.getLong("upload_time");
-            } else if (card.containsKey("ctime")) {
-                t = card.getLong("ctime");
-            } else {
-                continue;
-                //转发&装扮展示动态不给时间（？？？why
-            }
+        JSONArray a = getOriSpaceData(uid);
+        if (a != null) {
+            List<JSONObject> b = new ArrayList<>();
+            long latest = 0;
+            for (Object o : a.stream().toArray()) {
+                JSONObject o1 = JSONUtil.parseObj(o);
+                JSONObject desc = o1.getJSONObject("desc");
+                long t = desc.getLong("timestamp") * 1000;
 
-            if (!endTime.containsKey(uid)) {
-                break;
-            }
+                if (endTime.get(uid) >= t) {
+                    break; //api有时间次序
+                }
 
-            if (endTime.get(uid) >= t) {
-                break;
-            }
+                if (latest < t) {
+                    latest = t;
+                }
 
-            if (latest < t) {
-                latest = t;
+                b.add(o1);
             }
-
-            if (b == null) {
-                b = new JSONArray();
+            if (latest != 0) {
+                endTime.put(uid, latest);
             }
-
-            b.add(o1);
-        }
-        if (latest != 0) {
-            endTime.put(uid, latest);
             return b;
         }
         return null;

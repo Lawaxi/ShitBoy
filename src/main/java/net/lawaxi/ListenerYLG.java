@@ -95,7 +95,6 @@ public class ListenerYLG extends SimpleListenerHost {
 
             //G7人
             if (event.getAuthorId() == event.getBot().getId()) {
-                Shitboy.INSTANCE.getLogger().info("机器人消息被撤:" + event.getMessageTime());
                 for (messageWithTime m : xenon_recall) {
                     if (m.send_time == event.getMessageTime()) {
                         sendXenonRecallMessage(event.getGroup(), m);
@@ -111,7 +110,6 @@ public class ListenerYLG extends SimpleListenerHost {
 
     private void sendXenonRecallMessage(Group group, messageWithTime m) {
         int g7 = group.sendMessage((m.send_time == 0 ? "" : "别撤我嘤嘤嘤~\n") + "【群主刚刚撤回了】\n" + m.message).getSource().getTime();
-        Shitboy.INSTANCE.getLogger().info("发送消息：" + g7);
 
         //防止群主再撤回机器人发的消息：见G7人
         if (xenon_recall.size() == 5)

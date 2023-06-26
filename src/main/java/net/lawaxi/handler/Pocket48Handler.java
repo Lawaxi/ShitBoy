@@ -131,7 +131,7 @@ public class Pocket48Handler extends WebHandler {
             return JSONUtil.parseObj(content.getObj("baseUserInfo"));
 
         } else {
-            logError(object.getStr("message"));
+            logError(starID + object.getStr("message"));
         }
         return null;
 
@@ -154,7 +154,7 @@ public class Pocket48Handler extends WebHandler {
             return JSONUtil.parseObj(object.getObj("content"));
 
         } else {
-            logError(object.getStr("message"));
+            logError(starID + object.getStr("message"));
         }
         return null;
     }
@@ -164,10 +164,8 @@ public class Pocket48Handler extends WebHandler {
         if (content != null) {
             Long id = content.getLong("channelId");
             if (id != null) {
-                logInfo("获取成功");
                 return id;
             }
-            logError("没有房间");
         }
         return 0;
     }
@@ -196,7 +194,7 @@ public class Pocket48Handler extends WebHandler {
             return rs.toArray(new Long[0]);
 
         } else {
-            logError(object.getStr("message"));
+            logError(serverID + object.getStr("message"));
             return new Long[0];
         }
     }
@@ -217,7 +215,7 @@ public class Pocket48Handler extends WebHandler {
             return new Pocket48RoomInfo(message.getStr("question") + "？",
                     properties.pocket48_serverID.get(roomID), roomID);
         } else {
-            logError(object.getStr("message"));
+            logError(roomID + object.getStr("message"));
         }
         return null;
 
@@ -256,26 +254,30 @@ public class Pocket48Handler extends WebHandler {
 
     /* ----------------------房间类---------------------- */
     //获取最新消息并整理成Pocket48Message[]
+    //注意endTime中无key=roomInfo.getRoomId()时此方法返回null
+    //采用13位时间戳
     public Pocket48Message[] getMessages(Pocket48RoomInfo roomInfo, HashMap<Long, Long> endTime) {
         long roomID = roomInfo.getRoomId();
+        if (!endTime.containsKey(roomID))
+            return null;
+
         String roomName = roomInfo.getRoomName();
         String ownerName = getOwnerOrTeamName(roomInfo);
         List<Object> msgs = getOriMessages(roomID, roomInfo.getSeverId());
         if (msgs != null) {
             List<Pocket48Message> rs = new ArrayList<>();
-            Long latest = null;
+            long latest = 0;
             for (Object message : msgs) {
                 JSONObject m = JSONUtil.parseObj(message);
                 try {
                     long time = m.getLong("msgTime");
-                    if (latest == null) {
-                        latest = time;
-                        if (!endTime.containsKey(roomID))
-                            break;
-                    }
 
-                    if (m.getLong("msgTime") <= endTime.get(roomID))
-                        break;
+                    if (endTime.get(roomID) >= time)
+                        break; //api有时间次序
+
+                    if (latest < time) {
+                        latest = time;
+                    }
 
                     rs.add(Pocket48Message.construct(
                             roomName,
@@ -283,12 +285,14 @@ public class Pocket48Handler extends WebHandler {
                             m,
                             time
                     ));
+
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Shitboy.INSTANCE.getLogger().info(m.toString());
+                    logError(roomName + m);//debug
                 }
             }
-            endTime.put(roomID, latest);
+            if (latest != 0)
+                endTime.put(roomID, latest);
             return rs.toArray(new Pocket48Message[0]);
         }
         return new Pocket48Message[0];
@@ -346,7 +350,7 @@ public class Pocket48Handler extends WebHandler {
             return out;
 
         } else {
-            logError(object.getStr("message"));
+            logError(roomID + object.getStr("message"));
 
         }
         return null;
@@ -401,7 +405,7 @@ public class Pocket48Handler extends WebHandler {
             }
 
         } else {
-            logError(object.getStr("message"));
+            logError(roomID + object.getStr("message"));
         }
         return voidRoomVoiceList;
     }
