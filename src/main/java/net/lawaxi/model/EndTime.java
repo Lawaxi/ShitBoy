@@ -1,7 +1,7 @@
 package net.lawaxi.model;
 
 
-import net.lawaxi.Shitboy;
+import cn.hutool.core.date.DateTime;
 
 public class EndTime {
     public long time;
@@ -11,6 +11,10 @@ public class EndTime {
     }
 
     public EndTime() {
-        this(Shitboy.START_TIME);
+        this(newTime());
+    }
+
+    public static long newTime() {
+        return DateTime.now().getTime();
     }
 }

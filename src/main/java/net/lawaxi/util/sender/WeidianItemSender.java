@@ -24,7 +24,7 @@ public class WeidianItemSender extends Sender {
     @Override
     public void run() {
         WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
-        WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(group.getId());
+        WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(group_id);
 
         WeidianItem[] items = weidian.getItems(cookie);
         if (items == null)

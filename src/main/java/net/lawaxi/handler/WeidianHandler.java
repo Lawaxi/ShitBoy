@@ -101,16 +101,26 @@ public class WeidianHandler extends WebHandler {
             JSONObject order = JSONUtil.parseObj(object);
             String payTime = order.getStr("payTime");
             long time = DateUtil.parse(payTime).getTime();
-            if (time <= endTime.time) {
-                break;
-            } else {
-                if (time > lastTime)
-                    lastTime = time;
-            }
 
             JSONObject receiver = order.getJSONObject("receiver");
             long buyerID = receiver.getLong("buyerId");
             String buyerName = receiver.getStr("buyerName");
+
+            if (cookie.autoDeliver) {
+                if (!deliver(order.getStr("orderId"), cookie)) {
+                    logInfo(buyerName + "的订单发货失败");
+                }
+
+                if (time <= endTime.time) { //自动发货旧订单
+                    continue;
+                }
+            } else if (time <= endTime.time) {
+                break;
+            }
+
+            if (time > lastTime)
+                lastTime = time;
+
 
             JSONArray itemList = order.getJSONArray("itemList");
             for (Object itemObject : itemList.toArray(new Object[0])) {
@@ -120,12 +130,6 @@ public class WeidianHandler extends WebHandler {
                 double price = Double.valueOf(item.getStr("totalPrice"));
 
                 orders.add(new WeidianOrder(itemId, itemName, buyerID, buyerName, price, payTime));
-            }
-
-            if (cookie.autoDeliver) {
-                if (!deliver(order.getStr("orderId"), cookie)) {
-                    logInfo(buyerName + "的订单发货失败");
-                }
             }
         }
         endTime.time = lastTime;

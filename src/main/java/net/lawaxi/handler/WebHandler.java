@@ -50,6 +50,6 @@ public class WebHandler {
     }
 
     protected HttpRequest setHeader(HttpRequest request) {
-        return request;
+        return request.setReadTimeout(20000);
     }
 }

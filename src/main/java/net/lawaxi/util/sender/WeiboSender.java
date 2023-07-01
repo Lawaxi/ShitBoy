@@ -36,7 +36,7 @@ public class WeiboSender extends Sender {
 
         try {
             //超话
-            List<String> superChatSubscribe = Shitboy.INSTANCE.getProperties().weibo_superTopic_subscribe.get(group.getId());
+            List<String> superChatSubscribe = Shitboy.INSTANCE.getProperties().weibo_superTopic_subscribe.get(group_id);
 
             for (String id : superChatSubscribe) {
                 String a = Shitboy.INSTANCE.getHandlerWeibo().getSuperTopicRes(id);
@@ -132,7 +132,7 @@ public class WeiboSender extends Sender {
 
         try {
             //个人
-            List<Long> userSubscribe = Shitboy.INSTANCE.getProperties().weibo_user_subscribe.get(group.getId());
+            List<Long> userSubscribe = Shitboy.INSTANCE.getProperties().weibo_user_subscribe.get(group_id);
             for (long id : userSubscribe) {
                 if (!endTime.containsKey(String.valueOf(id))) {
                     endTime.put(String.valueOf(id), new Date().getTime());

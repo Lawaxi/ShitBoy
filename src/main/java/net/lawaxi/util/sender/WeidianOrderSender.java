@@ -14,20 +14,26 @@ import java.util.List;
 public class WeidianOrderSender extends Sender {
     private final EndTime endTime;
     private final WeidianSenderHandler handler;
+    private final HashMap<WeidianCookie, WeidianOrder[]> cache;
 
-    public WeidianOrderSender(Bot bot, long group, EndTime endTime, WeidianSenderHandler handler) {
+    public WeidianOrderSender(Bot bot, long group, EndTime endTime, WeidianSenderHandler handler, HashMap<WeidianCookie, WeidianOrder[]> cache) {
         super(bot, group);
         this.endTime = endTime;
         this.handler = handler;
+        this.cache = cache;
     }
 
     @Override
     public void run() {
         WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
-        WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(group.getId());
+        WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(group_id);
 
-        WeidianOrder[] orders = weidian.getOrderList(cookie, endTime);
-        if (orders == null)
+        if (!cache.containsKey(cookie)) {
+            cache.put(cookie, weidian.getOrderList(cookie, endTime));
+        }
+
+        WeidianOrder[] orders = cache.get(cookie);
+        if (orders == null || bot == null)
             return;
 
         List<WeidianMessage> messages = new ArrayList<>();

@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import static net.lawaxi.model.EndTime.newTime;
+
 public class Pocket48SenderCache {
 
     public final Pocket48RoomInfo roomInfo;
@@ -28,7 +30,7 @@ public class Pocket48SenderCache {
             return null;
 
         if (!endTime.containsKey(roomID)) {
-            endTime.put(roomID, Shitboy.START_TIME);
+            endTime.put(roomID, newTime());
         }
 
         return new Pocket48SenderCache(roomInfo, pocket.getMessages(roomInfo, endTime),

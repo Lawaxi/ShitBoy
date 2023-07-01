@@ -5,6 +5,8 @@ import net.lawaxi.command.ShitBoyCommand;
 import net.lawaxi.handler.*;
 import net.lawaxi.model.EndTime;
 import net.lawaxi.model.Pocket48SenderCache;
+import net.lawaxi.model.WeidianCookie;
+import net.lawaxi.model.WeidianOrder;
 import net.lawaxi.util.ConfigOperator;
 import net.lawaxi.util.Properties;
 import net.lawaxi.util.PropertiesCommon;
@@ -17,16 +19,13 @@ import net.mamoe.mirai.console.permission.PermissionService;
 import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
 import net.mamoe.mirai.event.GlobalEventChannel;
-import net.mamoe.mirai.event.events.BotOnlineEvent;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 
 public final class Shitboy extends JavaPlugin {
     public static final Shitboy INSTANCE = new Shitboy();
-    public static long START_TIME;
     private final ConfigOperator configOperator = new ConfigOperator();
     private final Properties properties = new Properties();
     public Pocket48Handler handlerPocket48;
@@ -36,7 +35,7 @@ public final class Shitboy extends JavaPlugin {
     public WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.9-test4" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.9-test5" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -46,7 +45,6 @@ public final class Shitboy extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        START_TIME = new Date().getTime();
         initProperties();
         loadConfig();
         registerPermission();
@@ -83,11 +81,8 @@ public final class Shitboy extends JavaPlugin {
         } catch (Exception e) {
             getLogger().info("微博Cookie更新失败");
         }
-
         boolean finalWeibo_has_login = weibo_has_login;
-        GlobalEventChannel.INSTANCE.parentScope(INSTANCE).subscribeOnce(BotOnlineEvent.class, event -> {
-            listenBroadcast(event.getBot(), pocket48_has_login, finalWeibo_has_login);
-        });
+        listenBroadcast(pocket48_has_login, finalWeibo_has_login);
 
         getLogger().info("Shit boy!");
     }
@@ -150,7 +145,7 @@ public final class Shitboy extends JavaPlugin {
     }
 
 
-    private void listenBroadcast(Bot b, boolean pocket48_has_login, boolean weibo_has_login) {
+    private void listenBroadcast(boolean pocket48_has_login, boolean weibo_has_login) {
 
         //endTime: 已发送房间消息的最晚时间
         HashMap<Long, HashMap<Long, Long>> pocket48RoomEndTime = new HashMap<>();
@@ -168,18 +163,20 @@ public final class Shitboy extends JavaPlugin {
                         public void run() {
                             HashMap<Long, Pocket48SenderCache> cache = new HashMap();
 
-                            for (long group : properties.pocket48_subscribe.keySet()) {
-                                if (b.getGroup(group) == null)
-                                    continue;
+                            for (Bot b : Bot.getInstances()) {
+                                for (long group : properties.pocket48_subscribe.keySet()) {
+                                    if (b.getGroup(group) == null)
+                                        continue;
 
-                                if (!pocket48RoomEndTime.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
-                                {
-                                    pocket48RoomEndTime.put(group, new HashMap<>());
-                                    pocket48VoiceStatus.put(group, new HashMap<>());
+                                    if (!pocket48RoomEndTime.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
+                                    {
+                                        pocket48RoomEndTime.put(group, new HashMap<>());
+                                        pocket48VoiceStatus.put(group, new HashMap<>());
+                                    }
+
+                                    new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group), cache).start();
+
                                 }
-
-                                new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group), cache).start();
-
                             }
 
                         }
@@ -187,19 +184,22 @@ public final class Shitboy extends JavaPlugin {
             ));
         }
 
+
         handlerBilibili.setCronScheduleID(CronUtil.schedule(properties.bilibili_pattern, new Runnable() {
                     @Override
                     public void run() {
-                        for (long group : properties.bilibili_subscribe.keySet()) {
-                            if (b.getGroup(group) == null)
-                                continue;
+                        for (Bot b : Bot.getInstances()) {
+                            for (long group : properties.bilibili_subscribe.keySet()) {
+                                if (b.getGroup(group) == null)
+                                    continue;
 
-                            if (!bilibiliLiveStatus.containsKey(group)) {
-                                bilibiliLiveStatus.put(group, new HashMap<>());
-                                bilibiliEndTime.put(group, new HashMap<>());
+                                if (!bilibiliLiveStatus.containsKey(group)) {
+                                    bilibiliLiveStatus.put(group, new HashMap<>());
+                                    bilibiliEndTime.put(group, new HashMap<>());
+                                }
+
+                                new BilibiliSender(b, group, bilibiliEndTime.get(group), bilibiliLiveStatus.get(group)).start();
                             }
-
-                            new BilibiliSender(b, group, bilibiliEndTime.get(group), bilibiliLiveStatus.get(group)).start();
                         }
                     }
                 }
@@ -209,14 +209,16 @@ public final class Shitboy extends JavaPlugin {
             handlerWeibo.setCronScheduleID(CronUtil.schedule(properties.weibo_pattern, new Runnable() {
                         @Override
                         public void run() {
-                            for (long group : properties.weibo_user_subscribe.keySet()) {
-                                if (b.getGroup(group) == null)
-                                    continue;
+                            for (Bot b : Bot.getInstances()) {
+                                for (long group : properties.weibo_user_subscribe.keySet()) {
+                                    if (b.getGroup(group) == null)
+                                        continue;
 
-                                if (!weiboEndTime.containsKey(group))
-                                    weiboEndTime.put(group, new HashMap<>());
+                                    if (!weiboEndTime.containsKey(group))
+                                        weiboEndTime.put(group, new HashMap<>());
 
-                                new WeiboSender(b, group, weiboEndTime.get(group)).start();
+                                    new WeiboSender(b, group, weiboEndTime.get(group)).start();
+                                }
                             }
                         }
                     }
@@ -227,14 +229,28 @@ public final class Shitboy extends JavaPlugin {
         CronUtil.schedule(properties.weidian_pattern_order, new Runnable() {
                     @Override
                     public void run() {
+
+                        HashMap<WeidianCookie, WeidianOrder[]> cache = new HashMap();
+
+                        for (Bot b : Bot.getInstances()) {
+                            for (long group : properties.weidian_cookie.keySet()) {
+                                if (b.getGroup(group) == null)
+                                    continue;
+
+                                if (!weidianEndTime.containsKey(group))
+                                    weidianEndTime.put(group, new EndTime());
+
+                                new WeidianOrderSender(b, group, weidianEndTime.get(group), handlerWeidianSender, cache).start();
+
+                            }
+                        }
+
+                        //机器人不在线时自动发货
                         for (long group : properties.weidian_cookie.keySet()) {
-                            if (b.getGroup(group) == null)
-                                continue;
-
-                            if (!weidianEndTime.containsKey(group))
-                                weidianEndTime.put(group, new EndTime());
-
-                            new WeidianOrderSender(b, group, weidianEndTime.get(group), handlerWeidianSender).start();
+                            WeidianCookie cookie = properties.weidian_cookie.get(group);
+                            if (cookie.autoDeliver && !cache.containsKey(cookie)) {
+                                new WeidianOrderSender(null, group, new EndTime(), handlerWeidianSender, cache).start();
+                            }
                         }
                     }
                 }
@@ -244,11 +260,13 @@ public final class Shitboy extends JavaPlugin {
         handlerWeidian.setCronScheduleID(CronUtil.schedule(properties.weidian_pattern_item, new Runnable() {
                     @Override
                     public void run() {
-                        for (long group : properties.weidian_cookie.keySet()) {
-                            if (b.getGroup(group) == null)
-                                continue;
+                        for (Bot b : Bot.getInstances()) {
+                            for (long group : properties.weidian_cookie.keySet()) {
+                                if (b.getGroup(group) == null)
+                                    continue;
 
-                            new WeidianItemSender(b, group, handlerWeidianSender).start();
+                                new WeidianItemSender(b, group, handlerWeidianSender).start();
+                            }
                         }
                     }
                 }

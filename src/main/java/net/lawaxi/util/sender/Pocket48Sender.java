@@ -34,7 +34,7 @@ public class Pocket48Sender extends Sender {
     @Override
     public void run() {
         try {
-            Pocket48Subscribe subscribe = Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId());
+            Pocket48Subscribe subscribe = Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group_id);
             Pocket48Handler pocket = Shitboy.INSTANCE.getHandlerPocket48();
 
             //房间消息获取
@@ -86,7 +86,7 @@ public class Pocket48Sender extends Sender {
 
             //房间消息
             if (totalMessages.size() > 0) {
-                if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group.getId()).showAtOne()) {
+                if (Shitboy.INSTANCE.getProperties().pocket48_subscribe.get(group_id).showAtOne()) {
 
                     for (Pocket48Message[] roomMessage : totalMessages) {
                         Message joint = null;

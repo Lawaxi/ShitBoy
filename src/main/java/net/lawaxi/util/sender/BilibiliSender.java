@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.lawaxi.model.EndTime.newTime;
+
 public class BilibiliSender extends Sender {
     private static final String roomUrl = "https://live.bilibili.com/";
 
@@ -31,12 +33,12 @@ public class BilibiliSender extends Sender {
     @Override
     public void run() {
         BilibiliHandler bili = Shitboy.INSTANCE.getHandlerBilibili();
-        List<Integer> bili_subs = Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group.getId());
-        List<Integer> live_subs = Shitboy.INSTANCE.getProperties().bililive_subscribe.get(group.getId());
+        List<Integer> bili_subs = Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group_id);
+        List<Integer> live_subs = Shitboy.INSTANCE.getProperties().bililive_subscribe.get(group_id);
 
         for (Integer uid : bili_subs) {
             if (!endTime.containsKey(uid)) {
-                endTime.put(uid, Shitboy.START_TIME);
+                endTime.put(uid, newTime());
             }
 
             List<JSONObject> a = bili.getOriSpaceData(uid, endTime);
@@ -68,7 +70,7 @@ public class BilibiliSender extends Sender {
                         if (item.containsKey("content")) {
                             //纯文字动态 & 直播推送
                             group.sendMessage(push == null ?
-                                    new PlainText("【" + name + " 发布了B站动态】\n").plus(pharseBilibiliContent(item.getStr("content") , a0)) :
+                                    new PlainText("【" + name + " 发布了B站动态】\n").plus(pharseBilibiliContent(item.getStr("content"), a0)) :
                                     new PlainText("【" + name + " 发布了B站直播预约】\n").plus(pharseBilibiliContent(item.getStr("content"), a0)).plus("\n---------\n" + push.getStr("title")));
 
 

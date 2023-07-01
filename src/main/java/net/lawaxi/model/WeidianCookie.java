@@ -29,4 +29,13 @@ public class WeidianCookie {
     public static WeidianCookie construct(String cookie) {
         return construct(cookie, false, new ArrayList<>());
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof WeidianCookie) {
+            return ((WeidianCookie) obj).cookie.equals(this.cookie)
+                    && ((WeidianCookie) obj).autoDeliver == this.autoDeliver;
+        }
+        return false;
+    }
 }
