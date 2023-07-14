@@ -45,7 +45,7 @@ public class WeidianOrderMessage implements WeidianMessage {
                     j--;
                 }
 
-                return this.message.plus("\n共" + (buyers[i].contribution / 100.0) + " 排名" + (j + 2) + (i == 0 ? "" : " 距离上一名" + (buyers[j].contribution - buyers[j + 1].contribution) / 100.0)
+                return this.message.plus("\n共" + (buyers[i].contribution / 100.0) + " 排名" +(j == i-1 ? "" : "并列")+ (j + 2) + (i == 0 ? "" : " 距离上一名" + (buyers[j].contribution - buyers[j + 1].contribution) / 100.0)
                         + "\n" + payTime);
             }
         }

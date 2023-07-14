@@ -463,8 +463,6 @@ public class CommandOperator {
 
     public Message executePrivate(String message, UserMessageEvent event) {
         String[] args = splitPrivateCommand(message);
-        if (args == null || args.length == 1)
-            return null; //指令判断
 
         //权限检测
         switch (args[0]) {
@@ -487,7 +485,7 @@ public class CommandOperator {
                 try {
                     groupId = Long.valueOf(args[1]);
                 } catch (Exception e) {
-                    return getHelp(6);
+                    return getHelp(7);
                 }
 
                 if (args[2].startsWith("cookie")) {
@@ -519,11 +517,20 @@ public class CommandOperator {
                                     WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(groupId);
 
                                     WeidianItem[] items = weidian.getItems(cookie);
+                                    if (items == null)
+                                        return new PlainText("获取商品列表错误，请重新提交Cookie");
+
                                     String o = "当前共有商品" + items.length + "个：";
                                     for (int i = 0; i < items.length; i++) {
                                         o += "\n[" + (cookie.highlightItem.contains(items[i].id) ? "特殊链" : "普链") +
                                                 "](" + items[i].id + ")." + items[i].name;
                                     }
+
+                                    if (cookie.invalid) {
+                                        cookie.invalid = false;
+                                        o += "\nCookie有效，无需更换";
+                                    }
+
                                     return new PlainText(o);
                                 }
                             }
@@ -551,7 +558,7 @@ public class CommandOperator {
                                 }
                             }
                         default:
-                            return getHelp(6);
+                            return getHelp(7);
                     }
                 }
             }
@@ -712,17 +719,18 @@ public class CommandOperator {
     }
 
     private String[] splitPrivateCommand(String command) {
-        if (command.contains(" ")) {
-            String[] out = new String[3];
-            out[0] = command.substring(0, command.indexOf(" "));
-            command = command.substring(command.indexOf(" ") + 1);
+        String[] out = new String[3];
+        int i = 0;
+        for (; i < 2; i++) {
             if (command.contains(" ")) {
-                out[1] = command.substring(0, command.indexOf(" "));
-                out[2] = command.substring(command.indexOf(" ") + 1);
-                return out;
+                out[i] = command.substring(0, command.indexOf(" "));
+                command = command.substring(command.indexOf(" ") + 1);
+            } else {
+                break;
             }
         }
-        return null;
+        out[i] = command;
+        return out;
     }
 
     //私聊权限检测

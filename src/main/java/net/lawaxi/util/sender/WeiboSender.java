@@ -70,7 +70,7 @@ public class WeiboSender extends Sender {
                     //时间
                     info = info.substring(info.indexOf("date=\\\"") + "date=\\\"".length());
                     long time = Long.valueOf(info.substring(0, info.indexOf("\\\"")));
-                    if (time <= endTime.get(id))//不播报
+                    if (time <= endTime.get(id))//不处理
                         continue;
 
                     if (time > m)//决定最终更新的endTime
@@ -122,6 +122,7 @@ public class WeiboSender extends Sender {
 
                 if (!find)
                     Shitboy.INSTANCE.getLogger().info(name + "超话找不到任何东西");
+
                 if (m > endTime.get(id))
                     endTime.put(id, m);
 

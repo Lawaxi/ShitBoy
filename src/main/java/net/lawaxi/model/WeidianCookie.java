@@ -8,6 +8,7 @@ public class WeidianCookie {
     public final String wdtoken;
     public boolean autoDeliver;
     public List<Long> highlightItem;
+    public boolean invalid = false;
 
     private WeidianCookie(String cookie, String wdtoken, boolean autoDeliver, List<Long> highlightItem) {
         this.cookie = cookie;

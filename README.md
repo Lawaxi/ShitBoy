@@ -154,3 +154,8 @@ schedule = * * * * * #监测时间间隔，具体搜索Cron定时任务表达式
 1. 微店订单播报显示买家排名（主插件重置微店播报功能，如使用WeidianAddon也需更新0.1.1以上版本）
 2. test4-B站主站关注BUG修复
 3. test5-未登录机器人时微店正常自动发货
+4. test6-微店排名标明是否为并列
+
+### 0.1.10
+
+1. api更新（Addon请使用Maven: <scope>provided</scope>, Gradle: compile/api形式引用）

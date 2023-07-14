@@ -27,8 +27,18 @@ public class WeidianItemSender extends Sender {
         WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(group_id);
 
         WeidianItem[] items = weidian.getItems(cookie);
-        if (items == null)
+        if (items == null) {
+            if (!cookie.invalid) {
+                group.getOwner().sendMessage("微店Cookie失效，请尽快更换：“/微店 " + group_id + " cookie <Cookie>”");
+                cookie.invalid = true;
+            }
             return;
+        }
+
+        if(cookie.invalid){
+            group.getOwner().sendMessage("微店Cookie有效，无需更换");
+            cookie.invalid = false;
+        }
 
         //合并发送（仅特殊链）
         List<Message> messages = new ArrayList<>();
