@@ -1,6 +1,6 @@
 package net.lawaxi;
 
-import cn.hutool.cron.CronUtil;
+import cn.hutool.cron.Scheduler;
 import net.lawaxi.command.ShitBoyCommand;
 import net.lawaxi.handler.*;
 import net.lawaxi.model.EndTime;
@@ -35,7 +35,7 @@ public final class Shitboy extends JavaPlugin {
     public WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.10" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.10-test3" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -55,7 +55,6 @@ public final class Shitboy extends JavaPlugin {
 
         //------------------------------------------------
         //服务
-        CronUtil.getScheduler().clear();
 
         //口袋48登录
         final boolean pocket48_has_login;
@@ -156,9 +155,11 @@ public final class Shitboy extends JavaPlugin {
         HashMap<Long, HashMap<Long, List<Long>>> pocket48VoiceStatus = new HashMap<>();
         HashMap<Long, HashMap<Integer, Boolean>> bilibiliLiveStatus = new HashMap<>();
 
+        Scheduler sb = new Scheduler();
+        
         //服务
         if (pocket48_has_login) {
-            handlerPocket48.setCronScheduleID(CronUtil.schedule(properties.pocket48_pattern, new Runnable() {
+            handlerPocket48.setCronScheduleID(sb.schedule(properties.pocket48_pattern, new Runnable() {
                         @Override
                         public void run() {
                             HashMap<Long, Pocket48SenderCache> cache = new HashMap();
@@ -185,7 +186,7 @@ public final class Shitboy extends JavaPlugin {
         }
 
 
-        handlerBilibili.setCronScheduleID(CronUtil.schedule(properties.bilibili_pattern, new Runnable() {
+        handlerBilibili.setCronScheduleID(sb.schedule(properties.bilibili_pattern, new Runnable() {
                     @Override
                     public void run() {
                         for (Bot b : Bot.getInstances()) {
@@ -206,7 +207,7 @@ public final class Shitboy extends JavaPlugin {
         ));
 
         if (weibo_has_login) {
-            handlerWeibo.setCronScheduleID(CronUtil.schedule(properties.weibo_pattern, new Runnable() {
+            handlerWeibo.setCronScheduleID(sb.schedule(properties.weibo_pattern, new Runnable() {
                         @Override
                         public void run() {
                             for (Bot b : Bot.getInstances()) {
@@ -226,7 +227,7 @@ public final class Shitboy extends JavaPlugin {
         }
 
         //微店订单播报
-        CronUtil.schedule(properties.weidian_pattern_order, new Runnable() {
+        sb.schedule(properties.weidian_pattern_order, new Runnable() {
                     @Override
                     public void run() {
 
@@ -257,7 +258,7 @@ public final class Shitboy extends JavaPlugin {
         );
 
         //微店商品播报
-        handlerWeidian.setCronScheduleID(CronUtil.schedule(properties.weidian_pattern_item, new Runnable() {
+        handlerWeidian.setCronScheduleID(sb.schedule(properties.weidian_pattern_item, new Runnable() {
                     @Override
                     public void run() {
                         for (Bot b : Bot.getInstances()) {
@@ -274,7 +275,7 @@ public final class Shitboy extends JavaPlugin {
 
         //------------------------------------------------
         if (properties.enable) {
-            CronUtil.start();
+            sb.start();
         } else {
             //停止
         }

@@ -36,6 +36,7 @@ public class BilibiliSender extends Sender {
         List<Integer> bili_subs = Shitboy.INSTANCE.getProperties().bilibili_subscribe.get(group_id);
         List<Integer> live_subs = Shitboy.INSTANCE.getProperties().bililive_subscribe.get(group_id);
 
+        //主站
         for (Integer uid : bili_subs) {
             if (!endTime.containsKey(uid)) {
                 endTime.put(uid, newTime());
@@ -71,7 +72,9 @@ public class BilibiliSender extends Sender {
                             //纯文字动态 & 直播推送
                             group.sendMessage(push == null ?
                                     new PlainText("【" + name + " 发布了B站动态】\n").plus(pharseBilibiliContent(item.getStr("content"), a0)) :
-                                    new PlainText("【" + name + " 发布了B站直播预约】\n").plus(pharseBilibiliContent(item.getStr("content"), a0)).plus("\n---------\n" + push.getStr("title")));
+                                    (push.containsKey("title") ?
+                                            new PlainText("【" + name + " 发布了B站直播预约】\n").plus(pharseBilibiliContent(item.getStr("content"), a0)).plus("\n---------\n" + push.getStr("title")) :
+                                            new PlainText("【" + name + " 发布了B站直播预约】\n").plus(pharseBilibiliContent(item.getStr("content"), a0))));
 
 
                         } else if (item.containsKey("description")) {
@@ -137,6 +140,7 @@ public class BilibiliSender extends Sender {
             }
         }
 
+        //直播间
         for (Integer room : live_subs) {
             JSONObject info = bili.shouldMention(room, status);
             if (info != null) {

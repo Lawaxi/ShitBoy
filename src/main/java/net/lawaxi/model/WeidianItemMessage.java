@@ -68,7 +68,7 @@ public class WeidianItemMessage implements WeidianMessage {
                     buyers,
                     buyers.length,
                     total,
-                    total / buyers.length
+                    buyers.length == 0 ? 0 : total / buyers.length
             ).generateMessage(image, pickAmount);
         }
 

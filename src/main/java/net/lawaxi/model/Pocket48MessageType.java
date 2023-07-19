@@ -10,6 +10,7 @@ public enum Pocket48MessageType {
     REPLY,
     GIFTREPLY,
     LIVEPUSH,
+    SHARE_LIVE,
     FLIPCARD,
     FLIPCARD_AUDIO,
     FLIPCARD_VIDEO,

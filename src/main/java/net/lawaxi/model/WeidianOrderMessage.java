@@ -40,12 +40,21 @@ public class WeidianOrderMessage implements WeidianMessage {
     public Message getMessage(WeidianBuyer[] buyers) {
         for (int i = 0; i < buyers.length; i++) {
             if (this.buyerId == buyers[i].id) {
+                //向前找
                 int j = i;
                 while (j >= 0 && buyers[j].contribution == buyers[i].contribution) {
                     j--;
                 }
 
-                return this.message.plus("\n共" + (buyers[i].contribution / 100.0) + " 排名" +(j == i-1 ? "" : "并列")+ (j + 2) + (i == 0 ? "" : " 距离上一名" + (buyers[j].contribution - buyers[j + 1].contribution) / 100.0)
+                //向后找
+                boolean tied = j != i - 1;
+                if (!tied) {
+                    if (buyers.length > j + 2) {
+                        tied = buyers[j + 1] == buyers[j + 2];
+                    }
+                }
+
+                return this.message.plus("\n共" + (buyers[i].contribution / 100.0) + " 排名" + (tied ? "并列" : "") + (j + 2) + (i == 0 ? "" : " 距离上一名" + (buyers[j].contribution - buyers[j + 1].contribution) / 100.0)
                         + "\n" + payTime);
             }
         }
