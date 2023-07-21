@@ -111,22 +111,31 @@ public class WeidianHandler extends WebHandler {
             JSONObject order = JSONUtil.parseObj(object);
             String payTime = order.getStr("payTime");
             long time = DateUtil.parse(payTime).getTime();
+            if (time <= endTime.time) {
+                break;
+            }
+
+            if (time > lastTime)
+                lastTime = time;
 
             JSONObject receiver = order.getJSONObject("receiver");
             long buyerID = receiver.getLong("buyerId");
             String buyerName = receiver.getStr("buyerName");
 
-            if (cookie.autoDeliver) {
-                //包含屏蔽商品的订单为避免麻烦一律不自动发货
-                JSONArray itemList = order.getJSONArray("itemList");
-                for (Object itemObject : itemList.toArray(new Object[0])) {
-                    JSONObject item = JSONUtil.parseObj(itemObject);
-                    long itemId = item.getLong("itemId");
-                    if (cookie.shieldedItem.contains(itemId)) {
-                        continue Orders;
-                    }
+            boolean contains_shielded_item = false;
+            JSONArray itemList = order.getJSONArray("itemList");
+            for (Object itemObject : itemList.toArray(new Object[0])) {
+                JSONObject item = JSONUtil.parseObj(itemObject);
+                long itemId = item.getLong("itemId");
+                if (cookie.shieldedItem.contains(itemId)) {
+                    contains_shielded_item = true;
                 }
+                String itemName = item.getStr("itemName");
+                double price = Double.valueOf(item.getStr("totalPrice"));
+                orders.add(new WeidianOrder(itemId, itemName, buyerID, buyerName, price, payTime));
+            }
 
+            if (cookie.autoDeliver && !contains_shielded_item) {
                 try {
                     if (!deliver(order.getStr("orderId"), cookie)) {
                         logInfo(buyerName + "的订单发货失败");
@@ -134,25 +143,6 @@ public class WeidianHandler extends WebHandler {
                 } catch (RuntimeException e) {
                     logInfo(buyerName + "的订单发货失败：" + e.getMessage());
                 }
-
-                //旧订单被自动收货扫描但不进入拆分订单表
-                if (time <= endTime.time) {
-                    continue;
-                }
-            } else if (time <= endTime.time) {
-                break;
-            }
-
-            if (time > lastTime)
-                lastTime = time;
-
-            JSONArray itemList = order.getJSONArray("itemList");
-            for (Object itemObject : itemList.toArray(new Object[0])) {
-                JSONObject item = JSONUtil.parseObj(itemObject);
-                long itemId = item.getLong("itemId");
-                String itemName = item.getStr("itemName");
-                double price = Double.valueOf(item.getStr("totalPrice"));
-                orders.add(new WeidianOrder(itemId, itemName, buyerID, buyerName, price, payTime));
             }
         }
         endTime.time = lastTime;

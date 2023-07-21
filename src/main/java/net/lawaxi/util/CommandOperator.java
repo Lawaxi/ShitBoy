@@ -557,7 +557,7 @@ public class CommandOperator {
                                     cookie.autoDeliver = true;
                                     weidian.getOrderList(cookie);
                                     cookie.autoDeliver = pre;
-                                    return new PlainText("自动发货成功(不包括包含屏蔽商品的订单)");
+                                    return new PlainText("全部订单发货成功(不包括包含屏蔽商品的订单)");
                                 }
                             }
                         case 2:
