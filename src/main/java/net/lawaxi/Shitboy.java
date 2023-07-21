@@ -35,7 +35,7 @@ public final class Shitboy extends JavaPlugin {
     public WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.10-test3" +
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.10-test4" +
                 "")
                 .name("shitboy")
                 .author("delay")
@@ -156,7 +156,7 @@ public final class Shitboy extends JavaPlugin {
         HashMap<Long, HashMap<Integer, Boolean>> bilibiliLiveStatus = new HashMap<>();
 
         Scheduler sb = new Scheduler();
-        
+
         //服务
         if (pocket48_has_login) {
             handlerPocket48.setCronScheduleID(sb.schedule(properties.pocket48_pattern, new Runnable() {
@@ -235,6 +235,9 @@ public final class Shitboy extends JavaPlugin {
 
                         for (Bot b : Bot.getInstances()) {
                             for (long group : properties.weidian_cookie.keySet()) {
+                                if (!properties.weidian_cookie.get(group).doBroadcast)
+                                    continue;
+
                                 if (b.getGroup(group) == null)
                                     continue;
 
@@ -242,11 +245,10 @@ public final class Shitboy extends JavaPlugin {
                                     weidianEndTime.put(group, new EndTime());
 
                                 new WeidianOrderSender(b, group, weidianEndTime.get(group), handlerWeidianSender, cache).start();
-
                             }
                         }
 
-                        //机器人不在线时自动发货
+                        //机器人不在线/不播报也自动发货
                         for (long group : properties.weidian_cookie.keySet()) {
                             WeidianCookie cookie = properties.weidian_cookie.get(group);
                             if (cookie.autoDeliver && !cache.containsKey(cookie)) {

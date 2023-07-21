@@ -67,18 +67,26 @@ public class WeidianHandler extends WebHandler {
             String buyerName = receiver.getStr("buyerName");
 
             JSONArray itemList = order.getJSONArray("itemList");
+            boolean contains_shielded_item = false;
             for (Object itemObject : itemList.toArray(new Object[0])) {
                 JSONObject item = JSONUtil.parseObj(itemObject);
                 long itemId = item.getLong("itemId");
+                if (cookie.shieldedItem.contains(itemId)) {
+                    contains_shielded_item = true;
+                }
                 String itemName = item.getStr("itemName");
                 int price = item.getInt("totalPrice");
 
                 orders.add(new WeidianOrder(itemId, itemName, buyerID, buyerName, price, payTime));
             }
 
-            if (cookie.autoDeliver) {
-                if (!deliver(order.getStr("orderId"), cookie)) {
-                    logInfo(buyerName + "的订单发货失败");
+            if (cookie.autoDeliver && !contains_shielded_item) {
+                try {
+                    if (!deliver(order.getStr("orderId"), cookie)) {
+                        logInfo(buyerName + "的订单发货失败");
+                    }
+                } catch (RuntimeException e) {
+                    logInfo(buyerName + "的订单发货失败：" + e.getMessage());
                 }
             }
         }
@@ -95,8 +103,10 @@ public class WeidianHandler extends WebHandler {
         if (objectList == null)
             return null;
 
-        List<WeidianOrder> orders = new ArrayList<>();
         long lastTime = endTime.time;
+        List<WeidianOrder> orders = new ArrayList<>(); //拆分订单表：按商品将订单分开
+        Orders:
+        //复合订单
         for (Object object : objectList.toArray(new Object[0])) {
             JSONObject order = JSONUtil.parseObj(object);
             String payTime = order.getStr("payTime");
@@ -107,11 +117,26 @@ public class WeidianHandler extends WebHandler {
             String buyerName = receiver.getStr("buyerName");
 
             if (cookie.autoDeliver) {
-                if (!deliver(order.getStr("orderId"), cookie)) {
-                    logInfo(buyerName + "的订单发货失败");
+                //包含屏蔽商品的订单为避免麻烦一律不自动发货
+                JSONArray itemList = order.getJSONArray("itemList");
+                for (Object itemObject : itemList.toArray(new Object[0])) {
+                    JSONObject item = JSONUtil.parseObj(itemObject);
+                    long itemId = item.getLong("itemId");
+                    if (cookie.shieldedItem.contains(itemId)) {
+                        continue Orders;
+                    }
                 }
 
-                if (time <= endTime.time) { //自动发货旧订单
+                try {
+                    if (!deliver(order.getStr("orderId"), cookie)) {
+                        logInfo(buyerName + "的订单发货失败");
+                    }
+                } catch (RuntimeException e) {
+                    logInfo(buyerName + "的订单发货失败：" + e.getMessage());
+                }
+
+                //旧订单被自动收货扫描但不进入拆分订单表
+                if (time <= endTime.time) {
                     continue;
                 }
             } else if (time <= endTime.time) {
@@ -121,14 +146,12 @@ public class WeidianHandler extends WebHandler {
             if (time > lastTime)
                 lastTime = time;
 
-
             JSONArray itemList = order.getJSONArray("itemList");
             for (Object itemObject : itemList.toArray(new Object[0])) {
                 JSONObject item = JSONUtil.parseObj(itemObject);
                 long itemId = item.getLong("itemId");
                 String itemName = item.getStr("itemName");
                 double price = Double.valueOf(item.getStr("totalPrice"));
-
                 orders.add(new WeidianOrder(itemId, itemName, buyerID, buyerName, price, payTime));
             }
         }
@@ -137,14 +160,14 @@ public class WeidianHandler extends WebHandler {
         return orders.toArray(new WeidianOrder[0]);
     }
 
-    public boolean deliver(String orderId, WeidianCookie cookie) {
+    public boolean deliver(String orderId, WeidianCookie cookie) throws RuntimeException {
         String s = post(APIDeliver, "param={\"from\":\"pc\",\"orderId\":\"" + orderId + "\",\"expressNo\":\"\",\"expressType\":0,\"expressCustom\":\"\",\"fullDeliver\":true}&wdtoken=" + cookie.cookie, cookie);
         JSONObject object = JSONUtil.parseObj(s);
         if (object.getJSONObject("status").getInt("code") == 0) {
             JSONObject result = object.getJSONObject("result");
             return result.getBool("success");
         }
-        return false;
+        throw new RuntimeException(object.getJSONObject("status").getStr("message"));
     }
 
     private JSONArray getItemOriOrderList(WeidianCookie cookie, long itemId) {
@@ -242,6 +265,7 @@ public class WeidianHandler extends WebHandler {
         return null;
     }
 
+    //包括屏蔽的商品
     public WeidianItem[] getItems(WeidianCookie cookie) {
         //【出售中】 仅提取pageSize=5个
         String s = get(APIItemList + cookie.wdtoken, cookie);
@@ -264,11 +288,7 @@ public class WeidianHandler extends WebHandler {
     }
 
     public WeidianItem searchItem(WeidianCookie cookie, long id) {
-        return searchItem(getItems(cookie), id);
-    }
-
-    public WeidianItem searchItem(WeidianItem[] items, long id) {
-        for (WeidianItem item : items) {
+        for (WeidianItem item : getItems(cookie)) {
             if (item.id == id)
                 return item;
         }

@@ -99,11 +99,12 @@ public class WeiboSender extends Sender {
                             o = o.plus(group.uploadImage(ExternalResource.create(getRes(cover))))
                                     .plus(URLVideo + objectid);
                         } else {//图片时获取原始地址
-                            if (info.indexOf("&thumb_picSrc=") == -1) { //单张图
+                            if (info.indexOf("&thumb_picSrc=") == -1) { //单张图（无缩略图）
                                 info = info.substring(info.indexOf("clear_picSrc=") + "clear_picSrc=".length());
-                                String src = "https:" + info.substring(0, info.indexOf(".")).replace("%2F", "/") + "jpg";
-                                o = o.plus(group.uploadImage(ExternalResource.create(getRes(src))));
-                            } else { //多张图
+                                String src = info.substring(0, info.indexOf("\">")).replace("%2F", "/");
+                                System.out.println("https:" + src);
+                                o = o.plus(group.uploadImage(ExternalResource.create(getRes("https:" + src))));
+                            } else { //多张图（有缩略图）
                                 for (String src : info.substring(
                                         info.indexOf("clear_picSrc=") + "clear_picSrc=".length(),
                                         info.indexOf("&thumb_picSrc=")).replace("%2F", "/").split(",")) {

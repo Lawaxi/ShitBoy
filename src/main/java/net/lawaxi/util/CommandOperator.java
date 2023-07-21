@@ -18,6 +18,8 @@ import net.mamoe.mirai.utils.ExternalResource;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class CommandOperator {
 
@@ -30,7 +32,7 @@ public class CommandOperator {
     }
 
     public Message executePublic(String[] args, Group g, long senderID) {
-        long group = Long.valueOf(g.getId());
+        long group = g.getId();
 
         switch (args[0]) {
             case "/口袋":
@@ -455,7 +457,7 @@ public class CommandOperator {
             case "/帮助":
             case "/help":
             case "/?":
-                return getHelp(-1);
+                return getHelp(-1, group);
         }
 
         return null;
@@ -468,10 +470,14 @@ public class CommandOperator {
         switch (args[0]) {
             case "/微店":
             case "/欢迎": {
-                long groupId = Long.valueOf(args[1]);
-                Message test = testPermission(groupId, event);
-                if (test != null)
-                    return test;
+                try {
+                    long groupId = Long.valueOf(args[1]);
+                    Message test = testPermission(groupId, event);
+                    if (test != null)
+                        return test;
+                } catch (Exception e) {
+                    return args[0].equals("微店") ? getHelp(7) : getHelp(1);
+                }
             }
         }
 
@@ -479,7 +485,7 @@ public class CommandOperator {
             case "/帮助":
             case "/help":
             case "/?":
-                return getHelp(-1);
+                return getHelp(-1, event.getSender().getId());
             case "/微店": {
                 long groupId;
                 try {
@@ -505,43 +511,78 @@ public class CommandOperator {
                     switch (argsIn.length) {
                         case 1:
                             switch (argsIn[0]) {
-                                case "自动发货": {
-                                    return new PlainText("自动发货设为：" + (Shitboy.INSTANCE.getConfig().switchWeidianAutoDeliver(groupId) == 1 ? "开启" : "关闭"));
+                                case "全部": {
+                                    WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
+                                    WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(groupId);
+
+                                    String o = "[群播报]" + (cookie.doBroadcast ? "开启" : "关闭")
+                                            + "\n[自动发货]" + (cookie.autoDeliver ? "开启" : "关闭");
+
+                                    WeidianItem[] items = weidian.getItems(cookie);
+                                    if (items == null) {
+                                        if (cookie.invalid) {
+                                            cookie.invalid = false;
+                                        }
+                                        return new PlainText(o + "\n获取商品列表错误，请重新提交Cookie");
+                                    }
+
+                                    if (!cookie.invalid) {
+                                        cookie.invalid = true;
+                                        o += "\nCookie有效，无需更换";
+                                    }
+
+                                    o += "\n当前共有商品" + items.length + "个：";
+                                    for (int i = 0; i < items.length; i++) {
+                                        o += "\n[" + (cookie.shieldedItem.contains(items[i].id) ? "屏蔽" :
+                                                (cookie.highlightItem.contains(items[i].id) ? "特殊链" : "普链")) +
+                                                "](" + items[i].id + ")." + items[i].name;
+                                    }
+
+                                    return new PlainText(o);
                                 }
                                 case "关闭": {
                                     Shitboy.INSTANCE.getConfig().rmWeidianCookie(groupId);
                                     return new PlainText("该群微店播报重置");
                                 }
-                                case "全部": {
+                                case "自动发货": {
+                                    return new PlainText("自动发货设为：" + (Shitboy.INSTANCE.getConfig().switchWeidianAutoDeliver(groupId) == 1 ? "开启" : "关闭"));
+                                }
+                                case "群播报": {
+                                    return new PlainText("群播报设为：" + (Shitboy.INSTANCE.getConfig().switchWeidianDoBroadCast(groupId) == 1 ? "开启" : "关闭"));
+                                }
+                                case "全部发货": {
                                     WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
                                     WeidianCookie cookie = Shitboy.INSTANCE.getProperties().weidian_cookie.get(groupId);
-
-                                    WeidianItem[] items = weidian.getItems(cookie);
-                                    if (items == null)
-                                        return new PlainText("获取商品列表错误，请重新提交Cookie");
-
-                                    String o = "当前共有商品" + items.length + "个：";
-                                    for (int i = 0; i < items.length; i++) {
-                                        o += "\n[" + (cookie.highlightItem.contains(items[i].id) ? "特殊链" : "普链") +
-                                                "](" + items[i].id + ")." + items[i].name;
-                                    }
-
-                                    if (cookie.invalid) {
-                                        cookie.invalid = false;
-                                        o += "\nCookie有效，无需更换";
-                                    }
-
-                                    return new PlainText(o);
+                                    boolean pre = cookie.autoDeliver;
+                                    cookie.autoDeliver = true;
+                                    weidian.getOrderList(cookie);
+                                    cookie.autoDeliver = pre;
+                                    return new PlainText("自动发货成功(不包括包含屏蔽商品的订单)");
                                 }
                             }
                         case 2:
                             switch (argsIn[0]) {
                                 case "#": {
                                     long id = Long.valueOf(argsIn[1]);
-                                    if (Shitboy.INSTANCE.getConfig().highlightWeidianItem(groupId, id) == 0)
-                                        return new PlainText("将商品id为" + id + "的商品设为：普链");
-                                    else
-                                        return new PlainText("将商品id为" + id + "的商品设为：特殊链");
+                                    switch (Shitboy.INSTANCE.getConfig().highlightWeidianItem(groupId, id)) {
+                                        case -1:
+                                            return new PlainText("未设置cookie");
+                                        case 0:
+                                            return new PlainText("将商品id为" + id + "的商品设为：普链");
+                                        case 1:
+                                            return new PlainText("将商品id为" + id + "的商品设为：特殊链");
+                                    }
+                                }
+                                case "屏蔽": {
+                                    long id = Long.valueOf(argsIn[1]);
+                                    switch (Shitboy.INSTANCE.getConfig().shieldWeidianItem(groupId, id)) {
+                                        case -1:
+                                            return new PlainText("未设置cookie");
+                                        case 0:
+                                            return new PlainText("取消屏蔽id为" + id + "的商品");
+                                        case 1:
+                                            return new PlainText("已屏蔽id为" + id + "的商品");
+                                    }
                                 }
                                 case "查": {
                                     WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
@@ -640,13 +681,13 @@ public class CommandOperator {
                     Shitboy.INSTANCE.getConfig().closeWelcome(groupId);
                     return new PlainText("取消成功");
                 }
-                //getHelp(1);
             }
         }
         return null;
     }
 
-    private final ArrayList<String> helps = new ArrayList<>();
+    private final List<String> helps = new ArrayList<>();
+    private final HashMap<Long, List<String>> localHelps = new HashMap<>();
 
     private void initHelp() {
         addHelp("【管理员指令】\n" //0
@@ -689,15 +730,21 @@ public class CommandOperator {
         addHelp("【微店相关】\n" //7
                 + "(私聊)/微店 <群id> cookie <Cookie>\n"
                 + "(私聊)/微店 <群id> 自动发货\n"
-                + "(私聊)/微店 <群id> # <商品id>\n"
-                + "(私聊)/微店 <群id> 全部\n"
+                + "(私聊)/微店 <群id> 全部发货\n"
                 + "(私聊)/微店 <群id> 查 <商品id>\n"
+                + "(私聊)/微店 <群id> # <商品id>\n"
+                + "(私聊)/微店 <群id> 屏蔽 <商品id>\n"
+                + "(私聊)/微店 <群id> 全部\n"
                 + "(私聊)/微店 <群id> 关闭\n"
                 + "注：\"#\"指令的意思是切换一个商品的普链/特殊链形质，特殊链会实时播报\n"
                 + "注：\"查询\"#指令可以获取榜单\n");
     }
 
     public Message getHelp(int id) {
+        return getHelp(id, 0);
+    }
+
+    public Message getHelp(int id, long contactId) {
         if (id < getSize() && id > -1)
             return new PlainText(helps.get(id));
 
@@ -706,8 +753,21 @@ public class CommandOperator {
             for (String help : this.helps) {
                 a += help;
             }
-            return new PlainText(a);
+
+            String b = getLocalHelp(contactId);
+            return new PlainText(b == null ? a : a + b);
         }
+    }
+
+    public String getLocalHelp(long contactId) {
+        if (!this.localHelps.containsKey(contactId))
+            return null;
+
+        String a = "";
+        for (String help : this.localHelps.get(contactId)) {
+            a += help;
+        }
+        return a;
     }
 
     public int getSize() {
@@ -716,6 +776,12 @@ public class CommandOperator {
 
     public void addHelp(String help) {
         this.helps.add(help);
+    }
+
+    public void addLocalHelp(long contactId, String help) {
+        if (!this.localHelps.containsKey(contactId))
+            this.localHelps.put(contactId, new ArrayList<>());
+        this.localHelps.get(contactId).add(help);
     }
 
     private String[] splitPrivateCommand(String command) {

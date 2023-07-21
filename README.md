@@ -38,7 +38,7 @@ Mirai-Console插件，构建mirai（[mamoe/mirai](https://github.com/mamoe/mirai
     - 同上`“/口袋 查询 id”`可根据id自动查询server_id、room_id
     - 同上`“/口袋 查询2 server_id”`可根据server_id查下属room_id
 
-#### （2）B站
+### （2）B站
 
 1. 博主关注
    - 群管理在群内直接输入`“/bili 关注 uid”`
@@ -61,7 +61,7 @@ Mirai-Console插件，构建mirai（[mamoe/mirai](https://github.com/mamoe/mirai
     - 同上`“/超话 取消关注 超话id”`
     - 任意群成员输入`“/超话 关注列表”`
 
-### （3）微店
+### （4）微店
 
 1. 提交Cookie
     - 一切的开始
@@ -159,3 +159,5 @@ schedule = * * * * * #监测时间间隔，具体搜索Cron定时任务表达式
 ### 0.1.10
 
 1. api更新（Addon请使用Maven: <scope>provided</scope>, Gradle: compile/api形式引用）
+2. test4-BUG修复
+3. test4-微店更新

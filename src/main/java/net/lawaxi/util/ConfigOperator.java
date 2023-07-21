@@ -196,9 +196,12 @@ public class ConfigOperator {
             long g = shop.getLong("qqGroup");
             String cookie = shop.getStr("cookie", "");
             boolean autoDeliver = shop.getBool("autoDeliver", false);
+            boolean doBroadCast = shop.getBool("doBroadCast", true);
             List<Long> highlight = shop.getBeanList("highlight", Long.class);
-            properties.weidian_cookie.put(g, WeidianCookie.construct(cookie, autoDeliver,
-                    highlight == null ? new ArrayList<>() : highlight));
+            List<Long> shielded = shop.getBeanList("shielded", Long.class);
+            properties.weidian_cookie.put(g, WeidianCookie.construct(cookie, autoDeliver, doBroadCast,
+                    highlight == null ? new ArrayList<>() : highlight,
+                    shielded == null ? new ArrayList<>() : shielded));
 
         }
     }
@@ -370,12 +373,16 @@ public class ConfigOperator {
 
     public boolean setWeidianCookie(String cookie, long group) {
         boolean autoDeliver = false;
+        boolean doBroadcast = true;
         List<Long> highlightItem = new ArrayList<>();
+        List<Long> shieldItem = new ArrayList<>();
         if (properties.weidian_cookie.containsKey(group)) {
             autoDeliver = properties.weidian_cookie.get(group).autoDeliver;
+            doBroadcast = properties.weidian_cookie.get(group).doBroadcast;
             highlightItem = properties.weidian_cookie.get(group).highlightItem;
+            shieldItem = properties.weidian_cookie.get(group).shieldedItem;
         }
-        properties.weidian_cookie.put(group, WeidianCookie.construct(cookie, autoDeliver, highlightItem));
+        properties.weidian_cookie.put(group, WeidianCookie.construct(cookie, autoDeliver, doBroadcast, highlightItem, shieldItem));
         saveWeidianConfig();
         return true;
     }
@@ -388,6 +395,16 @@ public class ConfigOperator {
         cookie.autoDeliver = !cookie.autoDeliver;
         saveWeidianConfig();
         return cookie.autoDeliver ? 1 : 0;
+    }
+
+    public int switchWeidianDoBroadCast(long group) {
+        if (!properties.weidian_cookie.containsKey(group))
+            return -1;
+
+        WeidianCookie cookie = properties.weidian_cookie.get(group);
+        cookie.doBroadcast = !cookie.doBroadcast;
+        saveWeidianConfig();
+        return cookie.doBroadcast ? 1 : 0;
     }
 
     public boolean rmWeidianCookie(long group) {
@@ -406,6 +423,21 @@ public class ConfigOperator {
         }
 
         List<Long> it = properties.weidian_cookie.get(group).highlightItem;
+        if (it.contains(itemid)) {
+            it.remove(itemid);
+        } else {
+            it.add(itemid);
+        }
+        saveWeidianConfig();
+        return it.contains(itemid) ? 1 : 0;
+    }
+
+    public int shieldWeidianItem(long group, long itemid) {
+        if (!properties.weidian_cookie.containsKey(group)) {
+            return -1;
+        }
+
+        List<Long> it = properties.weidian_cookie.get(group).shieldedItem;
         if (it.contains(itemid)) {
             it.remove(itemid);
         } else {

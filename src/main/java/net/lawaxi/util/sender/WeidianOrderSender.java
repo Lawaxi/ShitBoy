@@ -42,6 +42,10 @@ public class WeidianOrderSender extends Sender {
 
         for (int i = orders.length - 1; i >= 0; i--) {
             long id = orders[i].itemID;
+            if (cookie.shieldedItem.contains(id)) {
+                continue;
+            }
+
             if (!itemIDs.contains(id))
                 itemIDs.add(id);
             //订单信息
@@ -50,7 +54,7 @@ public class WeidianOrderSender extends Sender {
 
         WeidianItem[] items = weidian.getItems(cookie);
         for (Long id : itemIDs) {
-            WeidianItem item = weidian.searchItem(items, id);
+            WeidianItem item = search(items, id);
             if (item != null) {
                 if (cookie.highlightItem.contains(id)) {//特殊链
                     itemBuyers.put(id, weidian.getItemBuyer(cookie, id));
@@ -75,6 +79,14 @@ public class WeidianOrderSender extends Sender {
         Message t = combine(messages1);
         if (t != null)
             group.sendMessage(t);
+    }
+
+    public static WeidianItem search(WeidianItem[] items, long id) {
+        for (WeidianItem item : items) {
+            if (item.id == id)
+                return item;
+        }
+        return null;
     }
 
 }

@@ -35,7 +35,7 @@ public class WeidianItemSender extends Sender {
             return;
         }
 
-        if(cookie.invalid){
+        if (cookie.invalid) {
             group.getOwner().sendMessage("微店Cookie有效，无需更换");
             cookie.invalid = false;
         }
@@ -43,7 +43,7 @@ public class WeidianItemSender extends Sender {
         //合并发送（仅特殊链）
         List<Message> messages = new ArrayList<>();
         for (WeidianItem item : items) {
-            if (cookie.highlightItem.contains(item.id)) {
+            if (cookie.highlightItem.contains(item.id) && !cookie.shieldedItem.contains(item.id)) {
                 messages.add(handler.executeItemMessages(item, group, 10).getMessage());
             }
         }

@@ -42,9 +42,11 @@ public class Sender extends Thread { //异步进程
     }
 
     public Message combine(List<Message> messages) {
-        if (messages.size() == 1)
+        if (messages.size() == 0) {
+            return null;
+        } else if (messages.size() == 1)
             return messages.get(0);
-        else if (messages.size() > 1) {
+        else {
             Message t = new PlainText("");
             for (int i = 0; i < messages.size(); i++) {
                 if (i != 0)
@@ -52,8 +54,6 @@ public class Sender extends Thread { //异步进程
                 t = t.plus(messages.get(i));
             }
             return t;
-        } else {
-            return null;
         }
     }
 }
