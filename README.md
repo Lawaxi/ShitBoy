@@ -67,6 +67,7 @@ Mirai-Console插件，构建mirai（[mamoe/mirai](https://github.com/mamoe/mirai
     - 一切的开始
     - 群管理私聊机器人输入`“/微店 <群id> cookie xxx”`，xxx为以`__spider__`开头的一串
     - 同上`“/微店 <群id> 关闭”`可删除提交的cookie并关闭微店功能
+    - 群播报默认开启，群管理私聊机器人输入`“/微店 <群id> 群播报”`切换
     - 不知道如何获取cookie的饭头可以参考http://www.lgyzero.top/weidianCookie
     - cookie基本上是微店全权，勿轻易外泄
 2. 屏蔽/普链/特殊链
@@ -165,3 +166,4 @@ schedule = * * * * * #监测时间间隔，具体搜索Cron定时任务表达式
 1. api更新（Addon请使用Maven: <scope>provided</scope>, Gradle: compile/api形式引用）
 2. test4-BUG修复
 3. test4-微店更新
+4. test5-BUG修复

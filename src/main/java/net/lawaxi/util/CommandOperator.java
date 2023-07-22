@@ -520,24 +520,23 @@ public class CommandOperator {
 
                                     WeidianItem[] items = weidian.getItems(cookie);
                                     if (items == null) {
-                                        if (cookie.invalid) {
-                                            cookie.invalid = false;
+                                        if (!cookie.invalid) {
+                                            cookie.invalid = true;
                                         }
-                                        return new PlainText(o + "\n获取商品列表错误，请重新提交Cookie");
+                                        return new PlainText(o + "\n---------\n获取商品列表错误，请重新提交Cookie");
                                     }
 
-                                    if (!cookie.invalid) {
-                                        cookie.invalid = true;
-                                        o += "\nCookie有效，无需更换";
-                                    }
-
-                                    o += "\n当前共有商品" + items.length + "个：";
+                                    o += "\n---------\n当前共有商品" + items.length + "个：";
                                     for (int i = 0; i < items.length; i++) {
                                         o += "\n[" + (cookie.shieldedItem.contains(items[i].id) ? "屏蔽" :
                                                 (cookie.highlightItem.contains(items[i].id) ? "特殊链" : "普链")) +
                                                 "](" + items[i].id + ")." + items[i].name;
                                     }
 
+                                    if (cookie.invalid) {
+                                        cookie.invalid = false;
+                                        o += "\n+++++++++\nCookie有效，无需更换";
+                                    }
                                     return new PlainText(o);
                                 }
                                 case "关闭": {
@@ -729,6 +728,7 @@ public class CommandOperator {
 
         addHelp("【微店相关】\n" //7
                 + "(私聊)/微店 <群id> cookie <Cookie>\n"
+                + "(私聊)/微店 <群id> 群播报\n"
                 + "(私聊)/微店 <群id> 自动发货\n"
                 + "(私聊)/微店 <群id> 全部发货\n"
                 + "(私聊)/微店 <群id> 查 <商品id>\n"
