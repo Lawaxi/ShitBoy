@@ -101,15 +101,25 @@ public class WeiboSender extends Sender {
                         } else {//图片时获取原始地址
                             if (info.indexOf("&thumb_picSrc=") == -1) { //单张图（无缩略图）
                                 info = info.substring(info.indexOf("clear_picSrc=") + "clear_picSrc=".length());
-                                String src = info.substring(0, info.indexOf("\">")).replace("%2F", "/");
+                                String src = info.substring(0, info.indexOf("\">")).replace("%2F", "/")
+                                        .replace("\\", "");
                                 System.out.println("https:" + src);
-                                o = o.plus(group.uploadImage(ExternalResource.create(getRes("https:" + src))));
+                                try {
+                                    o = o.plus(group.uploadImage(ExternalResource.create(getRes("https:" + src))));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             } else { //多张图（有缩略图）
                                 for (String src : info.substring(
                                         info.indexOf("clear_picSrc=") + "clear_picSrc=".length(),
                                         info.indexOf("&thumb_picSrc=")).replace("%2F", "/").split(",")) {
+                                    src = src.replace("\\", "");
                                     System.out.println("https:" + src);
-                                    o = o.plus(group.uploadImage(ExternalResource.create(getRes("https:" + src))));
+                                    try {
+                                        o = o.plus(group.uploadImage(ExternalResource.create(getRes("https:" + src))));
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                         }

@@ -43,7 +43,7 @@ public class WeidianOrderMessage implements WeidianMessage {
                 //向前找
                 int j = i;
                 while (j >= 0 && buyers[j].contribution == buyers[i].contribution) {
-                    j--;
+                    j--; //排名（0起）为j+1
                 }
 
                 //向后找
@@ -54,7 +54,8 @@ public class WeidianOrderMessage implements WeidianMessage {
                     }
                 }
 
-                return this.message.plus("\n共" + (buyers[i].contribution / 100.0) + " 排名" + (tied ? "并列" : "") + (j + 2) + (i == 0 ? "" : " 距离上一名" + (buyers[j].contribution - buyers[j + 1].contribution) / 100.0)
+                return this.message.plus("\n共" + (buyers[i].contribution / 100.0) + " 排名" + (tied ? "并列" : "") + (j + 2)
+                        + (i == 0 ? "" : " 距离上一名" + (buyers[j].contribution - buyers[j + 1].contribution) / 100.0)
                         + "\n" + payTime);
             }
         }

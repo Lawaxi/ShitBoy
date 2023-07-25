@@ -38,7 +38,6 @@ public class WeidianOrderSender extends Sender {
 
         List<WeidianMessage> messages = new ArrayList<>();
         List<Long> itemIDs = new ArrayList<>();
-        HashMap<Long, WeidianBuyer[]> itemBuyers = new HashMap<>();
 
         for (int i = orders.length - 1; i >= 0; i--) {
             long id = orders[i].itemID;
@@ -52,6 +51,9 @@ public class WeidianOrderSender extends Sender {
             messages.add(handler.executeOrderMessage(orders[i], group));
         }
 
+        //处理排名
+
+        HashMap<Long, WeidianBuyer[]> itemBuyers = new HashMap<>();
         WeidianItem[] items = weidian.getItems(cookie);
         for (Long id : itemIDs) {
             WeidianItem item = search(items, id);
@@ -59,7 +61,7 @@ public class WeidianOrderSender extends Sender {
                 if (cookie.highlightItem.contains(id)) {//特殊链
                     itemBuyers.put(id, weidian.getItemBuyer(cookie, id));
                 } else { //普链
-                    WeidianItemMessage itemMessage = handler.executeItemMessages(item, group);
+                    WeidianItemMessage itemMessage = handler.executeItemMessages(item, group); //内包含weidian.getItemBuyer(cookie, id)
                     messages.add(itemMessage); //普链商品信息附在最后
                     itemBuyers.put(id, itemMessage.buyers);
                 }
