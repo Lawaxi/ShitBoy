@@ -67,68 +67,79 @@ public class WeiboSender extends Sender {
                     String link = info.substring(info.indexOf("https"), info.indexOf("\\\"title="))
                             .replace("\\/", "/");
 
-                    //时间
-                    info = info.substring(info.indexOf("date=\\\"") + "date=\\\"".length());
-                    long time = Long.valueOf(info.substring(0, info.indexOf("\\\"")));
-                    if (time <= endTime.get(id))//不处理
-                        continue;
+                    try {
+                        //时间
+                        info = info.substring(info.indexOf("date=\\\"") + "date=\\\"".length());
+                        long time = Long.valueOf(info.substring(0, info.indexOf("\\\"")));
+                        if (time <= endTime.get(id))//不处理
+                            continue;
 
-                    if (time > m)//决定最终更新的endTime
-                        m = time;
+                        if (time > m)//决定最终更新的endTime
+                            m = time;
 
-                    //文字
-                    String textInfo = "【" + name + "超话新内容：" + sender + "】\n";
-                    if (info.indexOf("WB_textW_f14") != -1) { //有文字
-                        info = info.substring(info.indexOf("feed_list_content\\\">") + "feed_list_content\\\">".length());
-                        textInfo += handleWeiboText(info.substring(0, info.indexOf("<\\/div>"))) + "\n";
-                        info = info.substring(info.indexOf("<\\/div>") + "<\\/div>".length());
-                    }
+                        //文字
+                        String textInfo = "【" + name + "超话新内容：" + sender + "】\n";
+                        if (info.indexOf("WB_textW_f14") != -1) { //有文字
+                            info = info.substring(info.indexOf("feed_list_content\\\">") + "feed_list_content\\\">".length());
+                            textInfo += handleWeiboText(info.substring(0, info.indexOf("<\\/div>"))) + "\n";
+                            info = info.substring(info.indexOf("<\\/div>") + "<\\/div>".length());
+                        }
 
-                    Message o = new PlainText(textInfo);
+                        Message o = new PlainText(textInfo);
 
-                    //影像
-                    if (info.indexOf("WB_media_wrap") != -1) {
-                        //会有一个前置div
+                        //影像
+                        if (info.indexOf("WB_media_wrap") != -1) {
+                            //会有一个前置div
 
-                        info = info.substring(info.indexOf("WB_media_a") + "WB_media_a".length());
+                            info = info.substring(info.indexOf("WB_media_a") + "WB_media_a".length());
 
-                        if (info.contains("WB_video")) {//视频获取链接(原始地址无权限访问)
-                            String objectid = info.substring(info.indexOf("objectid=") + "objectid=".length(),
-                                    info.indexOf("keys="));
-                            String cover = info.substring(info.indexOf("cover_img=") + "cover_img=".length(), info.indexOf("card_height="));
-                            o = o.plus(group.uploadImage(ExternalResource.create(getRes(cover))))
-                                    .plus(URLVideo + objectid);
-                        } else {//图片时获取原始地址
-                            if (info.indexOf("&thumb_picSrc=") == -1) { //单张图（无缩略图）
-                                info = info.substring(info.indexOf("clear_picSrc=") + "clear_picSrc=".length());
-                                String src = info.substring(0, info.indexOf("\">")).replace("%2F", "/")
-                                        .replace("\\", "");
-                                System.out.println("https:" + src);
+                            if (info.contains("WB_video")) {//视频获取链接(原始地址无权限访问)
+                                String objectid = info.substring(info.indexOf("objectid=") + "objectid=".length(),
+                                        info.indexOf("keys="));
+                                String cover = info.substring(info.indexOf("cover_img=") + "cover_img=".length(), info.indexOf("&card_height="));
                                 try {
-                                    o = o.plus(group.uploadImage(ExternalResource.create(getRes("https:" + src))));
+                                    o = o.plus(group.uploadImage(ExternalResource.create(getRes(cover))))
+                                            .plus(URLVideo + objectid);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                            } else { //多张图（有缩略图）
-                                for (String src : info.substring(
-                                        info.indexOf("clear_picSrc=") + "clear_picSrc=".length(),
-                                        info.indexOf("&thumb_picSrc=")).replace("%2F", "/").split(",")) {
-                                    src = src.replace("\\", "");
+
+                            } else {//图片时获取原始地址
+                                if (info.indexOf("&thumb_picSrc=") == -1) { //单张图（无缩略图）
+                                    info = info.substring(info.indexOf("clear_picSrc=") + "clear_picSrc=".length());
+                                    String src = info.substring(0, info.indexOf("\">")).replace("%2F", "/")
+                                            .replace("\\", "");
                                     System.out.println("https:" + src);
                                     try {
                                         o = o.plus(group.uploadImage(ExternalResource.create(getRes("https:" + src))));
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
+                                } else { //多张图（有缩略图）
+                                    for (String src : info.substring(
+                                            info.indexOf("clear_picSrc=") + "clear_picSrc=".length(),
+                                            info.indexOf("&thumb_picSrc=")).replace("%2F", "/").split(",")) {
+                                        src = src.replace("\\", "");
+                                        System.out.println("https:" + src);
+                                        try {
+                                            o = o.plus(group.uploadImage(ExternalResource.create(getRes("https:" + src))));
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
                                 }
                             }
+
                         }
 
+                        //发送
+                        ms.add(new messageWithTime(o.plus("\nlink: " + link), time));
+
+                    } catch (Exception e) {
+                        Shitboy.INSTANCE.getLogger().warning("【超话播报处于测试版 请将以下信息提交至 https://github.com/Lawaxi/ShitBoy/issues/8】");
+                        Shitboy.INSTANCE.getLogger().warning("错误微博：" + link);
+                        e.printStackTrace();
                     }
-
-                    //发送
-                    ms.add(new messageWithTime(o.plus("\nlink: " + link), time));
-
                 }
 
                 if (!find)

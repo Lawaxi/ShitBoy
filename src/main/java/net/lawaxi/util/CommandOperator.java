@@ -35,6 +35,9 @@ public class CommandOperator {
         long group = g.getId();
 
         switch (args[0]) {
+            case "/version":{
+                return new PlainText(Shitboy.VERSION);
+            }
             case "/口袋":
                 switch (args.length) {
                     case 2:

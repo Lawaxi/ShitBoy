@@ -50,7 +50,7 @@ public class WeidianOrderMessage implements WeidianMessage {
                 boolean tied = j != i - 1;
                 if (!tied) {
                     if (buyers.length > j + 2) {
-                        tied = buyers[j + 1] == buyers[j + 2];
+                        tied = buyers[j + 1].contribution == buyers[j + 2].contribution;
                     }
                 }
 

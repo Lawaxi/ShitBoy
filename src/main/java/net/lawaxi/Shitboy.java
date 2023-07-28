@@ -25,6 +25,9 @@ import java.util.List;
 
 
 public final class Shitboy extends JavaPlugin {
+    public static final String ID = "net.lawaxi.shitboy";
+    public static final String VERSION = "0.1.10-test7";
+
     public static final Shitboy INSTANCE = new Shitboy();
     private final ConfigOperator configOperator = new ConfigOperator();
     private final Properties properties = new Properties();
@@ -35,7 +38,7 @@ public final class Shitboy extends JavaPlugin {
     public WeidianSenderHandler handlerWeidianSender;
 
     private Shitboy() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.shitboy", "0.1.10-test6" +
+        super(new JvmPluginDescriptionBuilder(ID, VERSION +
                 "")
                 .name("shitboy")
                 .author("delay")
