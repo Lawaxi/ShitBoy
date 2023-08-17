@@ -72,10 +72,14 @@ public class Pocket48Handler extends WebHandler {
         header.setToken(null);
     }
 
+    //掉token时重新登陆一下，因为没传入code参数，就写在这咯~
     @Override
     protected void logError(String msg) {
-        if (msg.equals("非法授权")) { //掉token时重新登陆一下，因为没传入code参数，就这样了~
-            if (properties.pocket48_account.equals("") || properties.pocket48_password.equals("")) {
+        if (msg.endsWith("非法授权")) {
+            String token_local = Shitboy.INSTANCE.getConfig().getToken();
+            if (!properties.pocket48_token.equals(token_local)) {
+                login(token_local, false);
+            } else if (properties.pocket48_account.equals("") || properties.pocket48_password.equals("")) {
                 logout();
                 super.logError("口袋48 token失效请重新填写，同时填写token和账密可在token时效时登录（优先使用token）");
             } else {

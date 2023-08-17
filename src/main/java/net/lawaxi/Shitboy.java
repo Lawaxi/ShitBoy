@@ -25,7 +25,7 @@ import java.util.List;
 
 public final class Shitboy extends JavaPlugin {
     public static final String ID = "net.lawaxi.shitboy";
-    public static final String VERSION = "0.1.11-dev1";
+    public static final String VERSION = "0.1.11-dev2";
 
     /*
     本项目是一个mirai-console插件 用于SNH48 Group应援群播报

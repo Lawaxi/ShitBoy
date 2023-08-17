@@ -232,6 +232,10 @@ public class ConfigOperator {
         return true;
     }
 
+    public String getToken(){
+        return setting.getStr("token", "pocket48",properties.pocket48_token);
+    }
+
     public boolean addPocket48RoomSubscribe(long room_id, long group) {
         if (!properties.pocket48_subscribe.containsKey(group)) {
             properties.pocket48_subscribe.put(group, new Pocket48Subscribe(

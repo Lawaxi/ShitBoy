@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.lawaxi"
-version = "0.1.11-dev1"
+version = "0.1.11-dev2"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")
