@@ -27,4 +27,16 @@ public class ShitBoyCommand extends JCompositeCommand {
         for (Long id : handler.getChannelIDBySeverID(handler.getServerIDByStarID(starID)))
             sender.sendMessage(id == null ? "无服务器" : String.valueOf(id));
     }
+
+    @SubCommand({"login"})
+    public void login(CommandSender sender, String token) {
+        Pocket48Handler handler = Shitboy.INSTANCE.getHandlerPocket48();
+        handler.login(token, true);
+    }
+
+    @SubCommand({"login"})
+    public void login(CommandSender sender, String account, String password) {
+        Pocket48Handler handler = Shitboy.INSTANCE.getHandlerPocket48();
+        handler.login(account, password);
+    }
 }

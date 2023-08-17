@@ -25,7 +25,7 @@ import java.util.List;
 
 public final class Shitboy extends JavaPlugin {
     public static final String ID = "net.lawaxi.shitboy";
-    public static final String VERSION = "0.1.11-dev2";
+    public static final String VERSION = "0.1.11-dev3";
 
     /*
     本项目是一个mirai-console插件 用于SNH48 Group应援群播报
@@ -178,22 +178,26 @@ public final class Shitboy extends JavaPlugin {
             handlerPocket48.setCronScheduleID(sb.schedule(properties.pocket48_pattern, new Runnable() {
                         @Override
                         public void run() {
-                            HashMap<Long, Pocket48SenderCache> cache = new HashMap();
+                            if (getHandlerPocket48().isLogin()) {
+                                HashMap<Long, Pocket48SenderCache> cache = new HashMap();
 
-                            for (Bot b : Bot.getInstances()) {
-                                for (long group : properties.pocket48_subscribe.keySet()) {
-                                    if (b.getGroup(group) == null)
-                                        continue;
+                                for (Bot b : Bot.getInstances()) {
+                                    for (long group : properties.pocket48_subscribe.keySet()) {
+                                        if (b.getGroup(group) == null)
+                                            continue;
 
-                                    if (!pocket48RoomEndTime.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
-                                    {
-                                        pocket48RoomEndTime.put(group, new HashMap<>());
-                                        pocket48VoiceStatus.put(group, new HashMap<>());
+                                        if (!pocket48RoomEndTime.containsKey(group))//放到Runnable里面是因为可能实时更新新的群
+                                        {
+                                            pocket48RoomEndTime.put(group, new HashMap<>());
+                                            pocket48VoiceStatus.put(group, new HashMap<>());
+                                        }
+
+                                        new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group), cache).start();
+
                                     }
-
-                                    new Pocket48Sender(b, group, pocket48RoomEndTime.get(group), pocket48VoiceStatus.get(group), cache).start();
-
                                 }
+                            } else {
+                                getLogger().warning("口袋48已退出登录，请在控制台使用指令\"/shitboy login <token>\"或\"/shitboy login <账号> <密码>\"登录");
                             }
 
                         }

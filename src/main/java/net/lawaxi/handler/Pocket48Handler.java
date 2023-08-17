@@ -39,11 +39,6 @@ public class Pocket48Handler extends WebHandler {
 
     //登陆前
     public boolean login(String account, String password) {
-        if (isLogin()) {
-            logError("口袋48已经登陆");
-            return true;
-        }
-
         String s = header.setLoginHeader(HttpRequest.post(APILogin))
                 .body(String.format("{\"pwd\":\"%s\",\"mobile\":\"%s\"}", password, account)).execute().body();
         JSONObject object = JSONUtil.parseObj(s);
@@ -76,11 +71,11 @@ public class Pocket48Handler extends WebHandler {
     @Override
     protected void logError(String msg) {
         if (msg.endsWith("非法授权")) {
+            logout();
             String token_local = Shitboy.INSTANCE.getConfig().getToken();
             if (!properties.pocket48_token.equals(token_local)) {
                 login(token_local, false);
             } else if (properties.pocket48_account.equals("") || properties.pocket48_password.equals("")) {
-                logout();
                 super.logError("口袋48 token失效请重新填写，同时填写token和账密可在token时效时登录（优先使用token）");
             } else {
                 login(properties.pocket48_account, properties.pocket48_password);
