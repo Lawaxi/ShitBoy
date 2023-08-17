@@ -26,6 +26,7 @@ public class Pocket48Handler extends WebHandler {
     private static final String APIMsgAll = ROOT + "/im/api/v1/team/message/list/all";
     public static final String APIAnswerDetail = ROOT + "/idolanswer/api/idolanswer/v1/question_answer/detail";
     private static final String APIUserInfo = ROOT + "/user/api/v1/user/info/home";
+    private static final String APIUserArchives = ROOT + "/user/api/v1/user/star/archives";
     private static final String APILiveList = ROOT + "/live/api/v1/live/getLiveList";
     private static final String APIRoomVoice = ROOT + "/im/api/v1/team/voice/operate";
 
@@ -137,6 +138,19 @@ public class Pocket48Handler extends WebHandler {
 
     }
 
+    public JSONObject getUserArchives(long starID) {
+        String s = post(APIUserInfo, String.format("{\"memberId\":%d}", starID));
+        JSONObject object = JSONUtil.parseObj(s);
+
+        if (object.getInt("status") == 200) {
+            return JSONUtil.parseObj(object.getObj("content"));
+
+        } else {
+            logError(starID + object.getStr("message"));
+        }
+        return null;
+    }
+
     public String getUserNickName(long id) {
         try {
             return getUserInfo(id).getStr("nickname");
@@ -212,7 +226,7 @@ public class Pocket48Handler extends WebHandler {
                 && object.getStr("message").indexOf("question") != -1
                 && properties.pocket48_serverID.containsKey(roomID)) { //只有配置中存有severID的加密房间会被解析
             JSONObject message = JSONUtil.parseObj(object.getObj("message"));
-            return new Pocket48RoomInfo(message.getStr("question") + "？",
+            return new Pocket48RoomInfo.LockedRoomInfo(message.getStr("question") + "？",
                     properties.pocket48_serverID.get(roomID), roomID);
         } else {
             logError(roomID + object.getStr("message"));
@@ -261,35 +275,25 @@ public class Pocket48Handler extends WebHandler {
         if (!endTime.containsKey(roomID))
             return null;
 
-        String roomName = roomInfo.getRoomName();
-        String ownerName = getOwnerOrTeamName(roomInfo);
         List<Object> msgs = getOriMessages(roomID, roomInfo.getSeverId());
         if (msgs != null) {
             List<Pocket48Message> rs = new ArrayList<>();
             long latest = 0;
             for (Object message : msgs) {
                 JSONObject m = JSONUtil.parseObj(message);
-                try {
-                    long time = m.getLong("msgTime");
+                long time = m.getLong("msgTime");
 
-                    if (endTime.get(roomID) >= time)
-                        break; //api有时间次序
+                if (endTime.get(roomID) >= time)
+                    break; //api有时间次序
 
-                    if (latest < time) {
-                        latest = time;
-                    }
-
-                    rs.add(Pocket48Message.construct(
-                            roomName,
-                            ownerName,
-                            m,
-                            time
-                    ));
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    logError(roomName + m);//debug
+                if (latest < time) {
+                    latest = time;
                 }
+
+                rs.add(Pocket48Message.construct(
+                        roomInfo,
+                        m
+                ));
             }
             if (latest != 0)
                 endTime.put(roomID, latest);
@@ -309,17 +313,13 @@ public class Pocket48Handler extends WebHandler {
     //获取全部消息并整理成Pocket48Message[]
     public Pocket48Message[] getMessages(Pocket48RoomInfo roomInfo) {
         long roomID = roomInfo.getRoomId();
-        String roomName = roomInfo.getRoomName();
-        String ownerName = getOwnerOrTeamName(roomInfo);
         List<Object> msgs = getOriMessages(roomID, roomInfo.getSeverId());
         if (msgs != null) {
             List<Pocket48Message> rs = new ArrayList<>();
             for (Object message : msgs) {
                 rs.add(Pocket48Message.construct(
-                        roomName,
-                        ownerName,
-                        JSONUtil.parseObj(message),
-                        JSONUtil.parseObj(message).getLong("msgTime")
+                        roomInfo,
+                        JSONUtil.parseObj(message)
                 ));
             }
             return rs.toArray(new Pocket48Message[0]);
@@ -356,7 +356,7 @@ public class Pocket48Handler extends WebHandler {
         return null;
     }
 
-    public String getOwnerOrTeamName(Pocket48RoomInfo roomInfo) {
+    public static final String getOwnerOrTeamName(Pocket48RoomInfo roomInfo) {
         switch (String.valueOf(roomInfo.getSeverId())) {
             case "1148749":
                 return "TEAM Z";

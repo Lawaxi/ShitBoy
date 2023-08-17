@@ -3,15 +3,16 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
-    id("net.mamoe.mirai-console") version "2.14.0"
+    id("net.mamoe.mirai-console") version "2.15.0-short-video-message-15"
 
 }
 
 group = "net.lawaxi"
-version = "0.1.10-test7"
+version = "0.1.11-dev1"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")
+    maven("https://repo.mirai.mamoe.net/snapshots")
     mavenCentral()
 }
 

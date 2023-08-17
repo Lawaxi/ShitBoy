@@ -35,10 +35,11 @@ public class CommandOperator {
         long group = g.getId();
 
         switch (args[0]) {
-            case "/version":{
+            case "/version": {
                 return new PlainText(Shitboy.VERSION);
             }
             case "/口袋":
+            case "/pocket":
                 switch (args.length) {
                     case 2:
                         switch (args[1]) {
@@ -153,13 +154,26 @@ public class CommandOperator {
                                     out += serverId == null ? "" : "Server_id: " + serverId + "\n房间信息获取失败\n";
                                 }
 
+                                //贡献榜
+                                String fan = "";
+                                if (star) {
+                                    fan += "\n贡献榜:";
+                                    JSONObject archives = Shitboy.INSTANCE.getHandlerPocket48().getUserArchives(star_ID);
+                                    Object[] fans = archives.getJSONArray("fansRank").stream().toArray();
+                                    for (int i = 0; i < fans.length; i++) {
+                                        fan += "\n" + (i + 1) + "." + JSONUtil.parseObj(fans[i]).getStr("nickName");
+                                    }
+                                }
+
                                 //头像
                                 try {
                                     return new PlainText(out).plus(
-                                            g.uploadImage(ExternalResource.create(HttpRequest.get(avatar).execute().bodyStream())));
+                                                    g.uploadImage(ExternalResource.create(HttpRequest.get(avatar).execute().bodyStream())))
+                                            .plus(fan);
                                 } catch (IOException e) {
-                                    return new PlainText(out);
+                                    return new PlainText(out).plus(fan);
                                 }
+
                             }
                             case "查询2": {
                                 long server_id = Long.valueOf(args[2]);
@@ -409,6 +423,7 @@ public class CommandOperator {
                         return getHelp(5);
                 }
             case "/微博":
+            case "/weibo":
                 switch (args.length) {
                     case 2:
                         if (args[1].equals("关注列表")) {
@@ -472,6 +487,7 @@ public class CommandOperator {
         //权限检测
         switch (args[0]) {
             case "/微店":
+            case "/weidian":
             case "/欢迎": {
                 try {
                     long groupId = Long.valueOf(args[1]);
@@ -489,7 +505,8 @@ public class CommandOperator {
             case "/help":
             case "/?":
                 return getHelp(-1, event.getSender().getId());
-            case "/微店": {
+            case "/微店":
+            case "/weidian": {
                 long groupId;
                 try {
                     groupId = Long.valueOf(args[1]);

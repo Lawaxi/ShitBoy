@@ -6,17 +6,15 @@ import net.lawaxi.Shitboy;
 import net.lawaxi.handler.Pocket48Handler;
 
 public class Pocket48Message {
-    private final String room;
-    private final String ownerName;
+    private final Pocket48RoomInfo room;
     private final String nickName;
     private final String starName;
     private final Pocket48MessageType type;
     private final String body;
     private final long time;
 
-    public Pocket48Message(String room, String ownerName, String nickName, String starName, String type, String body, long time) {
+    public Pocket48Message(Pocket48RoomInfo room, String nickName, String starName, String type, String body, long time) {
         this.room = room;
-        this.ownerName = ownerName;
         this.nickName = nickName;
         this.starName = starName;
         this.type = Pocket48MessageType.valueOf(type);
@@ -24,25 +22,24 @@ public class Pocket48Message {
         this.time = time;
     }
 
-    public static final Pocket48Message construct(String roomName, String ownerName, JSONObject m, long time) {
+    public static final Pocket48Message construct(Pocket48RoomInfo roomInfo, JSONObject m) {
         JSONObject extInfo = JSONUtil.parseObj(m.getObj("extInfo"));
         JSONObject user = JSONUtil.parseObj(extInfo.getObj("user"));
         return new Pocket48Message(
-                roomName,
-                ownerName,
+                roomInfo.setStarId(user.getInt("userId")),
                 user.getStr("nickName"),
                 Shitboy.INSTANCE.getHandlerPocket48().getStarNameByStarID(user.getInt("userId")),
                 m.getStr("msgType"),
                 m.getStr("bodys"),
-                time);
+                m.getLong("msgTime"));
     }
 
-    public String getRoom() {
+    public Pocket48RoomInfo getRoom() {
         return room;
     }
 
     public String getOwnerName() {
-        return ownerName;
+        return Pocket48Handler.getOwnerOrTeamName(room);
     }
 
     public String getNickName() {
@@ -73,7 +70,7 @@ public class Pocket48Message {
         return time;
     }
 
-    //IMAGE,AUDIO
+    //IMAGE,EXPRESSIMAGE,AUDIO,VIDEO
     public String getResLoc() {
         if (getType() == Pocket48MessageType.EXPRESSIMAGE) {
             return JSONUtil.parseObj(JSONUtil.parseObj(getBody()).getObj("expressImgInfo")).getStr("emotionRemote");
@@ -85,6 +82,22 @@ public class Pocket48Message {
         return null;
     }
 
+    //网易资源有ext IMAGE,AUDIO,VIDEO
+    public String getExt() {
+        if (getType() == Pocket48MessageType.IMAGE || getType() == Pocket48MessageType.AUDIO
+                || getType() == Pocket48MessageType.VIDEO)
+            JSONUtil.parseObj(getBody()).getStr("ext");
+        return null;
+    }
+
+    public long getDuration() {
+        if (getType() == Pocket48MessageType.AUDIO
+                || getType() == Pocket48MessageType.VIDEO)
+            JSONUtil.parseObj(getBody()).getStr("dur");
+        return 0;
+    }
+
+    //REPLY,GIFTREPLY
     public Pocket48Reply getReply() {
         boolean isGift = getType() == Pocket48MessageType.GIFTREPLY;
         if (!isGift && getType() != Pocket48MessageType.REPLY)//非回复消息

@@ -23,10 +23,23 @@ import net.mamoe.mirai.event.GlobalEventChannel;
 import java.util.HashMap;
 import java.util.List;
 
-
 public final class Shitboy extends JavaPlugin {
     public static final String ID = "net.lawaxi.shitboy";
-    public static final String VERSION = "0.1.10-test7";
+    public static final String VERSION = "0.1.11-dev1";
+
+    /*
+    本项目是一个mirai-console插件 用于SNH48 Group应援群播报
+    最初用于小团体群聊”YLG48“ 播报群友关注的xox 同时也有了ListenerYLG类中的特殊功能
+    后来也用于扶贫一些底边应援群提供播报功能
+    本插件支持多个应援群/同一应援群多个xox/多平台播报
+
+     */
+    /*
+    欢迎学习代码或开发拓展插件
+    基本思路：定时创建Sender对象异步进行播报 Sender对象调用Handler对象获取信息
+    拓展插件可以通过替换Handler对象以达到提供不同的信息给Sender对象
+
+     */
 
     public static final Shitboy INSTANCE = new Shitboy();
     private final ConfigOperator configOperator = new ConfigOperator();

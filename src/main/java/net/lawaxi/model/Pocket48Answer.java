@@ -1,6 +1,5 @@
 package net.lawaxi.model;
 
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 
 public class Pocket48Answer {
@@ -34,8 +33,26 @@ public class Pocket48Answer {
     private final static String ROOT = "https://mp4.48.cn";
 
     public String getResInfo() {
-        JSONObject object = JSONUtil.parseObj(getBodyFrom());
-        return ROOT + object.getStr("url");
+        if (type == Pocket48MessageType.FLIPCARD_AUDIO || type == Pocket48MessageType.FLIPCARD_VIDEO)
+            return ROOT + JSONUtil.parseObj(getBodyFrom()).getStr("url");
+        return null;
+    }
+
+    public String getExt() {
+        String rec = getResInfo();
+        return rec.substring(rec.lastIndexOf(".") + 1);
+    }
+
+    public long getDuration() {
+        if (type == Pocket48MessageType.FLIPCARD_AUDIO || type == Pocket48MessageType.FLIPCARD_VIDEO)
+            JSONUtil.parseObj(getBodyFrom()).getLong("duration");
+        return 0;
+    }
+
+    public String getPreviewImg() {
+        if (type == Pocket48MessageType.FLIPCARD_VIDEO)
+            return ROOT + JSONUtil.parseObj(getBodyFrom()).getStr("previewImg");
+        return null;
     }
 
     public String getQuestionID() {

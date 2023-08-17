@@ -190,21 +190,14 @@ public class Pocket48Sender extends Sender {
                 return new Pocket48SenderMessage(true, new PlainText(name),
                         new Message[]{image});
             }
-            case VIDEO:
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            group.getFiles().uploadNewFile("/" + r + "房间视频(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ").mp4",
-                                    ExternalResource.create(getRes(message.getResLoc())));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            group.sendMessage(new PlainText("视频发送失败"));
-                        }
-                    }
-                }.start();
-                return single_subscribe ? null : new Pocket48SenderMessage(false, new PlainText(name),
-                        new Message[]{new PlainText("发送了一条视频")}).setSpecific();
+            case VIDEO: {
+                //短视频上传需要封面，本插件不打算添加视频处理功能，用成员封面代替
+                ShortVideo video = group.uploadShortVideo(ExternalResource.create(getRes(message.getRoom().getBgImg())), ExternalResource.create(getRes(message.getResLoc())),
+                        (single_subscribe ? "" : message.getOwnerName()) + "房间视频(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ")." + message.getExt());
+                return single_subscribe ? new Pocket48SenderMessage(false, null,
+                        new Message[]{video}) : new Pocket48SenderMessage(false, new PlainText(name),
+                        new Message[]{new PlainText("发送了一段视频"), video}).setSpecific();
+            }
             case REPLY:
             case GIFTREPLY:
                 return new Pocket48SenderMessage(false, null,
@@ -227,22 +220,12 @@ public class Pocket48Sender extends Sender {
                                 + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
                                 + "\n------\n"), audio});
             case FLIPCARD_VIDEO:
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            group.getFiles().uploadNewFile("/" + (single_subscribe ? "" : message.getOwnerName()) + "公开视频翻牌(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ").mp4",
-                                    ExternalResource.create(getRes(message.getAnswer().getResInfo())));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            group.sendMessage(new PlainText("翻牌回复视频发送失败"));
-                        }
-                    }
-                }.start();
+                ShortVideo video = group.uploadShortVideo(ExternalResource.create(getRes(message.getAnswer().getPreviewImg())), ExternalResource.create(getRes(message.getAnswer().getResInfo())),
+                        (single_subscribe ? "" : message.getOwnerName()) + "公开视频翻牌(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ")." + message.getAnswer().getExt());
                 return new Pocket48SenderMessage(false, null,
                         new Message[]{new PlainText("【" + (single_subscribe ? "" : message.getOwnerName()) + "视频翻牌回复消息】\n"
                                 + pocket.getAnswerNameTo(message.getAnswer().getAnswerID(), message.getAnswer().getQuestionID()) + "：" + message.getAnswer().getMsgTo()
-                                + "------")});
+                                + "\n------\n"), video});
             case PASSWORD_REDPACKAGE:
                 return new Pocket48SenderMessage(true, new PlainText(name),
                         new Message[]{new PlainText("红包信息")});
