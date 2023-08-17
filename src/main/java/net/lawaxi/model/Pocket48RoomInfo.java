@@ -55,8 +55,8 @@ public class Pocket48RoomInfo {
     }
 
     public static class LockedRoomInfo extends Pocket48RoomInfo {
-        public LockedRoomInfo(String question, long serverId, long roomId) {
-            super(Pocket48RoomInfo.getLockedRoomInfo(question, serverId, roomId));
+        public LockedRoomInfo(String question, Long serverId, long roomId) {
+            super(Pocket48RoomInfo.getLockedRoomInfo(question, serverId == null ? 0 : serverId, roomId));
         }
     }
 

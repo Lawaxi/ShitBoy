@@ -159,9 +159,11 @@ public class CommandOperator {
                                 if (star) {
                                     fan += "\n贡献榜:";
                                     JSONObject archives = Shitboy.INSTANCE.getHandlerPocket48().getUserArchives(star_ID);
-                                    Object[] fans = archives.getJSONArray("fansRank").stream().toArray();
-                                    for (int i = 0; i < fans.length; i++) {
-                                        fan += "\n" + (i + 1) + "." + JSONUtil.parseObj(fans[i]).getStr("nickName");
+                                    if(archives != null) {
+                                        Object[] fans = archives.getJSONArray("fansRank").stream().toArray();
+                                        for (int i = 0; i < fans.length; i++) {
+                                            fan += "\n" + (i + 1) + "." + JSONUtil.parseObj(fans[i]).getStr("nickName");
+                                        }
                                     }
                                 }
 
@@ -858,9 +860,12 @@ public class CommandOperator {
         //有房间
         else {
             for (Long i : rooms) {
-                Pocket48RoomInfo info = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(i);
-                if (info != null) { //口袋48bug之已删除的房间也会保留，但无法获取信息，见陈琳Server的(3311605)都是小团体
-                    out += (i != null) ? "(" + i + ")" + info.getRoomName() + "\n" : "";
+                try {
+                    Pocket48RoomInfo info = Shitboy.INSTANCE.getHandlerPocket48().getRoomInfoByChannelID(i);
+                    if (info != null) { //口袋48bug之已删除的房间也会保留，但无法获取信息，见陈琳Server的(3311605)都是小团体
+                        out += (i != null) ? "(" + i + ")" + info.getRoomName() + "\n" : "";
+                    }
+                }catch (Exception e){
                 }
             }
             return out;

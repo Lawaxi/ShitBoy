@@ -26,7 +26,7 @@ public class Pocket48SenderCache {
         Pocket48Handler pocket = Shitboy.INSTANCE.getHandlerPocket48();
 
         Pocket48RoomInfo roomInfo = pocket.getRoomInfoByChannelID(roomID);
-        if (roomInfo == null)
+        if (roomInfo == null || roomInfo.getSeverId() == 0)
             return null;
 
         if (!endTime.containsKey(roomID)) {

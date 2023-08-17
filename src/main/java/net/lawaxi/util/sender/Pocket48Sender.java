@@ -170,7 +170,7 @@ public class Pocket48Sender extends Sender {
     public Pocket48SenderMessage pharseMessage(Pocket48Message message, Group group, boolean single_subscribe) throws IOException {
         Pocket48Handler pocket = Shitboy.INSTANCE.getHandlerPocket48();
         String n = message.getNickName() + (message.getNickName().indexOf(message.getStarName()) != -1 ? "" : "(" + message.getStarName() + ")");
-        String r = message.getRoom() + "(" + message.getOwnerName() + ")";
+        String r = message.getRoom().getRoomName() + "(" + message.getOwnerName() + ")";
         String name = "【" + n + "@" + r + "】\n";
 
         switch (message.getType()) {

@@ -138,7 +138,7 @@ public class Pocket48Handler extends WebHandler {
     }
 
     public JSONObject getUserArchives(long starID) {
-        String s = post(APIUserInfo, String.format("{\"memberId\":%d}", starID));
+        String s = post(APIUserArchives, String.format("{\"memberId\":%d}", starID));
         JSONObject object = JSONUtil.parseObj(s);
 
         if (object.getInt("status") == 200) {
@@ -222,8 +222,7 @@ public class Pocket48Handler extends WebHandler {
             return new Pocket48RoomInfo(roomInfo);
 
         } else if (object.getInt("status") == 2001
-                && object.getStr("message").indexOf("question") != -1
-                && properties.pocket48_serverID.containsKey(roomID)) { //只有配置中存有severID的加密房间会被解析
+                && object.getStr("message").indexOf("question") != -1) { //只有配置中存有severID的加密房间会被解析
             JSONObject message = JSONUtil.parseObj(object.getObj("message"));
             return new Pocket48RoomInfo.LockedRoomInfo(message.getStr("question") + "？",
                     properties.pocket48_serverID.get(roomID), roomID);
