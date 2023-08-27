@@ -32,6 +32,8 @@ public class Pocket48Answer {
 
     private final static String ROOT = "https://mp4.48.cn";
 
+    private final static String ROOT_SOURCE = "https://source.48.cn";
+
     public String getResInfo() {
         if (type == Pocket48MessageType.FLIPCARD_AUDIO || type == Pocket48MessageType.FLIPCARD_VIDEO)
             return ROOT + JSONUtil.parseObj(getBodyFrom()).getStr("url");
@@ -51,7 +53,7 @@ public class Pocket48Answer {
 
     public String getPreviewImg() {
         if (type == Pocket48MessageType.FLIPCARD_VIDEO)
-            return ROOT + JSONUtil.parseObj(getBodyFrom()).getStr("previewImg");
+            return ROOT_SOURCE + JSONUtil.parseObj(getBodyFrom()).getStr("previewImg");
         return null;
     }
 

@@ -10,6 +10,7 @@ public class Pocket48RoomInfo {
     private final long roomId;
     private long starId = 0;
     private String bgImg;
+    private final static String ROOT_SOURCE = "https://source.48.cn";
 
     public Pocket48RoomInfo(JSONObject roomInfo) {
         this.roomName = roomInfo.getStr("channelName");
@@ -49,9 +50,9 @@ public class Pocket48RoomInfo {
 
     public String getBgImg() {
         if (this.starId != 0 && this.bgImg == null) {
-            this.bgImg = Shitboy.INSTANCE.getHandlerPocket48().getUserArchives(starId).getStr("bgImg");
+            this.bgImg = Shitboy.INSTANCE.getHandlerPocket48().getUserInfo(starId).getStr("bgImg");
         }
-        return this.bgImg;
+        return ROOT_SOURCE + this.bgImg;
     }
 
     public static class LockedRoomInfo extends Pocket48RoomInfo {
