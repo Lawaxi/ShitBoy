@@ -21,14 +21,13 @@ import java.util.regex.Pattern;
 
 public class WeiboSender extends Sender {
 
+    public static final String URLVideo = "https://video.weibo.com/show?fid=";
     private final HashMap<String, Long> endTime;
 
     public WeiboSender(Bot bot, long group, HashMap<String, Long> endTime) {
         super(bot, group);
         this.endTime = endTime;
     }
-
-    public static final String URLVideo = "https://video.weibo.com/show?fid=";
 
     @Override
     public void run() {

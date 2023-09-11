@@ -17,6 +17,7 @@ public class WeiboHandler extends WebHandler {
     private static final String APIUserProfile = "https://weibo.com/ajax/profile/info?uid=%d";
     private static final String APIUserBlog = "https://weibo.com/ajax/statuses/mymblog?uid=%d&page=1&feature=0";
     private static String cookie = "";
+    private final HashMap<Long, String> name = new HashMap<>();
 
     public WeiboHandler() {
         super();
@@ -41,8 +42,6 @@ public class WeiboHandler extends WebHandler {
         return null;
 
     }
-
-    private final HashMap<Long, String> name = new HashMap<>();
 
     public String getUserName(long id) {
         if (name.containsKey(id))
@@ -84,21 +83,24 @@ public class WeiboHandler extends WebHandler {
             String ret = get(String.format(APIUserBlog, id));
             if (!ret.equals("")) {
                 JSONObject o = JSONUtil.parseObj(ret);
-                if (o.getInt("ok") == 1) {
-                    return o.getJSONObject("data").getJSONArray("list").toArray(new Object[0]);
-                } else
-                    return null;
+                if (o != null) {
+                    if (o.getInt("ok") == 1) {
+                        return o.getJSONObject("data").getJSONArray("list").toArray(new Object[0]);
+                    } else
+                        return null;
+                }
             }
         }
 
         try {
             updateLoginToSuccess();
             Shitboy.INSTANCE.getLogger().info("微博Cookie更新成功");
+            return getUserBlog(id);
 
         } catch (Exception e) {
             Shitboy.INSTANCE.getLogger().info("微博Cookie更新失败");
+            return null;
         }
-        return null;
     }
 
     public void updateLoginToSuccess() {

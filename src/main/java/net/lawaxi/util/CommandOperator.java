@@ -24,6 +24,8 @@ import java.util.List;
 public class CommandOperator {
 
     public static CommandOperator INSTANCE;
+    private final List<String> helps = new ArrayList<>();
+    private final HashMap<Long, List<String>> localHelps = new HashMap<>();
 
     public CommandOperator() {
         INSTANCE = this;
@@ -159,7 +161,7 @@ public class CommandOperator {
                                 if (star) {
                                     fan += "\n贡献榜:";
                                     JSONObject archives = Shitboy.INSTANCE.getHandlerPocket48().getUserArchives(star_ID);
-                                    if(archives != null) {
+                                    if (archives != null) {
                                         Object[] fans = archives.getJSONArray("fansRank").stream().toArray();
                                         for (int i = 0; i < fans.length; i++) {
                                             fan += "\n" + (i + 1) + "." + JSONUtil.parseObj(fans[i]).getStr("nickName");
@@ -707,9 +709,6 @@ public class CommandOperator {
         return null;
     }
 
-    private final List<String> helps = new ArrayList<>();
-    private final HashMap<Long, List<String>> localHelps = new HashMap<>();
-
     private void initHelp() {
         addHelp("【管理员指令】\n" //0
                 + "(私聊) /清理\n");
@@ -865,7 +864,7 @@ public class CommandOperator {
                     if (info != null) { //口袋48bug之已删除的房间也会保留，但无法获取信息，见陈琳Server的(3311605)都是小团体
                         out += (i != null) ? "(" + i + ")" + info.getRoomName() + "\n" : "";
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                 }
             }
             return out;

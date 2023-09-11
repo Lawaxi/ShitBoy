@@ -23,6 +23,14 @@ public class WeidianOrderSender extends Sender {
         this.cache = cache;
     }
 
+    public static WeidianItem search(WeidianItem[] items, long id) {
+        for (WeidianItem item : items) {
+            if (item.id == id)
+                return item;
+        }
+        return null;
+    }
+
     @Override
     public void run() {
         WeidianHandler weidian = Shitboy.INSTANCE.getHandlerWeidian();
@@ -81,14 +89,6 @@ public class WeidianOrderSender extends Sender {
         Message t = combine(messages1);
         if (t != null)
             group.sendMessage(t);
-    }
-
-    public static WeidianItem search(WeidianItem[] items, long id) {
-        for (WeidianItem item : items) {
-            if (item.id == id)
-                return item;
-        }
-        return null;
     }
 
 }

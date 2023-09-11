@@ -13,8 +13,8 @@ import static net.lawaxi.model.EndTime.newTime;
 public class Pocket48SenderCache {
 
     public final Pocket48RoomInfo roomInfo;
-    public Pocket48Message[] messages;
     public final List<Long> voiceList;
+    public Pocket48Message[] messages;
 
     public Pocket48SenderCache(Pocket48RoomInfo roomInfo, Pocket48Message[] messages, List<Long> voiceList) {
         this.roomInfo = roomInfo;

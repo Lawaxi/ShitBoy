@@ -16,6 +16,8 @@ public class Pocket48Handler extends WebHandler {
 
     public static final String ROOT = "https://pocketapi.48.cn";
     public static final String SOURCEROOT = "https://source.48.cn/";
+    public static final String APIAnswerDetail = ROOT + "/idolanswer/api/idolanswer/v1/question_answer/detail";
+    public static final List<Long> voidRoomVoiceList = new ArrayList<>();
     private static final String APILogin = ROOT + "/user/api/v1/login/app/mobile";
     private static final String APIBalance = ROOT + "/user/api/v1/user/money";
     private static final String APIStar2Server = ROOT + "/im/api/v1/im/server/jump";
@@ -24,17 +26,41 @@ public class Pocket48Handler extends WebHandler {
     private static final String APISearch = ROOT + "/im/api/v1/im/server/search";
     private static final String APIMsgOwner = ROOT + "/im/api/v1/team/message/list/homeowner";
     private static final String APIMsgAll = ROOT + "/im/api/v1/team/message/list/all";
-    public static final String APIAnswerDetail = ROOT + "/idolanswer/api/idolanswer/v1/question_answer/detail";
     private static final String APIUserInfo = ROOT + "/user/api/v1/user/info/home";
     private static final String APIUserArchives = ROOT + "/user/api/v1/user/star/archives";
     private static final String APILiveList = ROOT + "/live/api/v1/live/getLiveList";
     private static final String APIRoomVoice = ROOT + "/im/api/v1/team/voice/operate";
-
     private final Pocket48HandlerHeader header;
+    private final HashMap<Long, String> name = new HashMap<>();
 
     public Pocket48Handler() {
         super();
         this.header = new Pocket48HandlerHeader(properties);
+    }
+
+    public static final String getOwnerOrTeamName(Pocket48RoomInfo roomInfo) {
+        switch (String.valueOf(roomInfo.getSeverId())) {
+            case "1148749":
+                return "TEAM Z";
+            case "1164313":
+                return "TEAM X";
+            case "1164314":
+                return "TEAM NIII";
+            case "1181051":
+                return "TEAM HII";
+            case "1181256":
+                return "TEAM G";
+            case "1213978":
+                return "TEAM NII";
+            case "1214171":
+                return "TEAM SII";
+            case "1115226":
+                return "CKG48";
+            case "1115413":
+                return "BEJ48";
+            default:
+                return roomInfo.getOwnerName();
+        }
     }
 
     //登陆前
@@ -63,6 +89,8 @@ public class Pocket48Handler extends WebHandler {
         return header.getToken() != null;
     }
 
+    /* ----------------------文字获取类---------------------- */
+
     public void logout() {
         header.setToken(null);
     }
@@ -90,8 +118,6 @@ public class Pocket48Handler extends WebHandler {
         return header.setHeader(request);
     }
 
-    /* ----------------------文字获取类---------------------- */
-
     public int getBalance() {
         String s = post(APIBalance, String.format("{\"token\":\"%s\"}", header.getToken()));
         JSONObject object = JSONUtil.parseObj(s);
@@ -105,8 +131,6 @@ public class Pocket48Handler extends WebHandler {
         }
         return 0;
     }
-
-    private final HashMap<Long, String> name = new HashMap<>();
 
     public String getStarNameByStarID(long starID) {
         if (name.containsKey(starID))
@@ -335,7 +359,6 @@ public class Pocket48Handler extends WebHandler {
         return new Pocket48Message[0];
     }
 
-
     //获取未整理的消息
     private List<Object> getOriMessages(long roomID, long serverID) {
         String s = post(APIMsgOwner, String.format("{\"nextTime\":0,\"serverId\":%d,\"channelId\":%d,\"limit\":100}", serverID, roomID));
@@ -353,33 +376,6 @@ public class Pocket48Handler extends WebHandler {
         }
         return null;
     }
-
-    public static final String getOwnerOrTeamName(Pocket48RoomInfo roomInfo) {
-        switch (String.valueOf(roomInfo.getSeverId())) {
-            case "1148749":
-                return "TEAM Z";
-            case "1164313":
-                return "TEAM X";
-            case "1164314":
-                return "TEAM NIII";
-            case "1181051":
-                return "TEAM HII";
-            case "1181256":
-                return "TEAM G";
-            case "1213978":
-                return "TEAM NII";
-            case "1214171":
-                return "TEAM SII";
-            case "1115226":
-                return "CKG48";
-            case "1115413":
-                return "BEJ48";
-            default:
-                return roomInfo.getOwnerName();
-        }
-    }
-
-    public static final List<Long> voidRoomVoiceList = new ArrayList<>();
 
     public List<Long> getRoomVoiceList(long roomID, long serverID) {
         String s = post(APIRoomVoice, String.format("{\"channelId\":%d,\"serverId\":%d,\"operateCode\":2}", roomID, serverID));

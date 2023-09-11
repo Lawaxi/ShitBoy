@@ -6,24 +6,22 @@ import net.lawaxi.util.Properties;
 
 public class WebHandler {
 
-    private String cronScheduleID;
-
-    public void setCronScheduleID(String cronScheduleID) {
-        this.cronScheduleID = cronScheduleID;
-    }
-
-    public String getCronScheduleID() {
-        return cronScheduleID;
-    }
-
-    /*----------------------------------*/
-
     public final Properties properties;
+    private String cronScheduleID;
 
     public WebHandler() {
         this.properties = Shitboy.INSTANCE.getProperties();
     }
 
+    /*----------------------------------*/
+
+    public String getCronScheduleID() {
+        return cronScheduleID;
+    }
+
+    public void setCronScheduleID(String cronScheduleID) {
+        this.cronScheduleID = cronScheduleID;
+    }
 
     protected void logInfo(String msg) {
         properties.logger.info(msg);

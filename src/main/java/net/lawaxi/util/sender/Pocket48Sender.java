@@ -10,6 +10,7 @@ import net.mamoe.mirai.message.data.*;
 import net.mamoe.mirai.utils.ExternalResource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -63,7 +64,7 @@ public class Pocket48Sender extends Sender {
                 if (voiceStatus.containsKey(roomID)) {
                     String[] r = handleVoiceList(voiceStatus.get(roomID), n);
                     if (r[0] != null || r[1] != null) {
-                        String ownerName = pocket.getOwnerOrTeamName(roomInfo);
+                        String ownerName = Pocket48Handler.getOwnerOrTeamName(roomInfo);
                         boolean private_ = ownerName.equals(roomInfo.getOwnerName());
                         String message = "【" + roomInfo.getRoomName() + "(" + ownerName + ")房间语音】\n";
 
@@ -191,8 +192,8 @@ public class Pocket48Sender extends Sender {
                         new Message[]{image});
             }
             case VIDEO: {
-                //短视频上传需要封面，本插件不打算添加视频处理功能，用成员封面代替
-                ShortVideo video = group.uploadShortVideo(ExternalResource.create(getRes(message.getRoom().getBgImg())), ExternalResource.create(getRes(message.getResLoc())),
+                InputStream s = getRes(message.getResLoc());
+                ShortVideo video = group.uploadShortVideo(ExternalResource.create(getVideoThumbnail(s, message.getRoom().getBgImg())), ExternalResource.create(s),
                         (single_subscribe ? "" : message.getOwnerName()) + "房间视频(" + DateUtil.format(new Date(message.getTime()), "yyyy-MM-dd HH-mm-ss") + ")." + message.getExt());
                 return single_subscribe ? new Pocket48SenderMessage(false, null,
                         new Message[]{video}) : new Pocket48SenderMessage(false, new PlainText(name),

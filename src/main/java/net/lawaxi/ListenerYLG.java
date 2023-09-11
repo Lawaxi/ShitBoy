@@ -119,8 +119,8 @@ public class ListenerYLG extends SimpleListenerHost {
 
     private class messageWithTime {
         public final int time;
-        public int send_time = 0;
         public final String message;
+        public int send_time = 0;
 
         public messageWithTime(int time, String message) {
             this.time = time;

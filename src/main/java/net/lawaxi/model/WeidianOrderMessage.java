@@ -4,13 +4,13 @@ import net.mamoe.mirai.message.data.Message;
 import net.mamoe.mirai.message.data.PlainText;
 
 public class WeidianOrderMessage implements WeidianMessage {
-    protected Message message;
     public final String name_buyer;
     public final long buyerId;
     public final long itemId;
     public final String name_item;
     public final double price;
     public final String payTime;
+    protected Message message;
 
     public WeidianOrderMessage(long buyerId, long itemId, String nameBuyer, String nameItem, Message message, double price, String payTime) {
         this.message = message;
@@ -22,9 +22,16 @@ public class WeidianOrderMessage implements WeidianMessage {
         this.payTime = payTime;
     }
 
-    public WeidianOrderMessage setMessage(Message message) {
-        this.message = message;
-        return this;
+    public static WeidianOrderMessage construct(WeidianOrder order) {
+        return new WeidianOrderMessage(
+                order.buyerID,
+                order.itemID,
+                order.buyerName,
+                order.itemName,
+                null,
+                order.price,
+                order.getPayTimeStr()
+        ).generateMessage();
     }
 
     public WeidianOrderMessage generateMessage() {
@@ -36,6 +43,10 @@ public class WeidianOrderMessage implements WeidianMessage {
         return this.message;
     }
 
+    public WeidianOrderMessage setMessage(Message message) {
+        this.message = message;
+        return this;
+    }
 
     public Message getMessage(WeidianBuyer[] buyers) {
         for (int i = 0; i < buyers.length; i++) {
@@ -60,18 +71,6 @@ public class WeidianOrderMessage implements WeidianMessage {
             }
         }
         return this.message.plus("\n" + payTime);
-    }
-
-    public static WeidianOrderMessage construct(WeidianOrder order) {
-        return new WeidianOrderMessage(
-                order.buyerID,
-                order.itemID,
-                order.buyerName,
-                order.itemName,
-                null,
-                order.price,
-                order.getPayTimeStr()
-        ).generateMessage();
     }
 
 }

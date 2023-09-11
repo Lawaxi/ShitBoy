@@ -13,11 +13,12 @@ public class BilibiliHandler extends WebHandler {
     private static final String APILiveInfo = "https://api.live.bilibili.com/room/v1/Room/get_info?";
     private static final String APIUserInfo = "https://api.bilibili.com/x/space/acc/info?";
     private static final String APIUserSpace = "https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid=";
+    private static final HashMap<Integer, String> name_data = new HashMap<>();
+
 
     public BilibiliHandler() {
         super();
     }
-
 
     public JSONObject shouldMention(int room_id, HashMap<Integer, Boolean> status) {
         //当前状态
@@ -46,8 +47,6 @@ public class BilibiliHandler extends WebHandler {
         String s = get(APILiveInfo + "room_id=" + room_id);
         return JSONUtil.parseObj(s);
     }
-
-    private static final HashMap<Integer, String> name_data = new HashMap<>();
 
     public String getNameByMid(int uid) {
         String s = get(APIUserInfo + "mid=" + uid);

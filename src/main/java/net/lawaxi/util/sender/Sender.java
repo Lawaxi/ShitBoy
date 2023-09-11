@@ -1,6 +1,7 @@
 package net.lawaxi.util.sender;
 
 import cn.hutool.http.HttpRequest;
+import net.lawaxi.util.ThumbnailatorUtil;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.MemberPermission;
@@ -8,6 +9,7 @@ import net.mamoe.mirai.message.data.AtAll;
 import net.mamoe.mirai.message.data.Message;
 import net.mamoe.mirai.message.data.PlainText;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -33,6 +35,14 @@ public class Sender extends Thread { //异步进程
 
     public InputStream getRes(String resLoc) {
         return HttpRequest.get(resLoc).execute().bodyStream();
+    }
+
+    public InputStream getVideoThumbnail(InputStream video, String defaultImg) {
+        try {
+            return ThumbnailatorUtil.generateThumbnail(video);
+        } catch (IOException e) {
+            return getRes(defaultImg);
+        }
     }
 
     public Message toNotification(Message m) {

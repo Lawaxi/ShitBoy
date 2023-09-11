@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.lawaxi"
-version = "0.1.11-dev5"
+version = "0.1.11-dev6"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")
@@ -17,6 +17,7 @@ repositories {
 }
 
 dependencies {
-    api ("cn.hutool:hutool-all:5.8.18")
-    api ("com.belerweb:pinyin4j:2.5.0")
+    api("cn.hutool:hutool-all:5.8.18")
+    implementation("com.belerweb:pinyin4j:2.5.0")
+    implementation("net.coobird:thumbnailator:0.4.14")
 }

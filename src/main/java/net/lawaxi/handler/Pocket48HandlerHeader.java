@@ -6,20 +6,20 @@ import net.lawaxi.util.Properties;
 public class Pocket48HandlerHeader {
 
     private final Properties properties;
-    private String token;
     private final String pa = "MTY3OTYzOTUwOTAwMCw3NDEwLEYyMzk2RkJGQTI5ODEwRUFFOEI4NEUyNDQ0RkREQjUzLDIwMjEwNjA5MDE=";
     private final String version = "7.0.4";
+    private String token;
 
     public Pocket48HandlerHeader(Properties properties) {
         this.properties = properties;
     }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-
     public String getToken() {
         return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     private HttpRequest setDefaultHeader(HttpRequest request) {

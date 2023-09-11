@@ -13,6 +13,12 @@ import java.util.List;
 
 public class WeidianHandler extends WebHandler {
 
+    private static final String APIOrderList = "https://thor.weidian.com/tradeview/seller.getOrderListForPC/1.0";
+    private static final String APIDeliver = "https://thor.weidian.com/tradeview/seller.deliverOrder/1.0";
+    private static final String APIItemList = "https://thor.weidian.com/wditem/itemList.pcListItems/1.0?param=%7B%22pageSize%22%3A5%2C%22pageNum%22%3A0%2C%22listStatus%22%3A%222%22%2C%22sorts%22%3A%5B%7B%22field%22%3A%22add_time%22%2C%22mode%22%3A%22desc%22%7D%5D%2C%22shopId%22%3A%22%22%7D&wdtoken=";
+    //无需cookie
+    private static final String APISkuInfo = "https://thor.weidian.com/detail/getItemSkuInfo/1.0?param=%7B%22itemId%22%3A%22%d%22%7D";
+
     //setDefaultHeader
     @Override
     protected HttpRequest setHeader(HttpRequest request) {
@@ -31,12 +37,6 @@ public class WeidianHandler extends WebHandler {
     protected String get(String url, WeidianCookie cookie) {
         return setHeader(HttpRequest.get(url), cookie).execute().body();
     }
-
-    private static final String APIOrderList = "https://thor.weidian.com/tradeview/seller.getOrderListForPC/1.0";
-    private static final String APIDeliver = "https://thor.weidian.com/tradeview/seller.deliverOrder/1.0";
-    private static final String APIItemList = "https://thor.weidian.com/wditem/itemList.pcListItems/1.0?param=%7B%22pageSize%22%3A5%2C%22pageNum%22%3A0%2C%22listStatus%22%3A%222%22%2C%22sorts%22%3A%5B%7B%22field%22%3A%22add_time%22%2C%22mode%22%3A%22desc%22%7D%5D%2C%22shopId%22%3A%22%22%7D&wdtoken=";
-    //无需cookie
-    private static final String APISkuInfo = "https://thor.weidian.com/detail/getItemSkuInfo/1.0?param=%7B%22itemId%22%3A%22%d%22%7D";
 
     private JSONArray getOriOrderList(WeidianCookie cookie) {
         //获取【待发货】列表中的订单
@@ -105,7 +105,6 @@ public class WeidianHandler extends WebHandler {
 
         long lastTime = endTime.time;
         List<WeidianOrder> orders = new ArrayList<>(); //拆分订单表：按商品将订单分开
-        Orders:
         //复合订单
         for (Object object : objectList.toArray(new Object[0])) {
             JSONObject order = JSONUtil.parseObj(object);
