@@ -25,7 +25,7 @@ import java.util.List;
 
 public final class Shitboy extends JavaPlugin {
     public static final String ID = "net.lawaxi.shitboy";
-    public static final String VERSION = "0.1.11-dev6";
+    public static final String VERSION = "0.1.11-dev7";
 
     /*
     本项目是一个mirai-console插件 用于SNH48 Group应援群播报
@@ -66,8 +66,6 @@ public final class Shitboy extends JavaPlugin {
         registerPermission();
         registerCommand();
         GlobalEventChannel.INSTANCE.registerListenerHost(new Listener());
-        if (properties.ylg)
-            GlobalEventChannel.INSTANCE.registerListenerHost(new ListenerYLG());
 
         //------------------------------------------------
         //服务
@@ -100,6 +98,12 @@ public final class Shitboy extends JavaPlugin {
         listenBroadcast(pocket48_has_login, finalWeibo_has_login);
 
         getLogger().info("Shit boy!");
+
+        //------------------------------------------------
+        //YLG
+
+        if (properties.ylg)
+            GlobalEventChannel.INSTANCE.registerListenerHost(new ListenerYLG());
     }
 
     private void initProperties() {

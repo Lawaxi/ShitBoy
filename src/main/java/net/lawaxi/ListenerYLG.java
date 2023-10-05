@@ -1,6 +1,6 @@
 package net.lawaxi;
 
-import cn.hutool.extra.pinyin.engine.pinyin4j.Pinyin4jEngine;
+//import cn.hutool.extra.pinyin.engine.pinyin4j.Pinyin4jEngine;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.contact.NormalMember;
@@ -17,7 +17,7 @@ import java.util.List;
 
 public class ListenerYLG extends SimpleListenerHost {
     private static final long ylg_group = 817151561;
-    private final Pinyin4jEngine engine = new Pinyin4jEngine();
+    //private final Pinyin4jEngine engine = new Pinyin4jEngine();
     private final List<messageWithTime> xenon = new ArrayList<>();//群主消息记录
     private final List<messageWithTime> xenon_recall = new ArrayList<>();//机器人复读的群主消息记录
 
@@ -27,16 +27,17 @@ public class ListenerYLG extends SimpleListenerHost {
         Group group = event.getGroup();
         String message = event.getMessage().contentToString();
 
-        if (sender instanceof NormalMember) {
+        if (sender instanceof NormalMember && group.getId() == ylg_group) {
             long qqID = sender.getId();
 
             //单推人
+            /*
             if (qqID == 1004297982L) {
                 String t = engine.getPinyin(message, " ");
                 if (message.indexOf("wife") != -1 || message.indexOf("wives") != -1
                         || t.indexOf("wo wai fu") != -1 || t.indexOf("wo lao po") != -1)
                     group.sendMessage("傻逼");
-            }
+            }*/
 
             //小豆芽
             if (qqID == 2901878527L) {
@@ -45,8 +46,8 @@ public class ListenerYLG extends SimpleListenerHost {
             }
 
             //gethigher
-            if (qqID == 2080539637 && group.getId() == ylg_group) {
-                if (xenon.size() == 5)
+            if (qqID == 2080539637) {
+                if (xenon.size() == 100)
                     xenon.remove(0);
                 xenon.add(new messageWithTime(event.getTime(), message));
             }
@@ -67,13 +68,24 @@ public class ListenerYLG extends SimpleListenerHost {
 
         }
 
-        if (message.equals("查群主") && group.getId() == ylg_group) {
+        if (message.startsWith("查群主")) {
+            String[] a = message.split(" ");
+            int page = 1;
+            if (a.length > 1) {
+                try {
+                    page = Integer.valueOf(a[1]);
+                } catch (NumberFormatException e) {
+
+                }
+            }
+
             String o = "";
-            for (messageWithTime m : xenon) {
-                o += "· " + m.message + "\n";
+            for (int i = xenon.size() + 4 - page * 5; i >= xenon.size() - page * 5; i--) {
+                o += "· " + xenon.get(i).message + "\n";
             }
             group.sendMessage(
-                    new At(sender.getId()).plus("群主最近五条消息:\n" + o));
+                    new At(sender.getId()).plus("群主消息:\n" + o + "\n下一页：查群主 " + (page + 1)));
+
         }
 
         return ListeningStatus.LISTENING;

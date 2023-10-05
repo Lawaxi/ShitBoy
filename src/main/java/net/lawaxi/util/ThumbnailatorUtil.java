@@ -11,6 +11,7 @@ import java.io.InputStream;
 public class ThumbnailatorUtil {
     public static InputStream generateThumbnail(InputStream videoInputStream) throws IOException {
         BufferedImage thumbnailImage = Thumbnails.of(videoInputStream)
+                .size(320, 240)
                 .outputFormat("jpg")
                 .asBufferedImage();
 
